@@ -1,0 +1,6 @@
+# ignore intelliJ generated files
+kEPLr.iml
+idea/
+
+# ignore dinamically generated files
+target/
