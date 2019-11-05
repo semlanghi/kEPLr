@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "Payment2",
+  "namespace": "caccapupu.sbadabum",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "amount",
+      "type": "double"
+    },
+    {
+      "name": "location",
+      "type": "string"
+    }
+  ]
+}
