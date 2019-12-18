@@ -33,28 +33,33 @@ public class GenericRecordProducer {
         //      new GenericRecordBuilder(loadSchema("Payment.avsc"));
 
 
-        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("Payment.asvc"));
+        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("A.asvc"));
         KafkaProducer<String, GenericRecord> producer = new KafkaProducer<String, GenericRecord>(producerConfig);
 
 
 
         String[] names = {"sammy", "Dio", "Gesu", "Madonna", "Giuseppe"};
+        String[] keys = {"key1","key2","key3","key4"};
         Random rng = new Random(12345);
         Random rng2 = new Random(157578);
         Double val;
         Integer index;
+        Integer index2;
 
         for(int i=0; i<60; i++){
 
             try {
                 val = rng.nextDouble();
                 index = rng2.nextInt(names.length);
+                index2 = rng2.nextInt(keys.length);
                 record.set("id", names[index]);
+
                 record.set("amount", val);
+
                 System.out.println("Name: "+names[index]+" Amount: "+val);
 
 
-                producer.send(new ProducerRecord<String, GenericRecord>("topic_followed_by_3", "sbadabum", record.build()));
+                producer.send(new ProducerRecord<String, GenericRecord>("windowing_input", keys[index2], record.build()));
                 producer.flush();
 
 

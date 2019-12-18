@@ -33,7 +33,7 @@ public class GenericRecordProducer2 {
         //      new GenericRecordBuilder(loadSchema("Payment.avsc"));
 
 
-        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("Payment2.asvc"));
+        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("B.asvc"));
         KafkaProducer<String, GenericRecord> producer = new KafkaProducer<String, GenericRecord>(producerConfig);
 
 

@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "A",
+  "namespace": "kEPLr.examples",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int"
+    },
+    {
+      "name": "timestamp",
+      "type": "long"
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -21,15 +22,17 @@ public class GenericRecordConsumer {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, Serdes.String().deserializer().getClass());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, Serdes.Long().deserializer().getClass());
 
-        KafkaConsumer<String, GenericRecord> consumer = new KafkaConsumer<String, GenericRecord>(props);
 
-        consumer.subscribe(Arrays.asList("followed_by_stream"));
+
+        KafkaConsumer<String, Long> consumer = new KafkaConsumer<String, Long>(props);
+
+        consumer.subscribe(Arrays.asList("windowing_output2"));
         try{
             while(true){
-                ConsumerRecords<String, GenericRecord> records = consumer.poll(1000);
-                for(ConsumerRecord<String,GenericRecord> record : records){
+                ConsumerRecords<String, Long> records = consumer.poll(1000);
+                for(ConsumerRecord<String,Long> record : records){
                     System.out.println("key: "+record.key()+" value: "+record.value());
                 }
             }

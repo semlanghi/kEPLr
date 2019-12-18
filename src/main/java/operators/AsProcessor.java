@@ -36,6 +36,7 @@ public class AsProcessor implements Processor<String, GenericRecord> {
         context.forward(key,builder.build());
 
 
+
     }
 
     @Override

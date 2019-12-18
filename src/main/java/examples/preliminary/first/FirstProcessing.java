@@ -80,7 +80,7 @@ public class FirstProcessing {
         //      new GenericRecordBuilder(loadSchema("Payment.avsc"));
 
 
-        //GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("Payment.asvc"));
+        //GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("A.asvc"));
         KafkaProducer<String, Integer> producer = new KafkaProducer<String,Integer>(producerConfig);
 
 

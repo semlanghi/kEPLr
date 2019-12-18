@@ -1,4 +1,4 @@
-package operators;
+package operators.followedBy;
 
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import org.apache.avro.Schema;

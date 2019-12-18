@@ -1,7 +1,7 @@
-package examples;
+package examples.preliminary;
 
 import io.confluent.kafka.serializers.*;
-import operators.FollowedByProcessor;
+import operators.followedBy.FollowedByProcessor;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
