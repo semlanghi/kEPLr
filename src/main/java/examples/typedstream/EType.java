@@ -6,6 +6,10 @@ public abstract class EType<E,T> {
 
     T type;
 
+    public EType(T type) {
+        this.type = type;
+    }
+
     public abstract boolean check(E stream);
 
 }
