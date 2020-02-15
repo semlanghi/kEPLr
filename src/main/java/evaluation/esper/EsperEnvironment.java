@@ -2,10 +2,7 @@ package evaluation.esper;
 
 import com.espertech.esper.common.client.EPCompiled;
 import com.espertech.esper.common.client.configuration.Configuration;
-import com.espertech.esper.common.client.configuration.common.ConfigurationCommonEventTypeAvro;
 import com.espertech.esper.common.client.util.EventTypeBusModifier;
-import com.espertech.esper.common.internal.event.avro.EventTypeAvroHandler;
-import com.espertech.esper.common.internal.event.avro.EventTypeAvroHandlerFactory;
 import com.espertech.esper.compiler.client.CompilerArguments;
 import com.espertech.esper.compiler.client.EPCompileException;
 import com.espertech.esper.compiler.client.EPCompiler;
@@ -19,7 +16,6 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -27,7 +23,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
-import producer.GenericRecordProducer;
+import evaluation.producer.GenericRecordProducer;
 
 import java.io.IOException;
 import java.io.InputStream;

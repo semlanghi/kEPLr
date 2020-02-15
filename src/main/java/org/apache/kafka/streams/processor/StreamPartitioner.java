@@ -20,7 +20,7 @@ import org.apache.kafka.clients.producer.internals.DefaultPartitioner;
 import org.apache.kafka.streams.Topology;
 
 /**
- * Determine how records are distributed among the partitions in a Kafka topic. If not specified, the underlying producer's
+ * Determine how records are distributed among the partitions in a Kafka topic. If not specified, the underlying evaluation.producer's
  * {@link DefaultPartitioner} will be used to determine the partition.
  * <p>
  * Kafka topics are divided into one or more <i>partitions</i>. Since each partition must fit on the servers that host it, so

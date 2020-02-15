@@ -264,7 +264,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * - (re-)initialize the topology of the task
      * </pre>
      *
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     @Override
     public void initializeTopology() {
@@ -298,7 +298,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
         log.debug("Resuming");
         if (eosEnabled) {
             if (producer != null) {
-                throw new IllegalStateException("Task producer should be null.");
+                throw new IllegalStateException("Task evaluation.producer should be null.");
             }
             producer = producerSupplier.get();
             initializeTransactions();
@@ -340,7 +340,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * Process one record.
      *
      * @return true if this method processes a record, false if it does not process a record.
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     @SuppressWarnings("unchecked")
     public boolean process() {
@@ -407,7 +407,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
 
     /**
      * @throws IllegalStateException if the current node is not null
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     @Override
     public void punctuate(final ProcessorNode node, final long timestamp, final PunctuationType type, final Punctuator punctuator) {
@@ -445,13 +445,13 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
 
     /**
      * <pre>
-     * - flush state and producer
+     * - flush state and evaluation.producer
      * - if(!eos) write checkpoint
      * - commit offsets and start new transaction
      * </pre>
      *
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     @Override
     public void commit() {
@@ -460,7 +460,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
 
     /**
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     // visible for testing
     void commit(final boolean startNewTransaction) {
@@ -514,7 +514,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
 
     @Override
     protected void flushState() {
-        log.trace("Flushing state and producer");
+        log.trace("Flushing state and evaluation.producer");
         super.flushState();
         try {
             recordCollector.flush();
@@ -552,13 +552,13 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * <pre>
      * - close topology
      * - {@link #commit()}
-     *   - flush state and producer
+     *   - flush state and evaluation.producer
      *   - if (!eos) write checkpoint
      *   - commit offsets
      * </pre>
      *
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     @Override
     public void suspend() {
@@ -570,13 +570,13 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * <pre>
      * - close topology
      * - if (clean) {@link #commit()}
-     *   - flush state and producer
+     *   - flush state and evaluation.producer
      *   - if (!eos) write checkpoint
      *   - commit offsets
      * </pre>
      *
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     // visible for testing
     void suspend(final boolean clean,
@@ -638,7 +638,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
             try {
                 recordCollector.close();
             } catch (final Throwable e) {
-                log.error("Failed to close producer due to the following error:", e);
+                log.error("Failed to close evaluation.producer due to the following error:", e);
             } finally {
                 producer = null;
             }
@@ -700,18 +700,18 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * - {@link #suspend(boolean, boolean) suspend(clean)}
      *   - close topology
      *   - if (clean) {@link #commit()}
-     *     - flush state and producer
+     *     - flush state and evaluation.producer
      *     - commit offsets
      * - close state
      *   - if (clean) write checkpoint
-     * - if (eos) close producer
+     * - if (eos) close evaluation.producer
      * </pre>
      *
      * @param clean    shut down cleanly (ie, incl. flush and commit) if {@code true} --
      *                 otherwise, just close open resources
      * @param isZombie {@code true} is this task is a zombie or not (this will repress {@link TaskMigratedException}
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     @Override
     public void close(boolean clean,
@@ -813,7 +813,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * current partition group timestamp has reached the defined stamp
      * Note, this is only called in the presence of new records
      *
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     public boolean maybePunctuateStreamTime() {
         final long streamTime = partitionGroup.streamTime();
@@ -838,7 +838,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
      * current system timestamp has reached the defined stamp
      * Note, this is called irrespective of the presence of new records
      *
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     public boolean maybePunctuateSystemTime() {
         final long systemTime = time.milliseconds();
@@ -883,7 +883,7 @@ public class StreamTask extends AbstractTask implements ProcessorNodePunctuator 
                 "Timeout exception caught when initializing transactions for task {}. " +
                     "This might happen if the broker is slow to respond, if the network connection to " +
                     "the broker was interrupted, or if similar circumstances arise. " +
-                    "You can increase producer parameter `max.block.ms` to increase this timeout.",
+                    "You can increase evaluation.producer parameter `max.block.ms` to increase this timeout.",
                 id,
                 retriable
             );

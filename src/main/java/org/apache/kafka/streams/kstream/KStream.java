@@ -425,7 +425,7 @@ public interface KStream<K, V> {
 
     /**
      * Materialize this stream to a topic and creates a new {@code KStream} from the topic using default serializers,
-     * deserializers, and producer's {@link DefaultPartitioner}.
+     * deserializers, and evaluation.producer's {@link DefaultPartitioner}.
      * The specified topic should be manually created before it is used (i.e., before the Kafka Streams application is
      * started).
      * <p>
@@ -459,7 +459,7 @@ public interface KStream<K, V> {
                           final Produced<K, V> produced);
 
     /**
-     * Materialize this stream to a topic using default serializers specified in the config and producer's
+     * Materialize this stream to a topic using default serializers specified in the config and evaluation.producer's
      * {@link DefaultPartitioner}.
      * The specified topic should be manually created before it is used (i.e., before the Kafka Streams application is
      * started).
@@ -480,7 +480,7 @@ public interface KStream<K, V> {
             final Produced<K, V> produced);
 
     /**
-     * Dynamically materialize this stream to topics using default serializers specified in the config and producer's
+     * Dynamically materialize this stream to topics using default serializers specified in the config and evaluation.producer's
      * {@link DefaultPartitioner}.
      * The topic names for each record to send to is dynamically determined based on the {@link TopicNameExtractor}.
      *

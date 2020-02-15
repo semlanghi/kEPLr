@@ -262,7 +262,7 @@ public class StreamThread extends Thread {
 
         @Override
         public void onPartitionsAssigned(final Collection<TopicPartition> assignment) {
-            log.debug("at state {}: partitions {} assigned at the end of consumer rebalance.\n" +
+            log.debug("at state {}: partitions {} assigned at the end of evaluation.consumer rebalance.\n" +
                     "\tcurrent suspended active tasks: {}\n" +
                     "\tcurrent suspended standby tasks: {}\n",
                 streamThread.state,
@@ -310,7 +310,7 @@ public class StreamThread extends Thread {
 
         @Override
         public void onPartitionsRevoked(final Collection<TopicPartition> assignment) {
-            log.debug("at state {}: partitions {} revoked at the beginning of consumer rebalance.\n" +
+            log.debug("at state {}: partitions {} revoked at the beginning of evaluation.consumer rebalance.\n" +
                     "\tcurrent assigned active tasks: {}\n" +
                     "\tcurrent assigned standby tasks: {}\n",
                 streamThread.state,
@@ -461,7 +461,7 @@ public class StreamThread extends Thread {
             // eos
             if (threadProducer == null) {
                 final Map<String, Object> producerConfigs = config.getProducerConfigs(getTaskProducerClientId(threadClientId, id));
-                log.info("Creating producer client for task {}", id);
+                log.info("Creating evaluation.producer client for task {}", id);
                 producerConfigs.put(ProducerConfig.TRANSACTIONAL_ID_CONFIG, applicationId + "-" + id);
                 return clientSupplier.getProducer(producerConfigs);
             }
@@ -475,7 +475,7 @@ public class StreamThread extends Thread {
                 try {
                     threadProducer.close();
                 } catch (final Throwable e) {
-                    log.error("Failed to close producer due to the following error:", e);
+                    log.error("Failed to close evaluation.producer due to the following error:", e);
                 }
             }
         }
@@ -618,7 +618,7 @@ public class StreamThread extends Thread {
         final LogContext logContext = new LogContext(logPrefix);
         final Logger log = logContext.logger(StreamThread.class);
 
-        log.info("Creating restore consumer client");
+        log.info("Creating restore evaluation.consumer client");
         final Map<String, Object> restoreConsumerConfigs = config.getRestoreConsumerConfigs(getRestoreConsumerClientId(threadClientId));
         final Consumer<byte[], byte[]> restoreConsumer = clientSupplier.getRestoreConsumer(restoreConsumerConfigs);
         final Duration pollTime = Duration.ofMillis(config.getLong(StreamsConfig.POLL_MS_CONFIG));
@@ -628,7 +628,7 @@ public class StreamThread extends Thread {
         final boolean eosEnabled = StreamsConfig.EXACTLY_ONCE.equals(config.getString(StreamsConfig.PROCESSING_GUARANTEE_CONFIG));
         if (!eosEnabled) {
             final Map<String, Object> producerConfigs = config.getProducerConfigs(getThreadProducerClientId(threadClientId));
-            log.info("Creating shared producer client");
+            log.info("Creating shared evaluation.producer client");
             threadProducer = clientSupplier.getProducer(producerConfigs);
         }
 
@@ -671,7 +671,7 @@ public class StreamThread extends Thread {
             new AssignedStreamsTasks(logContext),
             new AssignedStandbyTasks(logContext));
 
-        log.info("Creating consumer client");
+        log.info("Creating evaluation.consumer client");
         final String applicationId = config.getString(StreamsConfig.APPLICATION_ID_CONFIG);
         final Map<String, Object> consumerConfigs = config.getMainConsumerConfigs(applicationId, getConsumerClientId(threadClientId), threadIdx);
         consumerConfigs.put(StreamsConfig.InternalConfig.TASK_MANAGER_FOR_PARTITION_ASSIGNOR, taskManager);
@@ -748,19 +748,19 @@ public class StreamThread extends Thread {
     }
 
     private static String getTaskProducerClientId(final String threadClientId, final TaskId taskId) {
-        return threadClientId + "-" + taskId + "-producer";
+        return threadClientId + "-" + taskId + "-evaluation.producer";
     }
 
     private static String getThreadProducerClientId(final String threadClientId) {
-        return threadClientId + "-producer";
+        return threadClientId + "-evaluation.producer";
     }
 
     private static String getConsumerClientId(final String threadClientId) {
-        return threadClientId + "-consumer";
+        return threadClientId + "-evaluation.consumer";
     }
 
     private static String getRestoreConsumerClientId(final String threadClientId) {
-        return threadClientId + "-restore-consumer";
+        return threadClientId + "-restore-evaluation.consumer";
     }
 
     // currently admin client is shared among all threads
@@ -821,8 +821,8 @@ public class StreamThread extends Thread {
                 }
             } catch (final TaskMigratedException ignoreAndRejoinGroup) {
                 log.warn("Detected task {} that got migrated to another thread. " +
-                        "This implies that this thread missed a rebalance and dropped out of the consumer group. " +
-                        "Will try to rejoin the consumer group. Below is the detailed description of the task:\n{}",
+                        "This implies that this thread missed a rebalance and dropped out of the evaluation.consumer group. " +
+                        "Will try to rejoin the evaluation.consumer group. Below is the detailed description of the task:\n{}",
                     ignoreAndRejoinGroup.migratedTask().id(), ignoreAndRejoinGroup.migratedTask().toString(">"));
 
                 enforceRebalance();
@@ -840,7 +840,7 @@ public class StreamThread extends Thread {
      * @throws StreamsException      If the store's change log does not contain the partition
      * @throws TaskMigratedException If another thread wrote to the changelog topic that is currently restored
      *                               or if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     // Visible for testing
     void runOnce() {
@@ -898,7 +898,7 @@ public class StreamThread extends Thread {
              * Within an iteration, after N (N initialized as 1 upon start up) round of processing one-record-each on the applicable tasks, check the current time:
              *  1. If it is time to commit, do it;
              *  2. If it is time to punctuate, do it;
-             *  3. If elapsed time is close to consumer's max.poll.interval.ms, end the current iteration immediately.
+             *  3. If elapsed time is close to evaluation.consumer's max.poll.interval.ms, end the current iteration immediately.
              *  4. If none of the the above happens, increment N.
              *  5. If one of the above happens, half the value of N.
              */
@@ -950,7 +950,7 @@ public class StreamThread extends Thread {
      *
      * @param pollTime how long to block in Consumer#poll
      * @return Next batch of records or null if no records available.
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     private ConsumerRecords<byte[], byte[]> pollRequests(final Duration pollTime) {
         ConsumerRecords<byte[], byte[]> records = null;
@@ -1045,7 +1045,7 @@ public class StreamThread extends Thread {
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     private boolean maybePunctuate() {
         final int punctuated = taskManager.punctuate();
@@ -1063,7 +1063,7 @@ public class StreamThread extends Thread {
      * Visible for testing.
      *
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     boolean maybeCommit() {
         final int committed;
@@ -1140,7 +1140,7 @@ public class StreamThread extends Thread {
             try {
                 // poll(0): Since this is during the normal processing, not during restoration.
                 // We can afford to have slower restore (because we don't wait inside poll for results).
-                // Instead, we want to proceed to the next iteration to call the main consumer#poll()
+                // Instead, we want to proceed to the next iteration to call the main evaluation.consumer#poll()
                 // as soon as possible so as to not be kicked out of the group.
                 final ConsumerRecords<byte[], byte[]> records = restoreConsumer.poll(Duration.ZERO);
 
@@ -1232,12 +1232,12 @@ public class StreamThread extends Thread {
         try {
             consumer.close();
         } catch (final Throwable e) {
-            log.error("Failed to close consumer due to the following error:", e);
+            log.error("Failed to close evaluation.consumer due to the following error:", e);
         }
         try {
             restoreConsumer.close();
         } catch (final Throwable e) {
-            log.error("Failed to close restore consumer due to the following error:", e);
+            log.error("Failed to close restore evaluation.consumer due to the following error:", e);
         }
         streamsMetrics.removeAllThreadLevelSensors();
 
@@ -1332,8 +1332,8 @@ public class StreamThread extends Thread {
                 result.putAll(producerMetrics);
             }
         } else {
-            // When EOS is turned on, each task will have its own producer client
-            // and the producer object passed in here will be null. We would then iterate through
+            // When EOS is turned on, each task will have its own evaluation.producer client
+            // and the evaluation.producer object passed in here will be null. We would then iterate through
             // all the active tasks and add their metrics to the output metrics map.
             for (final StreamTask task: taskManager.activeTasks().values()) {
                 final Map<MetricName, ? extends Metric> taskProducerMetrics = task.getProducer().metrics();

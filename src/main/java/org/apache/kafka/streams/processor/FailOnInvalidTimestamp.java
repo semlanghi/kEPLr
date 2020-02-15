@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * Embedded metadata timestamp was introduced in "KIP-32: Add timestamps to Kafka message" for the new
  * 0.10+ Kafka message format.
  * <p>
- * Here, "embedded metadata" refers to the fact that compatible Kafka producer clients automatically and
+ * Here, "embedded metadata" refers to the fact that compatible Kafka evaluation.producer clients automatically and
  * transparently embed such timestamps into message metadata they send to Kafka, which can then be retrieved
  * via this timestamp extractor.
  * <p>
@@ -65,7 +65,7 @@ public class FailOnInvalidTimestamp extends ExtractRecordMetadataTimestamp {
             throws StreamsException {
 
         final String message = "Input record " + record + " has invalid (negative) timestamp. " +
-            "Possibly because a pre-0.10 producer client was used to write this record to Kafka without embedding " +
+            "Possibly because a pre-0.10 evaluation.producer client was used to write this record to Kafka without embedding " +
             "a timestamp, or because the input topic was created before upgrading the Kafka cluster to 0.10+. " +
             "Use a different TimestampExtractor to process this data.";
 

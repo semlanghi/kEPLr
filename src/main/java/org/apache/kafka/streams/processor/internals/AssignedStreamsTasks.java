@@ -133,7 +133,7 @@ class AssignedStreamsTasks extends AssignedTasks<StreamTask> implements Restorin
 
     /**
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     int maybeCommitPerUserRequested() {
         int committed = 0;
@@ -187,7 +187,7 @@ class AssignedStreamsTasks extends AssignedTasks<StreamTask> implements Restorin
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     int process(final long now) {
         int processed = 0;
@@ -218,7 +218,7 @@ class AssignedStreamsTasks extends AssignedTasks<StreamTask> implements Restorin
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     int punctuate() {
         int punctuated = 0;

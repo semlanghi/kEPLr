@@ -125,7 +125,7 @@ public class StoreChangelogReader implements ChangelogReader {
 
     private void initialize(final RestoringTasks active) {
         if (!restoreConsumer.subscription().isEmpty()) {
-            throw new StreamsException("Restore consumer should not be subscribed to any topics (" + restoreConsumer.subscription() + ")");
+            throw new StreamsException("Restore evaluation.consumer should not be subscribed to any topics (" + restoreConsumer.subscription() + ")");
         }
 
         // first refresh the changelog partition information from brokers, since initialize is only called when
@@ -154,7 +154,7 @@ public class StoreChangelogReader implements ChangelogReader {
             final TopicPartition topicPartition = iter.next();
             final Long endOffset = endOffsets.get(topicPartition);
 
-            // offset should not be null; but since the consumer API does not guarantee it
+            // offset should not be null; but since the evaluation.consumer API does not guarantee it
             // we add this check just in case
             if (endOffset != null) {
                 final StateRestorer restorer = stateRestorers.get(topicPartition);

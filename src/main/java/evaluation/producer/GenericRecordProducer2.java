@@ -1,6 +1,5 @@
-package org.apache.kafka.streams;
+package evaluation.producer;
 
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;
@@ -16,7 +15,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
 
-public class TestConsumer {
+public class GenericRecordProducer2 {
 
     public static void main(String[] args) throws IOException {
 
@@ -34,33 +33,33 @@ public class TestConsumer {
         //      new GenericRecordBuilder(loadSchema("Payment.avsc"));
 
 
-        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("A.asvc"));
+        GenericRecordBuilder record = new GenericRecordBuilder(loadSchema("B.asvc"));
         KafkaProducer<String, GenericRecord> producer = new KafkaProducer<String, GenericRecord>(producerConfig);
 
 
 
         String[] names = {"sammy", "Dio", "Gesu", "Madonna", "Giuseppe"};
-        String[] keys = {"key1"};
+        String[] states = {"america", "asia", "europe"};
         Random rng = new Random(12345);
         Random rng2 = new Random(157578);
         Double val;
         Integer index;
         Integer index2;
 
+
         for(int i=0; i<60; i++){
 
             try {
                 val = rng.nextDouble();
                 index = rng2.nextInt(names.length);
-                index2 = rng2.nextInt(keys.length);
+                index2 = rng2.nextInt(states.length);
                 record.set("id", names[index]);
-
                 record.set("amount", val);
-
+                record.set("location",states[index2]);
                 System.out.println("Name: "+names[index]+" Amount: "+val);
 
 
-                producer.send(new ProducerRecord<String, GenericRecord>("windowing_input", keys[index2], record.build()));
+                producer.send(new ProducerRecord<String, GenericRecord>("topic_followed_by_7", "sbadabum", record.build()));
                 producer.flush();
 
 

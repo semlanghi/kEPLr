@@ -59,12 +59,12 @@ import static org.apache.kafka.common.requests.IsolationLevel.READ_COMMITTED;
 /**
  * Configuration for a {@link KafkaStreams} instance.
  * Can also be used to configure the Kafka Streams internal {@link KafkaConsumer}, {@link KafkaProducer} and {@link AdminClient}.
- * To avoid consumer/producer/admin property conflicts, you should prefix those properties using
+ * To avoid evaluation.consumer/evaluation.producer/admin property conflicts, you should prefix those properties using
  * {@link #consumerPrefix(String)}, {@link #producerPrefix(String)} and {@link #adminClientPrefix(String)}, respectively.
  * <p>
  * Example:
  * <pre>{@code
- * // potentially wrong: sets "metadata.max.age.ms" to 1 minute for producer AND consumer
+ * // potentially wrong: sets "metadata.max.age.ms" to 1 minute for evaluation.producer AND evaluation.consumer
  * Properties streamsProperties = new Properties();
  * streamsProperties.put(ConsumerConfig.METADATA_MAX_AGE_CONFIG, 60000);
  * // or
@@ -72,27 +72,27 @@ import static org.apache.kafka.common.requests.IsolationLevel.READ_COMMITTED;
  *
  * // suggested:
  * Properties streamsProperties = new Properties();
- * // sets "metadata.max.age.ms" to 1 minute for consumer only
+ * // sets "metadata.max.age.ms" to 1 minute for evaluation.consumer only
  * streamsProperties.put(StreamsConfig.consumerPrefix(ConsumerConfig.METADATA_MAX_AGE_CONFIG), 60000);
- * // sets "metadata.max.age.ms" to 1 minute for producer only
+ * // sets "metadata.max.age.ms" to 1 minute for evaluation.producer only
  * streamsProperties.put(StreamsConfig.producerPrefix(ProducerConfig.METADATA_MAX_AGE_CONFIG), 60000);
  *
  * StreamsConfig streamsConfig = new StreamsConfig(streamsProperties);
  * }</pre>
  *
  * This instance can also be used to pass in custom configurations to different modules (e.g. passing a special config in your customized serde class).
- * The consumer/producer/admin prefix can also be used to distinguish these custom config values passed to different clients with the same config name.
+ * The evaluation.consumer/evaluation.producer/admin prefix can also be used to distinguish these custom config values passed to different clients with the same config name.
  * * Example:
  * <pre>{@code
  * Properties streamsProperties = new Properties();
- * // sets "my.custom.config" to "foo" for consumer only
+ * // sets "my.custom.config" to "foo" for evaluation.consumer only
  * streamsProperties.put(StreamsConfig.consumerPrefix("my.custom.config"), "foo");
- * // sets "my.custom.config" to "bar" for producer only
+ * // sets "my.custom.config" to "bar" for evaluation.producer only
  * streamsProperties.put(StreamsConfig.producerPrefix("my.custom.config"), "bar");
  * // sets "my.custom.config2" to "boom" for all clients universally
  * streamsProperties.put("my.custom.config2", "boom");
  *
- * // as a result, inside producer's serde class configure(..) function,
+ * // as a result, inside evaluation.producer's serde class configure(..) function,
  * // users can now read both key-value pairs "my.custom.config" -> "foo"
  * // and "my.custom.config2" -> "boom" from the config map
  * StreamsConfig streamsConfig = new StreamsConfig(streamsProperties);
@@ -152,54 +152,54 @@ public class StreamsConfig extends AbstractConfig {
     public static final String TOPIC_PREFIX = "topic.";
 
     /**
-     * Prefix used to isolate {@link KafkaConsumer consumer} configs from other client configs.
-     * It is recommended to use {@link #consumerPrefix(String)} to add this prefix to {@link ConsumerConfig consumer
+     * Prefix used to isolate {@link KafkaConsumer evaluation.consumer} configs from other client configs.
+     * It is recommended to use {@link #consumerPrefix(String)} to add this prefix to {@link ConsumerConfig evaluation.consumer
      * properties}.
      */
     @SuppressWarnings("WeakerAccess")
-    public static final String CONSUMER_PREFIX = "consumer.";
+    public static final String CONSUMER_PREFIX = "evaluation.consumer.";
 
     /**
-     * Prefix used to override {@link KafkaConsumer consumer} configs for the main consumer client from
-     * the general consumer client configs. The override precedence is the following (from highest to lowest precedence):
-     * 1. main.consumer.[config-name]
-     * 2. consumer.[config-name]
+     * Prefix used to override {@link KafkaConsumer evaluation.consumer} configs for the main evaluation.consumer client from
+     * the general evaluation.consumer client configs. The override precedence is the following (from highest to lowest precedence):
+     * 1. main.evaluation.consumer.[config-name]
+     * 2. evaluation.consumer.[config-name]
      * 3. [config-name]
      */
     @SuppressWarnings("WeakerAccess")
-    public static final String MAIN_CONSUMER_PREFIX = "main.consumer.";
+    public static final String MAIN_CONSUMER_PREFIX = "main.evaluation.consumer.";
 
     /**
-     * Prefix used to override {@link KafkaConsumer consumer} configs for the restore consumer client from
-     * the general consumer client configs. The override precedence is the following (from highest to lowest precedence):
-     * 1. restore.consumer.[config-name]
-     * 2. consumer.[config-name]
+     * Prefix used to override {@link KafkaConsumer evaluation.consumer} configs for the restore evaluation.consumer client from
+     * the general evaluation.consumer client configs. The override precedence is the following (from highest to lowest precedence):
+     * 1. restore.evaluation.consumer.[config-name]
+     * 2. evaluation.consumer.[config-name]
      * 3. [config-name]
      */
     @SuppressWarnings("WeakerAccess")
-    public static final String RESTORE_CONSUMER_PREFIX = "restore.consumer.";
+    public static final String RESTORE_CONSUMER_PREFIX = "restore.evaluation.consumer.";
 
     /**
-     * Prefix used to override {@link KafkaConsumer consumer} configs for the global consumer client from
-     * the general consumer client configs. The override precedence is the following (from highest to lowest precedence):
-     * 1. global.consumer.[config-name]
-     * 2. consumer.[config-name]
+     * Prefix used to override {@link KafkaConsumer evaluation.consumer} configs for the global evaluation.consumer client from
+     * the general evaluation.consumer client configs. The override precedence is the following (from highest to lowest precedence):
+     * 1. global.evaluation.consumer.[config-name]
+     * 2. evaluation.consumer.[config-name]
      * 3. [config-name]
      */
     @SuppressWarnings("WeakerAccess")
-    public static final String GLOBAL_CONSUMER_PREFIX = "global.consumer.";
+    public static final String GLOBAL_CONSUMER_PREFIX = "global.evaluation.consumer.";
 
     /**
-     * Prefix used to isolate {@link KafkaProducer producer} configs from other client configs.
-     * It is recommended to use {@link #producerPrefix(String)} to add this prefix to {@link ProducerConfig producer
+     * Prefix used to isolate {@link KafkaProducer evaluation.producer} configs from other client configs.
+     * It is recommended to use {@link #producerPrefix(String)} to add this prefix to {@link ProducerConfig evaluation.producer
      * properties}.
      */
     @SuppressWarnings("WeakerAccess")
-    public static final String PRODUCER_PREFIX = "producer.";
+    public static final String PRODUCER_PREFIX = "evaluation.producer.";
 
     /**
      * Prefix used to isolate {@link org.apache.kafka.clients.admin.AdminClient admin} configs from other client configs.
-     * It is recommended to use {@link #adminClientPrefix(String)} to add this prefix to {@link ProducerConfig producer
+     * It is recommended to use {@link #adminClientPrefix(String)} to add this prefix to {@link ProducerConfig evaluation.producer
      * properties}.
      */
     @SuppressWarnings("WeakerAccess")
@@ -290,8 +290,8 @@ public class StreamsConfig extends AbstractConfig {
     /** {@code client.id} */
     @SuppressWarnings("WeakerAccess")
     public static final String CLIENT_ID_CONFIG = CommonClientConfigs.CLIENT_ID_CONFIG;
-    private static final String CLIENT_ID_DOC = "An ID prefix string used for the client IDs of internal consumer, producer and restore-consumer," +
-        " with pattern '<client.id>-StreamThread-<threadSequenceNumber>-<consumer|producer|restore-consumer>'.";
+    private static final String CLIENT_ID_DOC = "An ID prefix string used for the client IDs of internal evaluation.consumer, evaluation.producer and restore-evaluation.consumer," +
+        " with pattern '<client.id>-StreamThread-<threadSequenceNumber>-<evaluation.consumer|evaluation.producer|restore-evaluation.consumer>'.";
 
     /** {@code commit.interval.ms} */
     @SuppressWarnings("WeakerAccess")
@@ -737,10 +737,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Prefix a property with {@link #CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig consumer configs}
+     * Prefix a property with {@link #CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig evaluation.consumer configs}
      * from other client configs.
      *
-     * @param consumerProp the consumer property to be masked
+     * @param consumerProp the evaluation.consumer property to be masked
      * @return {@link #CONSUMER_PREFIX} + {@code consumerProp}
      */
     @SuppressWarnings("WeakerAccess")
@@ -749,10 +749,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Prefix a property with {@link #MAIN_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig main consumer configs}
+     * Prefix a property with {@link #MAIN_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig main evaluation.consumer configs}
      * from other client configs.
      *
-     * @param consumerProp the consumer property to be masked
+     * @param consumerProp the evaluation.consumer property to be masked
      * @return {@link #MAIN_CONSUMER_PREFIX} + {@code consumerProp}
      */
     @SuppressWarnings("WeakerAccess")
@@ -761,10 +761,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Prefix a property with {@link #RESTORE_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig restore consumer configs}
+     * Prefix a property with {@link #RESTORE_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig restore evaluation.consumer configs}
      * from other client configs.
      *
-     * @param consumerProp the consumer property to be masked
+     * @param consumerProp the evaluation.consumer property to be masked
      * @return {@link #RESTORE_CONSUMER_PREFIX} + {@code consumerProp}
      */
     @SuppressWarnings("WeakerAccess")
@@ -773,10 +773,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Prefix a property with {@link #GLOBAL_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig global consumer configs}
+     * Prefix a property with {@link #GLOBAL_CONSUMER_PREFIX}. This is used to isolate {@link ConsumerConfig global evaluation.consumer configs}
      * from other client configs.
      *
-     * @param consumerProp the consumer property to be masked
+     * @param consumerProp the evaluation.consumer property to be masked
      * @return {@link #GLOBAL_CONSUMER_PREFIX} + {@code consumerProp}
      */
     @SuppressWarnings("WeakerAccess")
@@ -785,10 +785,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Prefix a property with {@link #PRODUCER_PREFIX}. This is used to isolate {@link ProducerConfig producer configs}
+     * Prefix a property with {@link #PRODUCER_PREFIX}. This is used to isolate {@link ProducerConfig evaluation.producer configs}
      * from other client configs.
      *
-     * @param producerProp the producer property to be masked
+     * @param producerProp the evaluation.producer property to be masked
      * @return PRODUCER_PREFIX + {@code producerProp}
      */
     @SuppressWarnings("WeakerAccess")
@@ -833,7 +833,7 @@ public class StreamsConfig extends AbstractConfig {
     /**
      * Create a new {@code StreamsConfig} using the given properties.
      *
-     * @param props properties that specify Kafka Streams and internal consumer/producer configuration
+     * @param props properties that specify Kafka Streams and internal evaluation.consumer/evaluation.producer configuration
      */
     public StreamsConfig(final Map<?, ?> props) {
         this(props, true);
@@ -877,10 +877,10 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     private void checkIfUnexpectedUserSpecifiedConsumerConfig(final Map<String, Object> clientProvidedProps, final String[] nonConfigurableConfigs) {
-        // Streams does not allow users to configure certain consumer/producer configurations, for example,
+        // Streams does not allow users to configure certain evaluation.consumer/evaluation.producer configurations, for example,
         // enable.auto.commit. In cases where user tries to override such non-configurable
-        // consumer/producer configurations, log a warning and remove the user defined value from the Map.
-        // Thus the default values for these consumer/producer configurations that are suitable for
+        // evaluation.consumer/evaluation.producer configurations, log a warning and remove the user defined value from the Map.
+        // Thus the default values for these evaluation.consumer/evaluation.producer configurations that are suitable for
         // Streams will be used instead.
 
         if (eosEnabled) {
@@ -913,20 +913,20 @@ public class StreamsConfig extends AbstractConfig {
 
                 if (CONSUMER_DEFAULT_OVERRIDES.containsKey(config)) {
                     if (!clientProvidedProps.get(config).equals(CONSUMER_DEFAULT_OVERRIDES.get(config))) {
-                        log.warn(String.format(nonConfigurableConfigMessage, "consumer", config, "", clientProvidedProps.get(config),  CONSUMER_DEFAULT_OVERRIDES.get(config)));
+                        log.warn(String.format(nonConfigurableConfigMessage, "evaluation/consumer", config, "", clientProvidedProps.get(config),  CONSUMER_DEFAULT_OVERRIDES.get(config)));
                         clientProvidedProps.remove(config);
                     }
                 } else if (eosEnabled) {
                     if (CONSUMER_EOS_OVERRIDES.containsKey(config)) {
                         if (!clientProvidedProps.get(config).equals(CONSUMER_EOS_OVERRIDES.get(config))) {
                             log.warn(String.format(nonConfigurableConfigMessage,
-                                    "consumer", config, eosMessage, clientProvidedProps.get(config), CONSUMER_EOS_OVERRIDES.get(config)));
+                                    "evaluation/consumer", config, eosMessage, clientProvidedProps.get(config), CONSUMER_EOS_OVERRIDES.get(config)));
                             clientProvidedProps.remove(config);
                         }
                     } else if (PRODUCER_EOS_OVERRIDES.containsKey(config)) {
                         if (!clientProvidedProps.get(config).equals(PRODUCER_EOS_OVERRIDES.get(config))) {
                             log.warn(String.format(nonConfigurableConfigMessage,
-                                    "producer", config, eosMessage, clientProvidedProps.get(config), PRODUCER_EOS_OVERRIDES.get(config)));
+                                    "evaluation/producer", config, eosMessage, clientProvidedProps.get(config), PRODUCER_EOS_OVERRIDES.get(config)));
                             clientProvidedProps.remove(config);
                         }
                     }
@@ -937,14 +937,14 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Get the configs to the {@link KafkaConsumer consumer}.
+     * Get the configs to the {@link KafkaConsumer evaluation.consumer}.
      * Properties using the prefix {@link #CONSUMER_PREFIX} will be used in favor over their non-prefixed versions
      * except in the case of {@link ConsumerConfig#BOOTSTRAP_SERVERS_CONFIG} where we always use the non-prefixed
      * version as we only support reading/writing from/to the same Kafka Cluster.
      *
-     * @param groupId      consumer groupId
+     * @param groupId      evaluation.consumer groupId
      * @param clientId     clientId
-     * @return Map of the consumer configuration.
+     * @return Map of the evaluation.consumer configuration.
      * @deprecated use {@link StreamsConfig#getMainConsumerConfigs(String, String, int)}
      */
     @SuppressWarnings("WeakerAccess")
@@ -954,25 +954,25 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Get the configs to the {@link KafkaConsumer main consumer}.
+     * Get the configs to the {@link KafkaConsumer main evaluation.consumer}.
      * Properties using the prefix {@link #MAIN_CONSUMER_PREFIX} will be used in favor over
      * the properties prefixed with {@link #CONSUMER_PREFIX} and the non-prefixed versions
      * (read the override precedence ordering in {@link #MAIN_CONSUMER_PREFIX}
      * except in the case of {@link ConsumerConfig#BOOTSTRAP_SERVERS_CONFIG} where we always use the non-prefixed
      * version as we only support reading/writing from/to the same Kafka Cluster.
-     * If not specified by {@link #MAIN_CONSUMER_PREFIX}, main consumer will share the general consumer configs
+     * If not specified by {@link #MAIN_CONSUMER_PREFIX}, main evaluation.consumer will share the general evaluation.consumer configs
      * prefixed by {@link #CONSUMER_PREFIX}.
      *
-     * @param groupId      consumer groupId
+     * @param groupId      evaluation.consumer groupId
      * @param clientId     clientId
      * @param threadIdx    stream thread index
-     * @return Map of the consumer configuration.
+     * @return Map of the evaluation.consumer configuration.
      */
     @SuppressWarnings("WeakerAccess")
     public Map<String, Object> getMainConsumerConfigs(final String groupId, final String clientId, final int threadIdx) {
         final Map<String, Object> consumerProps = getCommonConsumerConfigs();
 
-        // Get main consumer override configs
+        // Get main evaluation.consumer override configs
         final Map<String, Object> mainConsumerProps = originalsWithPrefix(MAIN_CONSUMER_PREFIX);
         for (final Map.Entry<String, Object> entry: mainConsumerProps.entrySet()) {
             consumerProps.put(entry.getKey(), entry.getValue());
@@ -985,7 +985,7 @@ public class StreamsConfig extends AbstractConfig {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         consumerProps.put(CommonClientConfigs.CLIENT_ID_CONFIG, clientId);
         final String groupInstanceId = (String) consumerProps.get(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG);
-        // Suffix each thread consumer with thread.id to enforce uniqueness of group.instance.id.
+        // Suffix each thread evaluation.consumer with thread.id to enforce uniqueness of group.instance.id.
         if (groupInstanceId != null) {
             consumerProps.put(ConsumerConfig.GROUP_INSTANCE_ID_CONFIG, groupInstanceId + "-" + threadIdx);
         }
@@ -1003,7 +1003,7 @@ public class StreamsConfig extends AbstractConfig {
         consumerProps.put(adminClientPrefix(AdminClientConfig.RETRIES_CONFIG), adminClientDefaultConfig.getInt(AdminClientConfig.RETRIES_CONFIG));
         consumerProps.put(adminClientPrefix(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG), adminClientDefaultConfig.getLong(AdminClientConfig.RETRY_BACKOFF_MS_CONFIG));
 
-        // verify that producer batch config is no larger than segment size, then add topic configs required for creating topics
+        // verify that evaluation.producer batch config is no larger than segment size, then add topic configs required for creating topics
         final Map<String, Object> topicProps = originalsWithPrefix(TOPIC_PREFIX, false);
         final Map<String, Object> producerProps = getClientPropsWithPrefix(PRODUCER_PREFIX, ProducerConfig.configNames());
 
@@ -1013,7 +1013,7 @@ public class StreamsConfig extends AbstractConfig {
             final int batchSize = Integer.parseInt(producerProps.get(ProducerConfig.BATCH_SIZE_CONFIG).toString());
 
             if (segmentSize < batchSize) {
-                throw new IllegalArgumentException(String.format("Specified topic segment size %d is is smaller than the configured producer batch size %d, this will cause produced batch not able to be appended to the topic",
+                throw new IllegalArgumentException(String.format("Specified topic segment size %d is is smaller than the configured evaluation.producer batch size %d, this will cause produced batch not able to be appended to the topic",
                         segmentSize,
                         batchSize));
             }
@@ -1025,29 +1025,29 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Get the configs for the {@link KafkaConsumer restore-consumer}.
+     * Get the configs for the {@link KafkaConsumer restore-evaluation.consumer}.
      * Properties using the prefix {@link #RESTORE_CONSUMER_PREFIX} will be used in favor over
      * the properties prefixed with {@link #CONSUMER_PREFIX} and the non-prefixed versions
      * (read the override precedence ordering in {@link #RESTORE_CONSUMER_PREFIX}
      * except in the case of {@link ConsumerConfig#BOOTSTRAP_SERVERS_CONFIG} where we always use the non-prefixed
      * version as we only support reading/writing from/to the same Kafka Cluster.
-     * If not specified by {@link #RESTORE_CONSUMER_PREFIX}, restore consumer will share the general consumer configs
+     * If not specified by {@link #RESTORE_CONSUMER_PREFIX}, restore evaluation.consumer will share the general evaluation.consumer configs
      * prefixed by {@link #CONSUMER_PREFIX}.
      *
      * @param clientId clientId
-     * @return Map of the restore consumer configuration.
+     * @return Map of the restore evaluation.consumer configuration.
      */
     @SuppressWarnings("WeakerAccess")
     public Map<String, Object> getRestoreConsumerConfigs(final String clientId) {
         final Map<String, Object> baseConsumerProps = getCommonConsumerConfigs();
 
-        // Get restore consumer override configs
+        // Get restore evaluation.consumer override configs
         final Map<String, Object> restoreConsumerProps = originalsWithPrefix(RESTORE_CONSUMER_PREFIX);
         for (final Map.Entry<String, Object> entry: restoreConsumerProps.entrySet()) {
             baseConsumerProps.put(entry.getKey(), entry.getValue());
         }
 
-        // no need to set group id for a restore consumer
+        // no need to set group id for a restore evaluation.consumer
         baseConsumerProps.remove(ConsumerConfig.GROUP_ID_CONFIG);
         // add client id with stream client id prefix
         baseConsumerProps.put(CommonClientConfigs.CLIENT_ID_CONFIG, clientId);
@@ -1057,45 +1057,45 @@ public class StreamsConfig extends AbstractConfig {
     }
 
     /**
-     * Get the configs for the {@link KafkaConsumer global consumer}.
+     * Get the configs for the {@link KafkaConsumer global evaluation.consumer}.
      * Properties using the prefix {@link #GLOBAL_CONSUMER_PREFIX} will be used in favor over
      * the properties prefixed with {@link #CONSUMER_PREFIX} and the non-prefixed versions
      * (read the override precedence ordering in {@link #GLOBAL_CONSUMER_PREFIX}
      * except in the case of {@link ConsumerConfig#BOOTSTRAP_SERVERS_CONFIG} where we always use the non-prefixed
      * version as we only support reading/writing from/to the same Kafka Cluster.
-     * If not specified by {@link #GLOBAL_CONSUMER_PREFIX}, global consumer will share the general consumer configs
+     * If not specified by {@link #GLOBAL_CONSUMER_PREFIX}, global evaluation.consumer will share the general evaluation.consumer configs
      * prefixed by {@link #CONSUMER_PREFIX}.
      *
      * @param clientId clientId
-     * @return Map of the global consumer configuration.
+     * @return Map of the global evaluation.consumer configuration.
      */
     @SuppressWarnings("WeakerAccess")
     public Map<String, Object> getGlobalConsumerConfigs(final String clientId) {
         final Map<String, Object> baseConsumerProps = getCommonConsumerConfigs();
 
-        // Get global consumer override configs
+        // Get global evaluation.consumer override configs
         final Map<String, Object> globalConsumerProps = originalsWithPrefix(GLOBAL_CONSUMER_PREFIX);
         for (final Map.Entry<String, Object> entry: globalConsumerProps.entrySet()) {
             baseConsumerProps.put(entry.getKey(), entry.getValue());
         }
 
-        // no need to set group id for a global consumer
+        // no need to set group id for a global evaluation.consumer
         baseConsumerProps.remove(ConsumerConfig.GROUP_ID_CONFIG);
         // add client id with stream client id prefix
-        baseConsumerProps.put(CommonClientConfigs.CLIENT_ID_CONFIG, clientId + "-global-consumer");
+        baseConsumerProps.put(CommonClientConfigs.CLIENT_ID_CONFIG, clientId + "-global-evaluation.consumer");
         baseConsumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "none");
 
         return baseConsumerProps;
     }
 
     /**
-     * Get the configs for the {@link KafkaProducer producer}.
+     * Get the configs for the {@link KafkaProducer evaluation.producer}.
      * Properties using the prefix {@link #PRODUCER_PREFIX} will be used in favor over their non-prefixed versions
      * except in the case of {@link ProducerConfig#BOOTSTRAP_SERVERS_CONFIG} where we always use the non-prefixed
      * version as we only support reading/writing from/to the same Kafka Cluster.
      *
      * @param clientId clientId
-     * @return Map of the producer configuration.
+     * @return Map of the evaluation.producer configuration.
      */
     @SuppressWarnings("WeakerAccess")
     public Map<String, Object> getProducerConfigs(final String clientId) {
@@ -1103,7 +1103,7 @@ public class StreamsConfig extends AbstractConfig {
 
         checkIfUnexpectedUserSpecifiedConsumerConfig(clientProvidedProps, NON_CONFIGURABLE_PRODUCER_EOS_CONFIGS);
 
-        // generate producer configs from original properties and overridden maps
+        // generate evaluation.producer configs from original properties and overridden maps
         final Map<String, Object> props = new HashMap<>(eosEnabled ? PRODUCER_EOS_OVERRIDES : PRODUCER_DEFAULT_OVERRIDES);
         props.putAll(getClientCustomProps());
         props.putAll(clientProvidedProps);

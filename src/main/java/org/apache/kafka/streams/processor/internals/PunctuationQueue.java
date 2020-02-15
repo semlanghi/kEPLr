@@ -40,7 +40,7 @@ public class PunctuationQueue {
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     boolean mayPunctuate(final long timestamp, final PunctuationType type, final ProcessorNodePunctuator processorNodePunctuator) {
         synchronized (pq) {

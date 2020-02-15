@@ -59,7 +59,7 @@ public class RecordCollectorImpl implements RecordCollector {
         "No more records will be sent and no more offsets will be recorded for this task. " +
         "Enable TRACE logging to view failed record key and value.";
     private final static String EXCEPTION_MESSAGE = "%sAbort sending since %s with a previous record (key %s value %s timestamp %d) to topic %s due to %s";
-    private final static String PARAMETER_HINT = "\nYou can increase producer parameter `retries` and `retry.backoff.ms` to avoid this error.";
+    private final static String PARAMETER_HINT = "\nYou can increase evaluation.producer parameter `retries` and `retry.backoff.ms` to avoid this error.";
     private volatile KafkaException sendException;
 
     public RecordCollectorImpl(final String streamTaskId,
@@ -186,7 +186,7 @@ public class RecordCollectorImpl implements RecordCollector {
                                     String.format(
                                         EXCEPTION_MESSAGE,
                                         logPrefix,
-                                        "producer got fenced",
+                                        "evaluation.producer got fenced",
                                         key,
                                         value,
                                         timestamp,
@@ -220,11 +220,11 @@ public class RecordCollectorImpl implements RecordCollector {
         } catch (final TimeoutException e) {
             log.error(
                 "Timeout exception caught when sending record to topic {}. " +
-                    "This might happen if the producer cannot send data to the Kafka cluster and thus, " +
+                    "This might happen if the evaluation.producer cannot send data to the Kafka cluster and thus, " +
                     "its internal buffer fills up. " +
                     "This can also happen if the broker is slow to respond, if the network connection to " +
                     "the broker was interrupted, or if similar circumstances arise. " +
-                    "You can increase producer parameter `max.block.ms` to increase this timeout.",
+                    "You can increase evaluation.producer parameter `max.block.ms` to increase this timeout.",
                 topic,
                 e
             );
@@ -236,7 +236,7 @@ public class RecordCollectorImpl implements RecordCollector {
             if (uncaughtException instanceof KafkaException &&
                 uncaughtException.getCause() instanceof ProducerFencedException) {
                 final KafkaException kafkaException = (KafkaException) uncaughtException;
-                // producer.send() call may throw a KafkaException which wraps a FencedException,
+                // evaluation.producer.send() call may throw a KafkaException which wraps a FencedException,
                 // in this case we should throw its wrapped inner cause so that it can be captured and re-wrapped as TaskMigrationException
                 throw (ProducerFencedException) kafkaException.getCause();
             } else {
@@ -264,14 +264,14 @@ public class RecordCollectorImpl implements RecordCollector {
 
     @Override
     public void flush() {
-        log.debug("Flushing producer");
+        log.debug("Flushing evaluation.producer");
         producer.flush();
         checkForException();
     }
 
     @Override
     public void close() {
-        log.debug("Closing producer");
+        log.debug("Closing evaluation.producer");
         if (producer != null) {
             producer.close();
             producer = null;

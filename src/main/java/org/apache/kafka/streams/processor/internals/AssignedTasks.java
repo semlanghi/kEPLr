@@ -60,7 +60,7 @@ abstract class AssignedTasks<T extends Task> {
     /**
      * @throws IllegalStateException If store gets registered after initialized is already finished
      * @throws StreamsException if the store's change log does not contain the partition
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     void initializeNewTasks() {
         if (!created.isEmpty()) {
@@ -161,7 +161,7 @@ abstract class AssignedTasks<T extends Task> {
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     boolean maybeResumeSuspendedTask(final TaskId taskId, final Set<TopicPartition> partitions) {
         if (suspended.containsKey(taskId)) {
@@ -194,7 +194,7 @@ abstract class AssignedTasks<T extends Task> {
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     void transitionToRunning(final T task) {
         log.debug("Transitioning {} {} to running", taskTypeName, task.id());
@@ -273,7 +273,7 @@ abstract class AssignedTasks<T extends Task> {
 
     /**
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     int commit() {
         int committed = 0;

@@ -149,7 +149,7 @@ public class StreamsPartitionAssignor implements PartitionAssignor, Configurable
                 hostInfo = null;
             }
 
-            // initialize the consumer memberIds
+            // initialize the evaluation.consumer memberIds
             consumers = new HashSet<>();
 
             // initialize the client state
@@ -370,7 +370,7 @@ public class StreamsPartitionAssignor implements PartitionAssignor, Configurable
         return assignment;
     }
     /*
-     * This assigns tasks to consumer clients in the following steps.
+     * This assigns tasks to evaluation.consumer clients in the following steps.
      *
      * 0. check all repartition source topics and use internal topic manager to make sure
      *    they have been created with the right number of partitions.
@@ -379,7 +379,7 @@ public class StreamsPartitionAssignor implements PartitionAssignor, Configurable
      *    assigned partitions; also make sure that the task's corresponding changelog topics
      *    have been created with the right number of partitions.
      *
-     * 2. using TaskAssignor to assign tasks to consumer clients.
+     * 2. using TaskAssignor to assign tasks to evaluation.consumer clients.
      *    - Assign a task to a client which was running it previously.
      *      If there is no such client, assign a task to a client which has its valid local state.
      *    - A client may have more than one stream threads.
@@ -387,7 +387,7 @@ public class StreamsPartitionAssignor implements PartitionAssignor, Configurable
      *    - We try not to assign the same set of tasks to two different clients
      *    We do the assignment in one-pass. The result may not satisfy above all.
      *
-     * 3. within each client, tasks are assigned to consumer clients in round-robin manner.
+     * 3. within each client, tasks are assigned to evaluation.consumer clients in round-robin manner.
      */
     @Override
     public Map<String, Assignment> assign(final Cluster metadata,
@@ -424,7 +424,7 @@ public class StreamsPartitionAssignor implements PartitionAssignor, Configurable
                 clientMetadataMap.put(info.processId(), clientMetadata);
             }
 
-            // add the consumer to the client
+            // add the evaluation.consumer to the client
             clientMetadata.addConsumer(consumerId, info);
         }
 

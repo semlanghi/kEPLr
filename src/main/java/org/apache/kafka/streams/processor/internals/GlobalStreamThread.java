@@ -256,9 +256,9 @@ public class GlobalStreamThread extends Thread {
             try {
                 globalConsumer.close();
             } catch (final RuntimeException e) {
-                // just log an error if the consumer throws an exception during close
+                // just log an error if the evaluation.consumer throws an exception during close
                 // so we can always attempt to close the state stores.
-                log.error("Failed to close global consumer due to the following error:", e);
+                log.error("Failed to close global evaluation.consumer due to the following error:", e);
             }
 
             stateMaintainer.close();
@@ -270,7 +270,7 @@ public class GlobalStreamThread extends Thread {
         final StateConsumer stateConsumer = initialize();
 
         if (stateConsumer == null) {
-            // during initialization, the caller thread would wait for the state consumer
+            // during initialization, the caller thread would wait for the state evaluation.consumer
             // to restore the global state store before transiting to RUNNING state and return;
             // if an error happens during the restoration process, the stateConsumer will be null
             // and in this case we will transit the state to PENDING_SHUTDOWN and DEAD immediately.

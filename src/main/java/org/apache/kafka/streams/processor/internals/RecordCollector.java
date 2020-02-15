@@ -45,8 +45,8 @@ public interface RecordCollector extends AutoCloseable {
                      final StreamPartitioner<? super K, ? super V> partitioner);
 
     /**
-     * Initialize the collector with a producer.
-     * @param producer the producer that should be used by this collector
+     * Initialize the collector with a evaluation.producer.
+     * @param producer the evaluation.producer that should be used by this collector
      */
     void init(final Producer<byte[], byte[]> producer);
 

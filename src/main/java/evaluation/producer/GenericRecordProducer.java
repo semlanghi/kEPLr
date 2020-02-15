@@ -1,6 +1,5 @@
-package org.apache.kafka.streams;
+package evaluation.producer;
 
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;
@@ -16,7 +15,7 @@ import java.io.InputStream;
 import java.util.Properties;
 import java.util.Random;
 
-public class TestConsumer {
+public class GenericRecordProducer {
 
     public static void main(String[] args) throws IOException {
 
@@ -40,7 +39,7 @@ public class TestConsumer {
 
 
         String[] names = {"sammy", "Dio", "Gesu", "Madonna", "Giuseppe"};
-        String[] keys = {"key1"};
+        String[] keys = {"key1","key2","key3","key4"};
         Random rng = new Random(12345);
         Random rng2 = new Random(157578);
         Double val;

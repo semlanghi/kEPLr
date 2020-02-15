@@ -368,13 +368,13 @@ public class KafkaStreams implements AutoCloseable {
 
     /**
      * Get read-only handle on global metrics registry, including streams client's own metrics plus
-     * its embedded producer, consumer and admin clients' metrics.
+     * its embedded evaluation.producer, evaluation.consumer and admin clients' metrics.
      *
      * @return Map of all metrics.
      */
     public Map<MetricName, ? extends Metric> metrics() {
         final Map<MetricName, Metric> result = new LinkedHashMap<>();
-        // producer and consumer clients are per-thread
+        // evaluation.producer and evaluation.consumer clients are per-thread
         for (final StreamThread thread : threads) {
             result.putAll(thread.producerMetrics());
             result.putAll(thread.consumerMetrics());
@@ -383,7 +383,7 @@ public class KafkaStreams implements AutoCloseable {
             // we did it intentionally just for flexibility.
             result.putAll(thread.adminClientMetrics());
         }
-        // global thread's consumer client
+        // global thread's evaluation.consumer client
         if (globalStreamThread != null) {
             result.putAll(globalStreamThread.consumerMetrics());
         }
@@ -552,7 +552,7 @@ public class KafkaStreams implements AutoCloseable {
      *
      * @param topology       the topology specifying the computational logic
      * @param props          properties for {@link StreamsConfig}
-     * @param clientSupplier the Kafka clients supplier which provides underlying producer and consumer clients
+     * @param clientSupplier the Kafka clients supplier which provides underlying evaluation.producer and evaluation.consumer clients
      *                       for the new {@code KafkaStreams} instance
      * @throws StreamsException if any fatal error occurs
      */
@@ -587,7 +587,7 @@ public class KafkaStreams implements AutoCloseable {
      *
      * @param topology       the topology specifying the computational logic
      * @param props          properties for {@link StreamsConfig}
-     * @param clientSupplier the Kafka clients supplier which provides underlying producer and consumer clients
+     * @param clientSupplier the Kafka clients supplier which provides underlying evaluation.producer and evaluation.consumer clients
      *                       for the new {@code KafkaStreams} instance
      * @param time           {@code Time} implementation; cannot be null
      * @throws StreamsException if any fatal error occurs

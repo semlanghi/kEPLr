@@ -96,7 +96,7 @@ public class TaskManager {
 
     void createTasks(final Collection<TopicPartition> assignment) {
         if (consumer == null) {
-            throw new IllegalStateException(logPrefix + "consumer has not been initialized while adding stream tasks. This should not happen.");
+            throw new IllegalStateException(logPrefix + "evaluation.consumer has not been initialized while adding stream tasks. This should not happen.");
         }
 
         // do this first as we may have suspended standby tasks that
@@ -232,7 +232,7 @@ public class TaskManager {
     /**
      * Similar to shutdownTasksAndState, however does not close the task managers, in the hope that
      * soon the tasks will be assigned again
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     void suspendTasksAndState()  {
         log.debug("Suspending all active tasks {} and standby tasks {}", active.runningTaskIds(), standby.runningTaskIds());
@@ -248,7 +248,7 @@ public class TaskManager {
 
         firstException.compareAndSet(null, standby.suspend());
 
-        // remove the changelog partitions from restore consumer
+        // remove the changelog partitions from restore evaluation.consumer
         restoreConsumer.unsubscribe();
 
         final Exception exception = firstException.get();
@@ -270,7 +270,7 @@ public class TaskManager {
         }
         standby.close(clean);
 
-        // remove the changelog partitions from restore consumer
+        // remove the changelog partitions from restore evaluation.consumer
         try {
             restoreConsumer.unsubscribe();
         } catch (final RuntimeException fatalException) {
@@ -406,7 +406,7 @@ public class TaskManager {
 
     /**
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     int commitAll() {
         final int committed = active.commit();
@@ -414,14 +414,14 @@ public class TaskManager {
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     int process(final long now) {
         return active.process(now);
     }
 
     /**
-     * @throws TaskMigratedException if the task producer got fenced (EOS only)
+     * @throws TaskMigratedException if the task evaluation.producer got fenced (EOS only)
      */
     int punctuate() {
         return active.punctuate();
@@ -429,7 +429,7 @@ public class TaskManager {
 
     /**
      * @throws TaskMigratedException if committing offsets failed (non-EOS)
-     *                               or if the task producer got fenced (EOS)
+     *                               or if the task evaluation.producer got fenced (EOS)
      */
     int maybeCommitActiveTasksPerUserRequested() {
         return active.maybeCommitPerUserRequested();
