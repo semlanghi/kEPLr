@@ -1,14 +1,18 @@
 {
   "type": "record",
   "name": "A",
-  "namespace": "kEPLr.examples",
+  "namespace": "namespace1",
   "fields": [
     {
-      "name": "id",
-      "type": "int"
+      "name": "idA",
+      "type": "long"
     },
     {
-      "name": "timestamp",
+      "name": "start_time",
+      "type": "long"
+    },
+    {
+      "name": "end_time",
       "type": "long"
     }
   ]
