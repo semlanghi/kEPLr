@@ -549,15 +549,15 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         return wrappedStream.filter(predicate);
     }
 
-    //TODO: modify every methods with the correspondent method in stream
+
     @Override
     public KStream filterNot(Predicate predicate) {
-        return null;
+        return wrappedStream.filterNot(predicate);
     }
 
     @Override
     public void print(Printed printed) {
-
+        wrappedStream.print(printed);
     }
 
     private class KStreamImplJoinNew {
@@ -654,12 +654,12 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public void foreach(ForeachAction action) {
-
+        wrappedStream.foreach(action);
     }
 
     @Override
     public KStream peek(ForeachAction action) {
-        return null;
+        return wrappedStream.peek(action);
     }
 
 
@@ -754,37 +754,38 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public void process(ProcessorSupplier processorSupplier, String... stateStoreNames) {
-
+        wrappedStream.process(processorSupplier, stateStoreNames);
     }
 
     @Override
     public KGroupedStream groupByKey() {
-        return null;
+        return wrappedStream.groupByKey();
     }
 
     @Override
     public KGroupedStream groupByKey(Serialized serialized) {
-        return null;
+        return wrappedStream.groupByKey(serialized);
     }
 
     @Override
     public KGroupedStream groupByKey(Grouped grouped) {
-        return null;
+        return wrappedStream.groupByKey(grouped);
     }
 
     @Override
     public KStream leftJoin(GlobalKTable globalKTable, KeyValueMapper keyValueMapper, ValueJoiner valueJoiner) {
-        return null;
+        return wrappedStream.leftJoin(globalKTable, keyValueMapper, valueJoiner);
     }
 
     @Override
     public KStream join(GlobalKTable globalKTable, KeyValueMapper keyValueMapper, ValueJoiner joiner) {
-        return null;
+        return wrappedStream.join(globalKTable, keyValueMapper, joiner);
     }
 
     @Override
     public KStream leftJoin(KTable table, ValueJoiner joiner, Joined joined) {
-        return null;
+        return wrappedStream.leftJoin(table, joiner, joined);
+
     }
 
     @Override

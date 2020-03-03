@@ -32,8 +32,8 @@ public interface KTStream<K,V> extends KStream<TypedKey<K>,V> {
                 .map(kvkStream -> {
                     EType<K,V> tempType = typeIterator.next();
 
-                    KTStream<K,V> stream1 = new KTStreamImpl<>(kvkStream.map((key, value) -> new KeyValue<>(tempType.typed(key), value)), tempType, tempType.kClass());
-                    //stream1.setOriginNode(stream1.streamsGraphNode.nodeName());
+                    KTStream<K,V> stream1 = new KTStreamImpl<>(kvkStream.map((key, value)
+                            -> new KeyValue<>(tempType.typed(key), value)), tempType, tempType.kClass());
                     return stream1;
                 }).collect(Collectors.toList());
 

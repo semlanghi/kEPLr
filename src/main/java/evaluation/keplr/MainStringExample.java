@@ -35,14 +35,14 @@ public class MainStringExample {
         //config.put(KTStreamsConfig.DEFAULT_INSTANCEOF_CLASS_CONFIG, EqualsPredicateInstanceof.class);
         config.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, MyTimestampExtractor.class);
 
-        EType<String,String> type1 = new ETypeString("A");
-        EType<String,String> type2 = new ETypeString("B");
+        EType<String,String> type1 = new ETypeString("Smoke");
+        EType<String,String> type2 = new ETypeString("TemperatureEvent");
 
         EType [] types = {type1,type2};
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String,String> stream = builder.stream("AB_input4");
+        KStream<String,String> stream = builder.stream("input");
         KTStream<String,String>[] typedStreams = KTStream.match(stream,types);
 
 

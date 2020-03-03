@@ -40,13 +40,13 @@ public class GenericRecordProducer4 {
 
 
 
-        String[] keys = {"key1","key2","key3"};
+        String[] keys = {"key1"};
         Random rng = new Random(12345);
         Random rng2 = new Random(157578);
         int val;
         Integer index;
         Integer index2;
-        String topic = "AB_input_part_1";
+        String topic = "AB_input_part";
         long idA=0L;
         long idB=0L;
         long rate = 1000L;
@@ -67,20 +67,21 @@ public class GenericRecordProducer4 {
                     val = rng.nextInt(2);
 
                     if (val == 0) {
-                        //index = rng2.nextInt(names.length);
+
+
+
                         index2 = rng2.nextInt(keys.length);
+
+                        // Setting up the record
+                        // start_time = end_time
                         record.set("idA", idA++);
-
-                        //record.set("start_time", System.currentTimeMillis());
-                        //record.set("end_time", System.currentTimeMillis());
-
                         record.set("start_time", currentTime + multiplier * i);
                         record.set("end_time", currentTime + multiplier * i);
 
 
-                        //System.out.println("Name: "+names[index]+" Amount: "+val+" Schema: A");
 
 
+                        //send it to kafka
                         producer.send(new ProducerRecord<String, GenericRecord>(topic, keys[index2], record.build()));
                         producer.flush();
                     } else {

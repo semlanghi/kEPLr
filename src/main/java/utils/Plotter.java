@@ -31,7 +31,7 @@ public class Plotter extends ApplicationFrame {
         super(title);
         final XYSeries series = new XYSeries("Random Data");
 
-        CSVReader reader = new CSVReader(new FileReader("src/main/resources/output_final_esper_part_4_output.csv"));
+        CSVReader reader = new CSVReader(new FileReader("src/main/resources/output_final_part1_output.csv"));
         Iterator<String[]> it = reader.iterator();
         it.next();
         String[] line;

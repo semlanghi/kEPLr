@@ -34,7 +34,7 @@ public class GenericRecordConsumer2 {
 
         KafkaConsumer<String, GenericRecord> consumer = new KafkaConsumer<String, GenericRecord>(props);
         String prefix = "src/main/resources/";
-        String topic = "output_final_esper_part_4";
+        String topic = "output_final_part1";
         consumer.subscribe(Arrays.asList(topic));
         long numberOfRecords=0L;
         long startTime=0;
