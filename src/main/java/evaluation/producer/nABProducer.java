@@ -19,9 +19,10 @@ public class nABProducer {
     private static final String BOOTSTRAP_SERVER_URL = "localhost:9092";
     private static final String SCHEMA_REGISTRY_URL = "http://localhost:8081";
     private static final String TOPIC   = "nAB_input_part_1";
-    private static final String KEY = "key1";
     private static long ID = 0;
     private static final int CHUNK_SIZE = 600;
+    private static final int PARTITIONS = 9;
+
 
     protected static GenericRecordBuilder typeARecordBuilder;
     protected static GenericRecordBuilder typeBRecordBuilder;
@@ -31,7 +32,6 @@ public class nABProducer {
 
     /**
      * Creates sequential n type A and a single type B record in fixed "time chunks"
-     * ToDo: Add support for multiple partitions
      */
     protected static void setup() throws IOException{
         typeARecordBuilder = new GenericRecordBuilder(loadSchema("A.asvc"));
@@ -74,8 +74,10 @@ public class nABProducer {
     }
 
     private static void sendRecord(GenericData.Record record){
-        producer.send(new ProducerRecord<>(TOPIC, KEY, record));
-        producer.flush();
+        for (int i = 0; i < PARTITIONS; i++) {
+            producer.send(new ProducerRecord<>(TOPIC, String.valueOf(i), record));
+            producer.flush();
+        }
     }
 
 

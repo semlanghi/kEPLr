@@ -23,6 +23,8 @@ public class AnBProducer {
     private static long ID = 0;
     private static final int CHUNK_SIZE = 600;
     protected static int NUMBER_OF_CHUNKS = (int) Math.floor( Math.log(CHUNK_SIZE-1) / Math.log(2));
+    private static final int PARTITIONS = 9;
+
 
     protected static GenericRecordBuilder typeARecordBuilder;
     protected static GenericRecordBuilder typeBRecordBuilder;
@@ -31,7 +33,6 @@ public class AnBProducer {
 
     /**
      * Creates sequential records of single type A and n type B in fixed "time chunks"
-     * ToDo: Add support for multiple partitions
      */
     protected static void setup() throws IOException{
         typeARecordBuilder = new GenericRecordBuilder(loadSchema("A.asvc"));
@@ -74,8 +75,10 @@ public class AnBProducer {
     }
 
     private static void sendRecord(GenericData.Record record){
-        producer.send(new ProducerRecord<>(TOPIC, KEY, record));
-        producer.flush();
+        for (int i = 0; i < PARTITIONS; i++) {
+            producer.send(new ProducerRecord<>(TOPIC, String.valueOf(i), record));
+            producer.flush();
+        }
     }
 
 
