@@ -78,9 +78,15 @@ public class W2 {
                 if((Long)value.get("end_time")>endTime){
                     double diff = System.currentTimeMillis()-startProc;
                     double thr = counter;
-                    thr=thr/diff;
+                    thr=(thr/diff)*1000;
                     String repr = "Throughput avg: "+thr;
                     writer.writeNext(new String[]{repr});
+                    try {
+                        writer.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.exit(0);
                 }
 
 

@@ -64,8 +64,8 @@ public class W1 {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String,GenericRecord> stream = builder.stream("W1");
-        long expEnd = 60000L;
+        KStream<String,GenericRecord> stream = builder.stream("W12");
+        long expEnd = 10000L;
         stream.map(new KeyValueMapper<String, GenericRecord, KeyValue<? extends String,? extends GenericRecord>>() {
 
             CSVWriter writer = new CSVWriter(new FileWriter(args[0]+"_W1_output.csv"));
@@ -78,9 +78,15 @@ public class W1 {
                 if((Long)value.get("end_time")>endTime){
                     double diff = System.currentTimeMillis()-startProc;
                     double thr = counter;
-                    thr=thr/diff;
+                    thr=(thr/diff)*1000;
                     String repr = "Throughput avg: "+thr;
                     writer.writeNext(new String[]{repr});
+                    try {
+                        writer.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.exit(0);
                 }
 
 

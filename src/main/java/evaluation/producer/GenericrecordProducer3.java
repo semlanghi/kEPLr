@@ -21,7 +21,7 @@ import java.util.Random;
 public class GenericrecordProducer3 {
 
     static String ab = "ab";
-    static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
+    //static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
 
 
     public static void main(String[] args) throws IOException, RestClientException {
@@ -30,8 +30,8 @@ public class GenericrecordProducer3 {
         Schema schemaB = loadSchema("B.asvc");
 
 
-        schemaRegistryClient.register("A", schemaA);
-        schemaRegistryClient.register("B", schemaB);
+        //schemaRegistryClient.register("A", schemaA);
+        //schemaRegistryClient.register("B", schemaB);
 
         Properties producerConfig = new Properties();
 
@@ -61,10 +61,10 @@ public class GenericrecordProducer3 {
         int val;
         Integer index;
         Integer index2=0;
-        String topic = "AB_input2";
+        String topic = "W12";
         long idA=0L;
         long idB=0L;
-        long rate = 6000L;
+        long rate = 60000L;
         long currentTime=0;
 
         long multiplier=5;
@@ -77,7 +77,7 @@ public class GenericrecordProducer3 {
 //            if(1000>=rate) {
 //                multiplier = 1000 / rate;
 
-                for (int i = 0; i < rate; i++) {
+                for (long i = 0; i < rate; i++) {
 
                     val = rng.nextInt(2);
                     System.out.println("iteration");
@@ -90,8 +90,8 @@ public class GenericrecordProducer3 {
                         //record.set("start_time", System.currentTimeMillis());
                         //record.set("end_time", System.currentTimeMillis());
 
-                        record.set("start_time", currentTime + multiplier * i);
-                        record.set("end_time", currentTime + multiplier * i);
+                        record.set("start_time", i);
+                        record.set("end_time", i);
 
 
                         //System.out.println("Name: "+names[index]+" Amount: "+val+" Schema: A");
@@ -105,8 +105,8 @@ public class GenericrecordProducer3 {
                         record1.set("idB", idB++);
 
 
-                        record1.set("start_time", currentTime + multiplier * i);
-                        record1.set("end_time", currentTime + multiplier * i);
+                        record1.set("start_time", i);
+                        record1.set("end_time", i);
 
 
                         //System.out.println("Name: "+names[index]+" Amount: "+val+" Schema: B");
