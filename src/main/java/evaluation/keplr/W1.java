@@ -64,7 +64,7 @@ public class W1 {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        KStream<String,GenericRecord> stream = builder.stream("W12");
+        KStream<String,GenericRecord> stream = builder.stream("W1");
         long expEnd = 10000L;
         stream.map(new KeyValueMapper<String, GenericRecord, KeyValue<? extends String,? extends GenericRecord>>() {
 

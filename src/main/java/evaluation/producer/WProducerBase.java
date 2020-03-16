@@ -1,5 +1,8 @@
 package evaluation.producer;
 
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;
@@ -15,58 +18,42 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class nAnBProducer {
-    private static final String BOOTSTRAP_SERVER_URL = "localhost:9092";
-    private static final String SCHEMA_REGISTRY_URL = "http://localhost:8081";
-    private static final String TOPIC   = "nAnB_input_part_1";
-    private static final String KEY = "key1";
-    private static long ID = 0;
-    private static final int CHUNK_SIZE = 600;
-    protected static final int NUMBER_OF_CHUNKS = (int) Math.floor( Math.log(CHUNK_SIZE/2.0) / Math.log(2));
-    private static final int PARTITIONS = 9;
+public abstract class WProducerBase {
+    static final String ab = "ab";
+    static String BOOTSTRAP_SERVER_URL = "localhost:9092";
+    static final String SCHEMA_REGISTRY_URL = "mock://" + ab;
+    static String TOPIC;
+    static int CHUNK_SIZE;
+    static int NUMBER_OF_CHUNKS ;
+    static int PARTITIONS;
 
-    protected static GenericRecordBuilder typeARecordBuilder;
-    protected static GenericRecordBuilder typeBRecordBuilder;
-    protected static KafkaProducer<String, GenericRecord> producer;
+    static GenericRecordBuilder typeARecordBuilder;
+    static GenericRecordBuilder typeBRecordBuilder;
+    static KafkaProducer<String, GenericRecord> producer;
+    static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
 
 
-    /**
-     * Creates sequential n type A and n type B records in fixed "time chunks"
-     */
-    protected static void setup() throws IOException{
-        typeARecordBuilder = new GenericRecordBuilder(loadSchema("A.asvc"));
-        typeBRecordBuilder = new GenericRecordBuilder(loadSchema("B.asvc"));
+    protected static void setup(String topic, int partitions, int chunkSize) throws IOException, RestClientException {
+        TOPIC = topic;
+        PARTITIONS = partitions;
+        CHUNK_SIZE = chunkSize;
+        Schema schemaA = loadSchema("A.asvc");
+        Schema schemaB = loadSchema("B.asvc");
+        typeARecordBuilder = new GenericRecordBuilder(schemaA);
+        typeBRecordBuilder = new GenericRecordBuilder(schemaB);
+        schemaRegistryClient.register("A", schemaA);
+        schemaRegistryClient.register("B", schemaB);
         producer = new KafkaProducer<>(getProducerConfig());
     }
-    public static void main(String[] args) throws IOException{
-        setup();
-        createRecords();
-    }
 
-    private static void createRecords(){
-        System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
-        for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-            long simulatedTime = 1 + i* CHUNK_SIZE;
-            createSequentialnAnB((int) Math.pow(2, i+1), simulatedTime);
-            System.out.println("Created chunk number: " + (i + 1));
-        }
-    }
-
-    private static void createSequentialnAnB(int n, long time){
-        for (int i = 0; i < n; i++) {
-            createRecordA(ID++, time + i);
-            createRecordB(ID++, time + i + n);
-        }
-    }
-
-    private static void createRecordA(long id, long time){
+    static void createRecordA(long id, long time){
         typeARecordBuilder.set("idA", id);
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
         sendRecord(typeARecordBuilder.build());
     }
 
-    private static void createRecordB(long id, long time){
+    static void createRecordB(long id, long time){
         typeBRecordBuilder.set("idB", id);
         typeBRecordBuilder.set("start_time", time);
         typeBRecordBuilder.set("end_time", time);
@@ -75,20 +62,19 @@ public class nAnBProducer {
 
     private static void sendRecord(GenericData.Record record){
         for (int i = 0; i < PARTITIONS; i++) {
-            producer.send(new ProducerRecord<>(TOPIC, String.valueOf(i), record));
+            producer.send(new ProducerRecord<>(TOPIC, i,  String.valueOf(i), record));
             producer.flush();
         }
     }
 
-
     private static Schema loadSchema(final String name) throws IOException {
         try (final InputStream input = GenericRecordProducer.class
-                        .getClassLoader()
-                        .getResourceAsStream(name)) {
+                .getClassLoader()
+                .getResourceAsStream(name)
+        ) {
             return new Schema.Parser().parse(input);
         }
     }
-
 
     private static Properties getProducerConfig(){
         Properties producerConfig = new Properties();
