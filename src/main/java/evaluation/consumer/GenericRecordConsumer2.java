@@ -1,8 +1,14 @@
 package evaluation.consumer;
 
 import com.opencsv.CSVWriter;
+import evaluation.producer.GenericRecordProducer;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
+import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -12,29 +18,46 @@ import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
 public class GenericRecordConsumer2 {
 
-    public static void main(String[] args) throws IOException {
+
+    static String ab = "ab";
+    static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
+
+    public static void main(String[] args) throws IOException, RestClientException {
+
+        Schema schemaA = loadSchema("A.asvc");
+        Schema schemaB = loadSchema("B.asvc");
+
+
+        //schemaRegistryClient.register("A", schemaA);
+        //schemaRegistryClient.register("B", schemaB);
+//        schemaRegistryClient.register("A", loadSchema("A.asvc"));
+//        schemaRegistryClient.register("B", loadSchema("B.asvc"));
 
         Properties props = new Properties();
         props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, "your_client_id"+UUID.randomUUID().toString());
 
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
+        props.put(KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "mock://" + ab);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, Serdes.String().deserializer().getClass());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, Serdes.String().deserializer().getClass());
+        props.put("auto.offset.reset", "earliest");
 
 
 
 
-        KafkaConsumer<String, GenericRecord> consumer = new KafkaConsumer<String, GenericRecord>(props);
+
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
         String prefix = "src/main/resources/";
-        String topic = "output_final_esper_part_4";
+        String topic = "output_final";
         consumer.subscribe(Arrays.asList(topic));
         long numberOfRecords=0L;
         long startTime=0;
@@ -54,11 +77,10 @@ public class GenericRecordConsumer2 {
 
 
 
-                ConsumerRecords<String, GenericRecord> records = consumer.poll(5000);
-                for(ConsumerRecord<String, GenericRecord> record : records){
-                    //System.out.println("key: "+record.key()+" value: "+record.value());
+                ConsumerRecords<String, String> records = consumer.poll(5000);
+                for(ConsumerRecord<String, String> record : records){
+                    System.out.println("key: "+record.key()+" value: "+record.value());
                     numberOfRecords++;
-                    timeEvent= (long) record.value().get("end_time");
                 }
 
 
@@ -94,5 +116,15 @@ public class GenericRecordConsumer2 {
         }
 
 
+    }
+
+    private static Schema loadSchema(final String name) throws IOException {
+        try (
+                final InputStream input = GenericRecordProducer.class
+                        .getClassLoader()
+                        .getResourceAsStream(name)
+        ) {
+            return new Schema.Parser().parse(input);
+        }
     }
 }
