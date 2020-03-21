@@ -62,13 +62,13 @@ public abstract class WProducerBase {
 
     private static void sendRecord(GenericData.Record record){
         for (int i = 0; i < PARTITIONS; i++) {
-            producer.send(new ProducerRecord<>(TOPIC, i,  String.valueOf(i), record));
+            producer.send(new ProducerRecord<>(TOPIC,  String.valueOf(i), record));
             producer.flush();
         }
     }
 
     private static Schema loadSchema(final String name) throws IOException {
-        try (final InputStream input = GenericRecordProducer.class
+        try (final InputStream input = WProducerBase.class
                 .getClassLoader()
                 .getResourceAsStream(name)
         ) {

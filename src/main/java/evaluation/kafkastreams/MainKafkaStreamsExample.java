@@ -1,7 +1,5 @@
 package evaluation.kafkastreams;
 
-import org.apache.kafka.streams.*;
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -10,9 +8,16 @@ import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeAvro;
-import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Predicate;
+import org.apache.kafka.streams.kstream.ValueJoiner;
 import utils.AvroTimestampExtractor;
 import utils.KafkaAvroSerDe;
 
@@ -130,7 +135,7 @@ public class MainKafkaStreamsExample {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = MainKafkaStreamsExample.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {

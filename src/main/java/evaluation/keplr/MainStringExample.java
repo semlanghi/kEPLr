@@ -1,19 +1,18 @@
 package evaluation.keplr;
 
-import org.apache.kafka.streams.*;
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeString;
 import org.apache.kafka.streams.keplr.ktstream.KTStream;
-import evaluation.producer.GenericRecordProducer;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
-import org.apache.avro.Schema;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import utils.MyTimestampExtractor;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -75,13 +74,4 @@ public class MainStringExample {
 
     }
 
-    private static Schema loadSchema(final String name) throws IOException {
-        try (
-                final InputStream input = GenericRecordProducer.class
-                        .getClassLoader()
-                        .getResourceAsStream(name)
-        ) {
-            return new Schema.Parser().parse(input);
-        }
-    }
 }
