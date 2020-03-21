@@ -25,7 +25,7 @@ find /tmp -name 'zookeper' -exec rm -rf {} \;
 
 #start zookeeper
 echo "Starting zookeeper"
-$KAFKA_HOME/bin/zookeeper-server-start $KAFKA_HOME/etc/kafka/zookeeper.properties & sleep 20
+$KAFKA_HOME/bin/zookeeper-server-start $KAFKA_HOME/etc/kafka/zookeeper.properties & sleep 10
 
 #start brokers
 echo "Starting brokers"
@@ -35,7 +35,7 @@ for i in $(seq 0 $END)
   do
     $KAFKA_HOME/bin/kafka-server-start $PROJECT_DIR/configs/server-$i.properties &
   done
-$KAFKA_HOME/bin/kafka-server-start $PROJECT_DIR/configs/server-$((broker_count-1)).properties & sleep 30
+$KAFKA_HOME/bin/kafka-server-start $PROJECT_DIR/configs/server-$((broker_count-1)).properties & sleep 15
 
 # start producers
 # Setup topic
@@ -47,13 +47,13 @@ $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-f
 echo "Starting producer: $experiment"
 java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer "$experiment" "$broker_count" $chunk_size
 echo "Producer finished"
-sleep 20
+sleep 10
 
 #start worker
 echo "Starting worker: $experiment"
 java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.$experiment $broker_count
 echo "Worker finished: $experiment"
-sleep 20
+sleep 10
 
 # stop brokers
 echo "Stopping brokers"
@@ -61,7 +61,7 @@ for i in $(seq 0 $END)
   do
     $KAFKA_HOME/bin/kafka-server-stop $PROJECT_DIR/configs/server-$i.properties &
   done
-$KAFKA_HOME/bin/kafka-server-stop $PROJECT_DIR/configs/server-$((broker_count-1)).properties & sleep 30
+$KAFKA_HOME/bin/kafka-server-stop $PROJECT_DIR/configs/server-$((broker_count-1)).properties & sleep 10
 
 # stop zookeeper
 echo "Stopping zookeeper"

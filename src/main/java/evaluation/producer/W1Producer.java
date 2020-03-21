@@ -29,6 +29,8 @@ public class W1Producer extends WProducerBase{
     private static void createSequentialnAnB(int n, long time){
         for (int i = 0; i < n; i++) {
             createRecordA(ID++, time + i);
+        }
+        for (int i = 0; i < n; i++) {
             createRecordB(ID++, time + i + n);
         }
     }
