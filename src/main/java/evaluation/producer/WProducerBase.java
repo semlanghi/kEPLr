@@ -29,6 +29,7 @@ public abstract class WProducerBase {
 
     static GenericRecordBuilder typeARecordBuilder;
     static GenericRecordBuilder typeBRecordBuilder;
+    static GenericRecordBuilder typeEndRecordBuilder;
     static KafkaProducer<String, GenericRecord> producer;
     static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
 
@@ -39,10 +40,13 @@ public abstract class WProducerBase {
         CHUNK_SIZE = chunkSize;
         Schema schemaA = loadSchema("A.asvc");
         Schema schemaB = loadSchema("B.asvc");
+        Schema schemaEND = loadSchema("END.asvc");
         typeARecordBuilder = new GenericRecordBuilder(schemaA);
         typeBRecordBuilder = new GenericRecordBuilder(schemaB);
+        typeEndRecordBuilder = new GenericRecordBuilder(schemaEND);
         schemaRegistryClient.register("A", schemaA);
         schemaRegistryClient.register("B", schemaB);
+        schemaRegistryClient.register("END", schemaEND);
         producer = new KafkaProducer<>(getProducerConfig());
     }
 
@@ -59,10 +63,14 @@ public abstract class WProducerBase {
         typeBRecordBuilder.set("end_time", time);
         sendRecord(typeBRecordBuilder.build());
     }
+    static void sendEndRecord(long id){
+        typeEndRecordBuilder.set("idEND", id);
+        producer.send(new ProducerRecord<>(TOPIC, String.valueOf(id), typeEndRecordBuilder.build()));
+    }
 
     private static void sendRecord(GenericData.Record record){
         for (int i = 0; i < PARTITIONS; i++) {
-            producer.send(new ProducerRecord<>(TOPIC,  String.valueOf(i), record));
+            producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(i), record));
             producer.flush();
         }
     }

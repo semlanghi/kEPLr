@@ -2,8 +2,8 @@
 
 #Set up variables
 topic="W3"
-broker_count=9
-chunk_size=6000
+broker_count=$1
+chunk_size=5000
 
 if [ -z "$KAFKA_HOME" ]
 then

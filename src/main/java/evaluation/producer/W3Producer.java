@@ -30,6 +30,7 @@ public class W3Producer extends WProducerBase{
             }
             System.out.println("Created chunk number: " + (i + 1));
         }
+        sendEndRecord(ID);
     }
 
     private static void createSequentialAB(long time){

@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "END",
+  "namespace": "namespace1",
+  "fields": [
+    {
+      "name": "idEND",
+      "type": "long"
+    }
+  ]
+}

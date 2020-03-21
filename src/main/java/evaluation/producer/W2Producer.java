@@ -22,6 +22,7 @@ public class W2Producer extends WProducerBase {
             createSequentialnAB((int) Math.pow(2, i+1), simulatedTime);
             System.out.println("Created chunk number: " + (i + 1));
         }
+        sendEndRecord(ID);
     }
 
     private static void createSequentialnAB(int n, long time){

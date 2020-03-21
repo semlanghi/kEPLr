@@ -23,6 +23,7 @@ public class W4Producer extends WProducerBase{
             createSequentialAnB((int) Math.pow(2, i+1), simulatedTime);
             System.out.println("Created chunk number: " + (i + 1));
         }
+        sendEndRecord(ID);
     }
 
     private static void createSequentialAnB(int n, long time){
