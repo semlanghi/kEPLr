@@ -20,8 +20,8 @@ fi
 
 #clean logs:
 echo "Cleaning /kafka_log* and zookeeper folders from /tmp"
-find . -name 'kafka-log*' -exec rm -rf {} \;
-find . -name 'zookeper' -exec rm -rf {} \;
+find /tmp -name 'kafka-log*' -exec rm -rf {} \;
+find /tmp -name 'zookeper' -exec rm -rf {} \;
 
 #start zookeeper
 echo "Starting zookeeper"
