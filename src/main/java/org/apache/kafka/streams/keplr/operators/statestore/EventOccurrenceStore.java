@@ -359,14 +359,10 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
         garbageCollection();
 
-        //Take from the event map, all the actual events, and return them
-
-
-
-        Iterator<Map.Entry<Bytes, byte[]>> it = Arrays.stream(timestamps).boxed().map((Function<Long, Map.Entry<Bytes, byte[]>>) aLong -> new HashMap.SimpleEntry<Bytes, byte[]>(key,singleEvents.get(key).get(aLong).iterator().next())).iterator();
-
-
-
+        Iterator<Map.Entry<Bytes, byte[]>> it = Arrays.stream(timestamps).boxed()
+                .map((Function<Long, Map.Entry<Bytes, byte[]>>) aLong ->
+                            new HashMap.SimpleEntry<Bytes, byte[]>(key,singleEvents.get(key).get(aLong)
+                        .iterator().next())).iterator();
 
         return new EventOccurrenceIteratorWrapper<byte[]>(it,openIterators::remove, false);
     }

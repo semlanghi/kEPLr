@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public interface KTStream<K,V> extends KStream<TypedKey<K>,V> {
+public interface KTStream<K,V> extends KStream<TypedKey<K>, V> {
 
     public KTStream<K,V> every();
 

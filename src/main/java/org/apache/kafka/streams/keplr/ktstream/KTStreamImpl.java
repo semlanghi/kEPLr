@@ -41,6 +41,8 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         this.kClass = kClass;
     }
 
+
+
     public EType<K, V> type() {
         return type;
     }
@@ -437,10 +439,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final String processorName = builder.newProcessorName("KTSTREAM-TIMES-");
 
-        //EventStore<Bytes,byte[]> bytesEventStore;
-
-        //bytesEventStore = new FollowedByWindowStore("_Store_"+id++, "metrics", 5L, 100L, false, 5,5, Long.MAX_VALUE);
-
         UUID id = UUID.randomUUID();
 
         EventOccurrenceBytesStoreSupplier storeSupplier = new EventOccurrenceBytesStoreSupplier("_Store_"+id, 100L, 100L, false,
@@ -545,8 +543,10 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     };*/
 
     @Override
-    public KStream filter(Predicate predicate) {
-        return wrappedStream.filter(predicate);
+    public KTStream<K,V> filter(Predicate<? super TypedKey<K>,
+                                        ? super V> predicate) {
+        return new KTStreamImpl<K,V>(wrappedStream.filter(predicate),
+                type, kClass);
     }
 
 
@@ -890,8 +890,8 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     }
 
     @Override
-    public KStream flatMap(KeyValueMapper mapper) {
-        return null;
+    public KTStream<K,V> flatMap(KeyValueMapper mapper) {
+        return new KTStreamImpl<>(wrappedStream.flatMap(mapper), type, kClass);
     }
 
     @Override
@@ -904,9 +904,8 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         return null;
     }
 
-    @Override
-    public KStream map(KeyValueMapper mapper) {
-        return null;
+    public KTStream map(KeyValueMapper mapper) {
+        return new KTStreamImpl(wrappedStream.map(mapper), type, kClass);
     }
 
     @Override

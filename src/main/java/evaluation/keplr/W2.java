@@ -96,7 +96,7 @@ public class W2 {
         KTStream<String,GenericRecord>[] typedStreams = KTStream.match(stream, type1,type2);
 
 
-        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1), 5000L)
+        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1), 60000L)
                 .to("output_final");
 
         Topology topo = builder.build(config);

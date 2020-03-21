@@ -51,38 +51,43 @@ public class ETypeAvro extends EType<String, GenericRecord> {
 
     @Override
     public long start(GenericRecord value) {
-        return (long) value.get(schema.getAvroSchema().getField("start_time").name());
-
+        return (long) value
+                .get(schema.getAvroSchema()
+                        .getField("start_time")
+                        .name());
     }
 
     @Override
     public long end(GenericRecord value) {
-        return (long) value.get(schema.getAvroSchema().getField("end_time").name());
+        return (long) value.
+                get(schema.getAvroSchema()
+                        .getField("end_time")
+                        .name());
     }
 
 
 
     @Override
-    public EType<String, GenericRecord> product(EType<String, GenericRecord> otherType, boolean array) {
-
-         if(otherType instanceof ETypeAvro) {
-             Schema schema = SchemaBuilder.record(this.description + "_X_" + otherType.description).fields()
-                     .requiredLong("start_time")
-                     .requiredLong("end_time")
-                     .name("x")
-                     .type(this.schema.getAvroSchema())
-                     .noDefault()
-                     .name("y")
-                     .type(((ETypeAvro) otherType).schema.getAvroSchema())
-                     .noDefault()
-                     .endRecord();
-             return new ETypeAvro(schema);
-         }else {
-             System.out.println("product not possible between incompatible types");
-             return null;
-         }
-
-
+    public EType<String, GenericRecord> product(EType<String, GenericRecord> otherType,
+                                                boolean array) {
+        if(otherType instanceof ETypeAvro) {
+            Schema schema = SchemaBuilder
+                    .record(this.description + "_X_" + otherType.description)
+                    .fields()
+                    .requiredLong("start_time")
+                    .requiredLong("end_time")
+                    .name("x")
+                    .type(this.schema.getAvroSchema())
+                    .noDefault()
+                    .name("y")
+                    .type(((ETypeAvro) otherType).schema.getAvroSchema())
+                    .noDefault()
+                    .endRecord();
+            return new ETypeAvro(schema);
+        }else {
+            System.out.println("product not possible between incompatible types");
+            return null;
+        }
     }
 
     @Override

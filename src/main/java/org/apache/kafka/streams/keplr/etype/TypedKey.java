@@ -6,7 +6,6 @@ public class TypedKey<K> {
 
 
     protected K key;
-    //protected EType<K,?> type;
     protected String type;
 
     public TypedKey() {
