@@ -6,6 +6,14 @@
     {
       "name": "idEND",
       "type": "long"
+    },
+    {
+        "name":"A_count",
+        "type":"long"
+    },
+    {
+        "name":"B_count",
+        "type":"long"
     }
   ]
 }

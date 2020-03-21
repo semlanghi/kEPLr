@@ -26,21 +26,26 @@ public abstract class WProducerBase {
     static int CHUNK_SIZE;
     static int NUMBER_OF_CHUNKS ;
     static int PARTITIONS;
+    static long A_COUNT=0;
+    static long B_COUNT=0;
 
     static GenericRecordBuilder typeARecordBuilder;
     static GenericRecordBuilder typeBRecordBuilder;
     static GenericRecordBuilder typeEndRecordBuilder;
     static KafkaProducer<String, GenericRecord> producer;
     static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
+    private static Schema schemaA;
+    private static Schema schemaEND;
+    private static Schema schemaB;
 
 
     protected static void setup(String topic, int partitions, int chunkSize) throws IOException, RestClientException {
         TOPIC = topic;
         PARTITIONS = partitions;
         CHUNK_SIZE = chunkSize;
-        Schema schemaA = loadSchema("A.asvc");
-        Schema schemaB = loadSchema("B.asvc");
-        Schema schemaEND = loadSchema("END.asvc");
+        schemaA = loadSchema("A.asvc");
+        schemaB = loadSchema("B.asvc");
+        schemaEND = loadSchema("END.asvc");
         typeARecordBuilder = new GenericRecordBuilder(schemaA);
         typeBRecordBuilder = new GenericRecordBuilder(schemaB);
         typeEndRecordBuilder = new GenericRecordBuilder(schemaEND);
@@ -65,6 +70,8 @@ public abstract class WProducerBase {
     }
     static void sendEndRecord(long id){
         typeEndRecordBuilder.set("idEND", id);
+        typeEndRecordBuilder.set("A_count", A_COUNT);
+        typeEndRecordBuilder.set("B_count", B_COUNT);
         producer.send(new ProducerRecord<>(TOPIC, String.valueOf(id), typeEndRecordBuilder.build()));
     }
 
@@ -72,6 +79,8 @@ public abstract class WProducerBase {
         for (int i = 0; i < PARTITIONS; i++) {
             producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(i), record));
             producer.flush();
+            if(record.getSchema().equals(schemaA)) A_COUNT++;
+            else if(record.getSchema().equals(schemaB)) B_COUNT++;
         }
     }
 
