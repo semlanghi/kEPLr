@@ -4,7 +4,6 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeString;
 import org.apache.kafka.streams.keplr.ktstream.KTStream;
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serdes;
@@ -77,7 +76,7 @@ public class MainStringExample {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = MainStringExample.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {

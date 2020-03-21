@@ -68,7 +68,7 @@ public abstract class WProducerBase {
     }
 
     private static Schema loadSchema(final String name) throws IOException {
-        try (final InputStream input = GenericRecordProducer.class
+        try (final InputStream input = WProducerBase.class
                 .getClassLoader()
                 .getResourceAsStream(name)
         ) {

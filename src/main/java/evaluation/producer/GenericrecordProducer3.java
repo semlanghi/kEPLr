@@ -236,7 +236,7 @@ public class GenericrecordProducer3 {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = GenericrecordProducer3.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {
