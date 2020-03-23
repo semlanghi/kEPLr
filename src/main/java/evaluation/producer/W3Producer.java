@@ -16,31 +16,34 @@ public class W3Producer extends WProducerBase{
      */
 
     public static void main(String[] args) throws IOException, RestClientException {
-        setup(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
-        setNumberOfChunks();
+        TOPIC = args[0];
+        PARTITIONS = Integer.parseInt(args[1]);
+        INITIAL_CHUNK_SIZE = Integer.parseInt(args[2]);
+        NUMBER_OF_CHUNKS = Integer.parseInt(args[3]);
+        GROWTH_SIZE = Integer.parseInt(args[4]);
+        MAX_CHUNK_SIZE = INITIAL_CHUNK_SIZE + GROWTH_SIZE * NUMBER_OF_CHUNKS;
+
+        setup();
         createRecords();
     }
 
     private static void createRecords() {
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
         for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-            for (int j = 0; j < Math.pow(2, 1+i); j+=2) {
-                long simulatedTime = 1 + i* CHUNK_SIZE + j;
-                createSequentialAB(simulatedTime);
-            }
+            long simulatedTime = 1 + i* MAX_CHUNK_SIZE;
+            int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
+            createSequentialAB(currentChunkSize/2, simulatedTime);
+
             System.out.println("Created chunk number: " + (i + 1));
         }
         sendEndRecord(ID);
     }
 
-    private static void createSequentialAB(long time){
-        createRecordA(ID, time);
-        createRecordB(ID++, time + 1);
-    }
-
-
-    private static void setNumberOfChunks(){
-        NUMBER_OF_CHUNKS = (int) Math.floor( Math.log(CHUNK_SIZE) / Math.log(2));
+    private static void createSequentialAB(int nrOfPairs, long time){
+        for (int j = 0; j < nrOfPairs; j++) {
+            createRecordA(ID, time + j* 2);
+            createRecordB(ID++, time + j*2 + 1);
+        }
     }
 }
 

@@ -10,7 +10,7 @@ public class W3 extends WBase{
 
         setup("W3");
         createStream(args[0]);
-        typedStreams[0].times(1).followedBy(typedStreams[1].times(1), 5000L)
+        typedStreams[0].times(1).followedBy(typedStreams[1].times(1), Long.parseLong(args[1]))
                 .every().to("output_final");
         createTopology();
         startSteam();

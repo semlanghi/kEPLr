@@ -43,7 +43,6 @@ public class WBase {
         schemaEnd = loadSchema("END.asvc");
         TOPIC = topic;
 
-
         schemaRegistryClient.register("A", schemaA);
         schemaRegistryClient.register("B", schemaB);
         schemaRegistryClient.register("END", schemaEnd);

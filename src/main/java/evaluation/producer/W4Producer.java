@@ -11,16 +11,22 @@ public class W4Producer extends WProducerBase{
      * Creates sequential records of single type A and n type B in fixed "time chunks"
      */
     public static void main(String[] args) throws IOException, RestClientException {
-        setup(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
-        setNumberOfChunks();
+        TOPIC = args[0];
+        PARTITIONS = Integer.parseInt(args[1]);
+        INITIAL_CHUNK_SIZE = Integer.parseInt(args[2]);
+        NUMBER_OF_CHUNKS = Integer.parseInt(args[3]);
+        GROWTH_SIZE = Integer.parseInt(args[4]);
+        MAX_CHUNK_SIZE = INITIAL_CHUNK_SIZE + GROWTH_SIZE * NUMBER_OF_CHUNKS;
+        setup();
         createRecords();
     }
 
     private static void createRecords(){
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
         for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-            long simulatedTime = 1 + i* CHUNK_SIZE;
-            createSequentialAnB((int) Math.pow(2, i+1), simulatedTime);
+            long simulatedTime = 1 + i* MAX_CHUNK_SIZE;
+            int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
+            createSequentialAnB(currentChunkSize, simulatedTime);
             System.out.println("Created chunk number: " + (i + 1));
         }
         sendEndRecord(ID);
@@ -28,12 +34,8 @@ public class W4Producer extends WProducerBase{
 
     private static void createSequentialAnB(int n, long time){
         createRecordA(ID++, time);
-        for (int i = 1; i <= n; i++) {
+        for (int i = 1; i <= n-1 ; i++) {
             createRecordB(ID++, time + i);
         }
-    }
-
-    private static void setNumberOfChunks() {
-        NUMBER_OF_CHUNKS = (int) Math.floor( Math.log(CHUNK_SIZE-1) / Math.log(2));
     }
 }

@@ -19,12 +19,15 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public abstract class WProducerBase {
+    static int MAX_CHUNK_SIZE;
+    static int INITIAL_CHUNK_SIZE;
+    static int NUMBER_OF_CHUNKS;
+    static int GROWTH_SIZE;
+
     static final String ab = "ab";
     static String BOOTSTRAP_SERVER_URL = "localhost:9092";
     static final String SCHEMA_REGISTRY_URL = "mock://" + ab;
     static String TOPIC;
-    static int CHUNK_SIZE;
-    static int NUMBER_OF_CHUNKS ;
     static int PARTITIONS;
     static long A_COUNT=0;
     static long B_COUNT=0;
@@ -39,10 +42,7 @@ public abstract class WProducerBase {
     private static Schema schemaB;
 
 
-    protected static void setup(String topic, int partitions, int chunkSize) throws IOException, RestClientException {
-        TOPIC = topic;
-        PARTITIONS = partitions;
-        CHUNK_SIZE = chunkSize;
+    protected static void setup() throws IOException, RestClientException {
         schemaA = loadSchema("A.asvc");
         schemaB = loadSchema("B.asvc");
         schemaEND = loadSchema("END.asvc");
@@ -99,6 +99,7 @@ public abstract class WProducerBase {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }
 }
