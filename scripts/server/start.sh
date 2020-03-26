@@ -1,8 +1,12 @@
+export _JAVA_OPTIONS="-Xmx3g"
 broker_count=$1
 echo $broker_count
 experiment=$2
 echo $experiment
-chunk_size=5000
+init_chunk_size=$3
+chunk_growth=$5
+nr_of_chunks=$4
+max_chunk_size=$((init_chunk_size + chunk_growth * nr_of_chunks))
 if [ -z "$KAFKA_HOME" ]
 then
       KAFKA_HOME="/root/confluent-5.4.1"
@@ -45,13 +49,13 @@ $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-f
 
 # Execute producer
 echo "Starting producer: $experiment"
-java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer "$experiment" "$broker_count" $chunk_size
+java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer "$experiment" "$broker_count" $chunk_size $init_chunk_size $nr_of_chunks $chunk_growth
 echo "Producer finished"
 sleep 10
 
 #start worker
 echo "Starting worker: $experiment"
-java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.$experiment $broker_count
+java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.$experiment $broker_count $max_chunk_size
 echo "Worker finished: $experiment"
 sleep 10
 
