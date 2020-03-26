@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "END",
+  "namespace": "namespace1",
+  "fields": [
+    {
+      "name": "idEND",
+      "type": "long"
+    },
+    {
+        "name":"A_count",
+        "type":"long"
+    },
+    {
+        "name":"B_count",
+        "type":"long"
+    }
+  ]
+}

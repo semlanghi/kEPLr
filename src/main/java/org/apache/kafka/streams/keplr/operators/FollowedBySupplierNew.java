@@ -59,9 +59,10 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         private TypedKey<K> searchKey;
         private int lookBack=1;
         private boolean firstGone=false;
-        private long lastPredArrived=Long.MIN_VALUE;
+        private long lastPredArrived=0;
         private boolean withinReset;
         private Sensor sensor;
+        boolean toReset;
 
 
         @SuppressWarnings("unchecked")
@@ -100,12 +101,27 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
             if(context().timestamp()>=streamTime){
                 //NORMAL PROCESSING
 
-
+                if(!resultType.isChunkRight())
+                {
+                    if(lastPredArrived+withinTime<=context().timestamp()){
+                        toReset=true;
+                    }
+                }
 
                 if(key.getType().equals(predType.getDescription())){
 
 
+
+                    if(toReset){
+                        firstGone=false;
+                        toReset=false;
+                    }
+
                     if(!firstGone){
+
+
+
+
                         eventStore.putIntervalEvent(key,value,predType.start(value),context().timestamp(), !predType.isChunkLeft());
 
                         if(!everysConfig.get(predType)){
@@ -149,7 +165,7 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                         if(!resultType.isChunkRight())
                             {
                             if(lastPredArrived+withinTime<context().timestamp()){
-                                firstGone=false;
+                                toReset=true;
                             }
                         }
 

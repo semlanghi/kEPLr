@@ -14,7 +14,6 @@ import com.espertech.esper.runtime.client.EPRuntimeProvider;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
-import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -25,7 +24,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 public class EsperEnvironment {
@@ -148,13 +146,4 @@ public class EsperEnvironment {
 
     }
 
-    private static Schema loadSchema(final String name) throws IOException {
-        try (
-                final InputStream input = EsperEnvironment.class
-                        .getClassLoader()
-                        .getResourceAsStream(name)
-        ) {
-            return new Schema.Parser().parse(input);
-        }
-    }
 }

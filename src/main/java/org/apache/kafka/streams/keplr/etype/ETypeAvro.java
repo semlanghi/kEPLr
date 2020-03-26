@@ -36,6 +36,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
     public EType<String, GenericRecord> everyVersion() {
         EType<String,GenericRecord> type = new ETypeAvro(schema.getAvroSchema());
         type.setOnEvery(true);
+        type.chunk(this.isChunkLeft(), this.isChunkRight());
         return type;
     }
 
