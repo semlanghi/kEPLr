@@ -1,4 +1,4 @@
-package evaluation.keplr;
+package examples;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.common.serialization.Serdes;

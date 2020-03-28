@@ -1,4 +1,4 @@
-package evaluation.consumer;
+package examples;
 
 import com.opencsv.CSVWriter;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;

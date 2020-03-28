@@ -1,4 +1,4 @@
-package evaluation.producer;
+package examples;
 
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;

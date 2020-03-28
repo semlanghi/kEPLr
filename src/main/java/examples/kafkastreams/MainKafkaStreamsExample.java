@@ -1,4 +1,4 @@
-package evaluation.kafkastreams;
+package examples.kafkastreams;
 
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;

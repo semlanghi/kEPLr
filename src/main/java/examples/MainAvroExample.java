@@ -1,4 +1,4 @@
-package evaluation.keplr;
+package examples;
 
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.keplr.etype.EType;
