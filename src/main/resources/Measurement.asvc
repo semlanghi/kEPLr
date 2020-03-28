@@ -1,0 +1,67 @@
+{
+  "namespace": "ee.ut.avro",
+  "type": "record",
+  "name": "Measurement",
+  "fields": [
+    {
+      "name": "name",
+      "type": "string"
+    },
+    {
+         "name": "run",
+         "type": "string"
+       },
+    {
+        "name":"A_count",
+        "type":"long"
+    },
+    {
+        "name":"B_count",
+        "type":"long"
+    },
+    {
+        "name":"records_count",
+        "type":"long"
+    },
+    {
+        "name":"start_time",
+        "type":"long"
+    },
+    {
+        "name":"end_time",
+        "type":"long"
+    },
+
+    {
+        "name":"broker_count",
+        "type":"int"
+    },
+
+    {
+       "name":"num_chunks",
+       "type":"int"
+    },
+
+    {
+        "name":"init_chunk_size",
+        "type":"int"
+    },
+
+    {
+        "name":"chunks_growth",
+        "type":"int"
+    },
+    {
+        "name":"within",
+        "type":"long"
+    },
+    {
+        "name":"partition",
+        "type":"int"
+    },
+    {
+        "name":"thread",
+        "type":"string"
+    }
+  ]
+}

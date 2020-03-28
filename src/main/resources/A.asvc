@@ -1,10 +1,10 @@
 {
+  "namespace": "ee.ut.avro",
   "type": "record",
   "name": "A",
-  "namespace": "namespace1",
   "fields": [
     {
-      "name": "idA",
+      "name": "id",
       "type": "long"
     },
     {

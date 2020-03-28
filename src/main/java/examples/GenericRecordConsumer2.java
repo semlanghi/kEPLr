@@ -48,9 +48,6 @@ public class GenericRecordConsumer2 {
 
 
 
-
-
-
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
         String prefix = "src/main/resources/";
         String topic = "output_final";

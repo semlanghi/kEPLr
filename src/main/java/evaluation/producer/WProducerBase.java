@@ -19,30 +19,31 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public abstract class WProducerBase {
-    static int MAX_CHUNK_SIZE;
+    static int WITHIN;
     static int INITIAL_CHUNK_SIZE;
     static int NUMBER_OF_CHUNKS;
     static int GROWTH_SIZE;
 
-    static final String ab = "ab";
+
     static String BOOTSTRAP_SERVER_URL = "localhost:9092";
-    static final String SCHEMA_REGISTRY_URL = "mock://" + ab;
     static String TOPIC;
     static int PARTITIONS;
-    static long A_COUNT=0;
-    static long B_COUNT=0;
+    static long A_COUNT = 0;
+    static long B_COUNT = 0;
 
     static GenericRecordBuilder typeARecordBuilder;
     static GenericRecordBuilder typeBRecordBuilder;
     static GenericRecordBuilder typeEndRecordBuilder;
     static KafkaProducer<String, GenericRecord> producer;
+    static final String ab = "ab";
+    static final String SCHEMA_REGISTRY_URL = "mock://" + ab;
     static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);
     private static Schema schemaA;
     private static Schema schemaEND;
     private static Schema schemaB;
 
 
-    protected static void setup() throws IOException, RestClientException {
+    protected static void setup(String[] args) throws IOException, RestClientException {
         schemaA = loadSchema("A.asvc");
         schemaB = loadSchema("B.asvc");
         schemaEND = loadSchema("END.asvc");
@@ -53,34 +54,45 @@ public abstract class WProducerBase {
         schemaRegistryClient.register("B", schemaB);
         schemaRegistryClient.register("END", schemaEND);
         producer = new KafkaProducer<>(getProducerConfig());
+
+        TOPIC = args[0];
+        PARTITIONS = Integer.parseInt(args[1]);
+        INITIAL_CHUNK_SIZE = Integer.parseInt(args[2]);
+        NUMBER_OF_CHUNKS = Integer.parseInt(args[3]);
+        GROWTH_SIZE = Integer.parseInt(args[4]);
+        WITHIN = Integer.parseInt(args[5]);
     }
 
-    static void createRecordA(long id, long time){
-        typeARecordBuilder.set("idA", id);
+    static void createRecordA(long id, long time) {
+        typeARecordBuilder.set("id", id);
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
         sendRecord(typeARecordBuilder.build());
     }
 
-    static void createRecordB(long id, long time){
-        typeBRecordBuilder.set("idB", id);
+    static void createRecordB(long id, long time) {
+        typeBRecordBuilder.set("id", id);
         typeBRecordBuilder.set("start_time", time);
         typeBRecordBuilder.set("end_time", time);
         sendRecord(typeBRecordBuilder.build());
     }
-    static void sendEndRecord(long id){
-        typeEndRecordBuilder.set("idEND", id);
+
+    static void sendEndRecord(long id) {
+        typeEndRecordBuilder.set("id", id);
         typeEndRecordBuilder.set("A_count", A_COUNT);
         typeEndRecordBuilder.set("B_count", B_COUNT);
-        producer.send(new ProducerRecord<>(TOPIC, String.valueOf(id), typeEndRecordBuilder.build()));
+        for (int i = 0; i < PARTITIONS; i++) {
+            typeEndRecordBuilder.set("partition", i);
+            producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(id), typeEndRecordBuilder.build()));
+        }
     }
 
-    private static void sendRecord(GenericData.Record record){
+    private static void sendRecord(GenericData.Record record) {
         for (int i = 0; i < PARTITIONS; i++) {
             producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(i), record));
             producer.flush();
-            if(record.getSchema().equals(schemaA)) A_COUNT++;
-            else if(record.getSchema().equals(schemaB)) B_COUNT++;
+            if (record.getSchema().equals(schemaA)) A_COUNT++;
+            else if (record.getSchema().equals(schemaB)) B_COUNT++;
         }
     }
 
@@ -93,13 +105,13 @@ public abstract class WProducerBase {
         }
     }
 
-    private static Properties getProducerConfig(){
+    private static Properties getProducerConfig() {
         Properties producerConfig = new Properties();
         producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER_URL);
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
+//        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }
 }

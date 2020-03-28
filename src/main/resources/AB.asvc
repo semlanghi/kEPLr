@@ -1,11 +1,14 @@
 {
   "namespace": "ee.ut.avro",
   "type": "record",
-  "name": "B",
+  "name": "C",
   "fields": [
     {
-      "name": "id",
-      "type": "long"
+      "name": "x",
+      "type": "A"
+    },
+    {  "name": "y",
+       "type": "B"
     },
     {
       "name": "start_time",
@@ -15,6 +18,5 @@
       "name": "end_time",
       "type": "long"
     }
-
   ]
 }

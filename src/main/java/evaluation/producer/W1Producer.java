@@ -11,21 +11,14 @@ public class W1Producer extends WProducerBase{
      * Creates sequential n type A and n type B records in fixed "time chunks"
      */
     public static void main(String[] args) throws IOException, RestClientException{
-        TOPIC = args[0];
-        PARTITIONS = Integer.parseInt(args[1]);
-        INITIAL_CHUNK_SIZE = Integer.parseInt(args[2]);
-        NUMBER_OF_CHUNKS = Integer.parseInt(args[3]);
-        GROWTH_SIZE = Integer.parseInt(args[4]);
-        MAX_CHUNK_SIZE = INITIAL_CHUNK_SIZE + GROWTH_SIZE * NUMBER_OF_CHUNKS;
-
-        setup();
+        setup(args);
         createRecords();
     }
 
     private static void createRecords(){
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
         for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-            long simulatedTime = 1 + i* MAX_CHUNK_SIZE;
+            long simulatedTime = 1 + i * WITHIN;
             int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
             createSequentialnAnB(currentChunkSize/2, simulatedTime);
             System.out.println("Created chunk number: " + (i + 1));

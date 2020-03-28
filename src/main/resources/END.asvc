@@ -4,7 +4,7 @@
   "namespace": "namespace1",
   "fields": [
     {
-      "name": "idEND",
+      "name": "id",
       "type": "long"
     },
     {
@@ -14,6 +14,10 @@
     {
         "name":"B_count",
         "type":"long"
+    },
+    {
+        "name":"partition",
+        "type":"int"
     }
   ]
 }
