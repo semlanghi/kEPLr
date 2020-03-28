@@ -60,20 +60,20 @@ sleep 10
 
 #start KSA
 echo "Starting worker: $experiment"
-nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} &
+java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within}
 echo "Worker finished: $experiment"
 sleep 10
 
-
-if ${DUMP}
-then
-    #start dumper
-    echo "Starting dumper: $experiment"
-    java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.consumer.ResultDumper $experiment
-    echo "dumper finished: $experiment"
-    sleep 10
-fi
-
+#
+#if ${DUMP}
+#then
+#    #start dumper
+#    echo "Starting dumper: $experiment"
+#    java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.consumer.ResultDumper $experiment
+#    echo "dumper finished: $experiment"
+#    sleep 10
+#fi
+#
 
 # stop brokers
 echo "Stopping brokers"
