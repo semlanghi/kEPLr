@@ -139,20 +139,17 @@ public class WBase {
                                 String.valueOf(counter),
                                 String.valueOf(a_count), String.valueOf(b_count), String.valueOf(partition), thread
                         }, false);
-
                         buildMeasurement(startProc, counter, a_count, b_count, partition, thread);
 
-                        streams.close();
                     });
 
                     try {
                         writer.flush();
-                        // producer.close();
-                        // stopStream();
-//                        System.exit(0);
+                        streams.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+
                 }
 
                 return new KeyValue<>(key, value);
