@@ -35,18 +35,22 @@ public class ResultDumper {
     private static Schema schemaB;
     public static Schema.Parser parser = new Schema.Parser();
     private static Schema measurement;
-    public static CSVWriter dumpWriter;
+    public static CSVWriter outputDumpWriter;
     public static String output_topic;
     public static String input_topic;
     private static CSVWriter reportWriter;
+    private static CSVWriter inputDumpWriter;
+    private static String run;
 
     public static void main(String[] args) throws IOException, RestClientException {
 
         input_topic = args[0];
-        output_topic = "" + args[0];
+        run = args[1];
+        output_topic = "output_" + args[0];
 
-        dumpWriter = new CSVWriter(new FileWriter(output_topic + "_dump.csv", true));
-        reportWriter = new CSVWriter(new FileWriter(output_topic + "_reports.csv", true));
+        outputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".output.dump.csv", true));
+        reportWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".reports.csv", true));
+        inputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".input.dump.csv", true));
 
 
         schemaA = loadSchema(ExperimentsConfig.EVENT_SCHEMA_A);
@@ -68,6 +72,9 @@ public class ResultDumper {
         UUID uuid = UUID.randomUUID();
 
         props.put(ConsumerConfig.GROUP_ID_CONFIG, uuid.toString());
+        props.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 0);
+        props.put(ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 0);
+        props.put(ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, 500);
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, uuid.toString());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -75,12 +82,10 @@ public class ResultDumper {
 
         Consumer<String, GenericRecord> consumer = new KafkaConsumer<>(props);
 
-        consumer.subscribe(Arrays.asList(output_topic));
+        consumer.subscribe(Arrays.asList(input_topic, output_topic));
 
         while (true) {
             ConsumerRecords<String, GenericRecord> poll = consumer.poll(Duration.ofMillis(500));
-
-
             poll.forEach(record -> {
                 try {
                     GenericRecord value = record.value();
@@ -92,21 +97,34 @@ public class ResultDumper {
                         String[] nextLine = {
                                 String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("end_time")),
-                                String.valueOf(x.get("id")),
+                                String.valueOf(x.get("idA")),
                                 String.valueOf(x.get("start_time")),
                                 String.valueOf(x.get("end_time")),
-                                String.valueOf(y.get("id")),
+                                String.valueOf(y.get("idB")),
                                 String.valueOf(y.get("start_time")),
                                 String.valueOf(y.get("end_time"))};
-                        write(dumpWriter, nextLine);
-                    } else if (schemaA.equals(schema) || schemaB.equals(schema)) {
+                        outputDumpWriter.writeNext(nextLine, false);
+                        outputDumpWriter.flush();
+                    } else if (schemaA.equals(schema)) {
 //                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {String.valueOf(value.get("id")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time"))};
-                        write(dumpWriter, nextLine);
+                        String[] nextLine = {"A", String.valueOf(value.get("idA")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time"))};
+                        inputDumpWriter.writeNext(nextLine, false);
+                        inputDumpWriter.flush();
+                    } else if (schemaB.equals(schema)) {
+//                        String[] header = {"id", "start_time", "end_time"};
+                        String[] nextLine = {"B", String.valueOf(value.get("idB")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time"))};
+                        inputDumpWriter.writeNext(nextLine, false);
+                        inputDumpWriter.flush();
+                    } else if (schemaEND.equals(schema)) {
+//                        String[] header = {"id", "start_time", "end_time"};
+                        String[] nextLine = {"END", String.valueOf(value.get("idEnd")), String.valueOf(value.get("A_count")), String.valueOf(value.get("B_count")), String.valueOf(value.get("partition"))};
+                        inputDumpWriter.writeNext(nextLine, false);
+                        inputDumpWriter.flush();
                     } else {
 //                        String[] header = {"id", "A_count", "B_count"};
                         String[] nextLine = {
                                 String.valueOf(value.get("name")),
+                                String.valueOf(value.get("run")),
                                 String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("end_time")),
                                 String.valueOf(value.get("A_count")),
@@ -120,19 +138,15 @@ public class ResultDumper {
                                 String.valueOf(value.get("partition")),
                                 String.valueOf(value.get("thread")),
                         };
-                        write(reportWriter, nextLine);
-//                        System.exit(0);
+                        reportWriter.writeNext(nextLine, false);
+                        reportWriter.flush();
+                        System.exit(0);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
         }
-    }
-
-    private static void write(CSVWriter writer, String[] nextLine) throws IOException {
-        writer.writeNext(nextLine, false);
-        writer.flush();
     }
 
 }

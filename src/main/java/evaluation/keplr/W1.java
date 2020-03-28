@@ -13,7 +13,7 @@ public class W1 extends WBase {
         setup(args);
         createStream();
         LOGGER.info("OUTPUT ON " + output_topic);
-        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1).every(), Long.parseLong(args[1])).to(output_topic);
+        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1).every(), within).to(output_topic);
         createTopology();
         startStream();
     }

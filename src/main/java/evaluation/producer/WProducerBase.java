@@ -1,5 +1,6 @@
 package evaluation.producer;
 
+import evaluation.ExperimentsConfig;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
@@ -17,6 +18,8 @@ import org.apache.kafka.common.serialization.Serdes;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import static evaluation.ExperimentsConfig.loadSchema;
 
 public abstract class WProducerBase {
     static int WITHIN;
@@ -44,9 +47,9 @@ public abstract class WProducerBase {
 
 
     protected static void setup(String[] args) throws IOException, RestClientException {
-        schemaA = loadSchema("A.asvc");
-        schemaB = loadSchema("B.asvc");
-        schemaEND = loadSchema("END.asvc");
+        schemaA = loadSchema(ExperimentsConfig.EVENT_SCHEMA_A);
+        schemaB = loadSchema(ExperimentsConfig.EVENT_SCHEMA_B);
+        schemaEND = loadSchema(ExperimentsConfig.EVENT_SCHEMA_END);
         typeARecordBuilder = new GenericRecordBuilder(schemaA);
         typeBRecordBuilder = new GenericRecordBuilder(schemaB);
         typeEndRecordBuilder = new GenericRecordBuilder(schemaEND);
@@ -64,21 +67,21 @@ public abstract class WProducerBase {
     }
 
     static void createRecordA(long id, long time) {
-        typeARecordBuilder.set("id", id);
+        typeARecordBuilder.set("idA", id);
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
         sendRecord(typeARecordBuilder.build());
     }
 
     static void createRecordB(long id, long time) {
-        typeBRecordBuilder.set("id", id);
+        typeBRecordBuilder.set("idB", id);
         typeBRecordBuilder.set("start_time", time);
         typeBRecordBuilder.set("end_time", time);
         sendRecord(typeBRecordBuilder.build());
     }
 
     static void sendEndRecord(long id) {
-        typeEndRecordBuilder.set("id", id);
+        typeEndRecordBuilder.set("idEnd", id);
         typeEndRecordBuilder.set("A_count", A_COUNT);
         typeEndRecordBuilder.set("B_count", B_COUNT);
         for (int i = 0; i < PARTITIONS; i++) {
@@ -96,14 +99,6 @@ public abstract class WProducerBase {
         }
     }
 
-    private static Schema loadSchema(final String name) throws IOException {
-        try (final InputStream input = WProducerBase.class
-                .getClassLoader()
-                .getResourceAsStream(name)
-        ) {
-            return new Schema.Parser().parse(input);
-        }
-    }
 
     private static Properties getProducerConfig() {
         Properties producerConfig = new Properties();

@@ -10,7 +10,6 @@ import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
-import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -54,19 +53,20 @@ public class WBase {
 
     private static Logger LOGGER = LoggerFactory.getLogger(WBase.class);
     public static GenericRecordBuilder measurementBuilder;
+    public static long within;
 
     public static String setup(String[] args) throws IOException, RestClientException {
         config = new Properties();
         UUID run = UUID.randomUUID();
         TOPIC = args[0];
-        output_topic = "output3_" + TOPIC;
+        output_topic = "output_" + TOPIC;
 
         LOGGER.info("RUNNING EXPERIMENT " + TOPIC);
         String broker_count = args[1];
         String init_chunk_size = args[2];
         String num_chunks = args[3];
         String chunks_groth = args[4];
-        String within = args[5];
+        within = Long.parseLong(args[5]);
 
         config.put(ExperimentsConfig.EXPERIMENT_NAME, TOPIC);
         config.put(ExperimentsConfig.EXPERIMENT_RUN, run.toString());
@@ -75,7 +75,7 @@ public class WBase {
         config.put(ExperimentsConfig.EXPERIMENT_INIT_CHUNK_SIZE, init_chunk_size);
         config.put(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS, num_chunks);
         config.put(ExperimentsConfig.EXPERIMENT_CHUNK_GROWTH, chunks_groth);
-        config.put(ExperimentsConfig.EXPERIMENT_WINDOW, within);
+        config.put(ExperimentsConfig.EXPERIMENT_WINDOW, args[5]);
 
         schemaA = loadSchema(ExperimentsConfig.EVENT_SCHEMA_A);
         schemaB = loadSchema(ExperimentsConfig.EVENT_SCHEMA_B);
@@ -127,8 +127,6 @@ public class WBase {
                         Integer partition = (Integer) value.get("partition");
                         Object b_count = value.get("B_count");
                         Object a_count = value.get("A_count");
-
-
                         writer.writeNext(new String[]{
                                 config.getProperty(ExperimentsConfig.EXPERIMENT_NAME),
                                 config.getProperty(ExperimentsConfig.EXPERIMENT_RUN),
@@ -143,7 +141,8 @@ public class WBase {
                         }, false);
 
                         buildMeasurement(startProc, counter, a_count, b_count, partition, thread);
-                        sendOut(key);
+
+                        streams.close();
                     });
 
                     try {
@@ -169,55 +168,35 @@ public class WBase {
     static void createTopology() {
         Topology topo = builder.build(config);
         System.out.println(topo.describe());
-
-
     }
 
     static void startStream() {
         streams = new KafkaStreams(builder.build(), config);
-        streams.start();
-//        streams.setStateListener((KafkaStreams.State newState, KafkaStreams.State oldState) -> {
-//            if (newState.equals(KafkaStreams.State.ERROR)) {
-//                LOGGER.error("Caught ERROneous State");
-//                sendOut("END");
-//                streams.close();
-//                System.exit(0);
-//            }
-//
-//
-//        });
-//        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-//            LOGGER.error("Caught Shutdown request");
-//            // Do some shutdown cleanup.
-//            if (streams.state().isRunning()) {
-////                If this hook is called due to the Main exiting after handling
-////                an exception we don't want to call close again. It doesn't
-////                cause any errors but logs that the application was closed
-////                a second time.
-//                sendOut("END");
-//                streams.close();
-//                System.exit(0);
-//            }
-//            // Maybe do a little bit more clean up before system exits.
-//
-//        }));
-//
-//        streams.setUncaughtExceptionHandler((Thread t, Throwable e) -> {
-//            LOGGER.error("Caught unhandled Kafka Streams Exception:", e);
-//            e.printStackTrace();
-//            // Do some exception handling.
-//            if (streams.state().isRunning()) {
-//                streams.close();
-//                sendOut("END");
-//            }
-//            // Maybe do some more exception handling.
-//
-//            // Open the Gate to let application exit normally
-//
-//            // Or Optionally call halt to immediately terminate and prevent call to Shutdown hook.
-//            Runtime.getRuntime().halt(0);
-//        });
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            Runtime.getRuntime().halt(0);
+        }));
+
+        streams.setStateListener((newState, oldState) -> {
+            if (KafkaStreams.State.PENDING_SHUTDOWN.equals(newState)) {
+                try {
+                    // setup a timer, so if nice exit fails, the nasty exit happens
+                    sendOut("END");
+                    Thread.sleep(60000);
+                    Runtime.getRuntime().exit(0);
+                } catch (Throwable ex) {
+                    // exit nastily if we have a problem
+                    Runtime.getRuntime().halt(-1);
+                } finally {
+                    // should never get here
+                    Runtime.getRuntime().halt(-1);
+                }
+            }
+        });
+
+
+        streams.start();
 
     }
 

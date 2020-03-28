@@ -1,8 +1,6 @@
 package evaluation;
 
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import org.apache.avro.Schema;
 
 import java.io.IOException;
@@ -11,10 +9,6 @@ import java.io.InputStream;
 public class ExperimentsConfig {
 
     private static SchemaRegistryClient registryClient;
-    private static Schema schemaA;
-    private static Schema schemaB;
-    private static Schema schemaEnd;
-    private static Schema measurement;
 
 
     public static final String EVENT_SCHEMA_A = "A.asvc";
@@ -51,33 +45,14 @@ public class ExperimentsConfig {
 
     public static final String SCHEMA_REGISTRY_URL = "mock://ab";
 
-    public static SchemaRegistryClient getRegistry() {
-        if (registryClient == null)
-            registryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_URL);
-        return registryClient;
-    }
-
     public static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = ExperimentsConfig.class
-                        .getClassLoader()
-                        .getResourceAsStream(name)
+                final InputStream input = ExperimentsConfig.class.getClassLoader().getResourceAsStream(name)
         ) {
             return new Schema.Parser().parse(input);
         }
     }
 
 
-    private static void setup() throws IOException, RestClientException {
-        schemaA = loadSchema(ExperimentsConfig.EVENT_SCHEMA_A);
-        schemaB = loadSchema(ExperimentsConfig.EVENT_SCHEMA_B);
-        schemaEnd = loadSchema(ExperimentsConfig.EVENT_SCHEMA_END);
-        measurement = loadSchema(ExperimentsConfig.EVENT_SCHEMA_Measurement);
-
-        registryClient.register("A", schemaA);//, 0, 1);
-        registryClient.register("B", schemaB);//, 0, 2);
-        registryClient.register("END", schemaEnd);//, 0, 3);
-        registryClient.register("Measurement", measurement);//, 0, 4);
-    }
 }
 

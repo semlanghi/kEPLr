@@ -18,7 +18,7 @@ public class W1Producer extends WProducerBase{
     private static void createRecords(){
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
         for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
-            long simulatedTime = 1 + i * WITHIN;
+            long simulatedTime = 50 + i * WITHIN;
             int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
             createSequentialnAnB(currentChunkSize/2, simulatedTime);
             System.out.println("Created chunk number: " + (i + 1));
