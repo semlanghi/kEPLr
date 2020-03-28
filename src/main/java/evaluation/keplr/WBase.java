@@ -122,6 +122,7 @@ public class WBase {
             public KeyValue<? extends String, ? extends GenericRecord> apply(String key, GenericRecord value) {
                 counter++;
                 if (value.getSchema().equals(schemaEnd)) {
+
                     streams.localThreadsMetadata().forEach(threadMetadata -> {
                         String thread = threadMetadata.threadName();
                         Integer partition = (Integer) value.get("partition");
@@ -140,16 +141,14 @@ public class WBase {
                                 String.valueOf(a_count), String.valueOf(b_count), String.valueOf(partition), thread
                         }, false);
                         buildMeasurement(startProc, counter, a_count, b_count, partition, thread);
+                        try {
+                            writer.flush();
 
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     });
-
-                    try {
-                        writer.flush();
-                        streams.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
+                    streams.close();
                 }
 
                 return new KeyValue<>(key, value);
