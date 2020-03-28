@@ -13,6 +13,10 @@ import java.util.function.ToLongFunction;
 
 public class ETypeAvro extends EType<String, GenericRecord> {
 
+    public Schema getSchema() {
+        return schema.getAvroSchema();
+    }
+
     //@JsonSerialize(using = AvroModule.SchemaSerializer.class)
     private AvroSchema schema;
 
