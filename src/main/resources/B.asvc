@@ -18,6 +18,9 @@
     {
       "name": "end_time",
       "type": "long"
+    },
+    { "name": "partition",
+      "type": "string"
     }
 
   ]

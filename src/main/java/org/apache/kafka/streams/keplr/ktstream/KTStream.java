@@ -1,34 +1,35 @@
 package org.apache.kafka.streams.keplr.ktstream;
 
-import org.apache.kafka.streams.keplr.etype.EType;
+import evaluation.keplr.ApplicationSupplier;
+import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public interface KTStream<K,V> extends KStream<TypedKey<K>,V> {
+public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
 
-    public KTStream<K,V> every();
+    public KTStream<K, V> every();
 
-    public <R> KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
-                                            final ValueJoiner<V, V, R> joiner);
-    public KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs);
+    public <R> KTStream<K, V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
+                                         final ValueJoiner<V, V, R> joiner);
 
-    public KStream<TypedKey<K>,V> wrappedStream();
+    public KTStream<K, V> followedBy(final KTStream<K, V> otherStream, final long withinMs);
 
-    public EType<K,V> type();
+    public KStream<TypedKey<K>, V> wrappedStream();
 
-    public KTStream<K,V> times(int i);
+    public EType<K, V> type();
+
+    public KTStream<K, V> times(int i);
 
     public static <K, V> KTStream<K, V>[] match(KStream<K, V> stream, EType<K, V>... types) {
-        Iterator<EType<K,V>> typeIterator = Arrays.asList(types).iterator();
+        Iterator<EType<K, V>> typeIterator = Arrays.asList(types).iterator();
 
         List<KTStream<K, V>> typedStreams = Arrays.stream(stream.branch(types))
                 .map(kvkStream -> {
@@ -39,8 +40,14 @@ public interface KTStream<K,V> extends KStream<TypedKey<K>,V> {
                 }).collect(Collectors.toList());
 
         KTStreamImpl<K, V>[] streams = new KTStreamImpl[typedStreams.size()];
-        streams=typedStreams.toArray(streams);
+        streams = typedStreams.toArray(streams);
 
         return streams;
     }
+
+
+    //evaluation
+    public KTStreamImpl<K, V> throughput(ApplicationSupplier app);
+
+    public KTStreamImpl<K,V> chunk();
 }

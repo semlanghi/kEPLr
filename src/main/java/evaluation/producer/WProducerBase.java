@@ -16,7 +16,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import static evaluation.ExperimentsConfig.loadSchema;
@@ -44,7 +43,7 @@ public abstract class WProducerBase {
     private static Schema schemaA;
     private static Schema schemaEND;
     private static Schema schemaB;
-    static int PARTITION_ASSIGNED;
+    static Integer PARTITION_ASSIGNED;
 
 
     protected static void setup(String[] args) throws IOException, RestClientException {
@@ -73,14 +72,17 @@ public abstract class WProducerBase {
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
         typeARecordBuilder.set("end", end);
+        typeARecordBuilder.set("partition", "KEY-" + PARTITION_ASSIGNED);
         sendRecord(typeARecordBuilder.build());
     }
 
     static void createRecordB(long id, long time, boolean end) {
         typeBRecordBuilder.set("idB", id);
         typeBRecordBuilder.set("start_time", time);
-        typeBRecordBuilder.set("end_time", time);
         typeBRecordBuilder.set("end", end);
+        typeBRecordBuilder.set("end_time", time);
+        typeBRecordBuilder.set("partition", "KEY-" + PARTITION_ASSIGNED);
+
         sendRecord(typeBRecordBuilder.build());
     }
 
@@ -88,13 +90,12 @@ public abstract class WProducerBase {
         typeEndRecordBuilder.set("idEnd", id);
         typeEndRecordBuilder.set("A_count", A_COUNT);
         typeEndRecordBuilder.set("B_count", B_COUNT);
-        typeEndRecordBuilder.set("partition", PARTITION_ASSIGNED);
-        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(id), typeEndRecordBuilder.build()));
-}
+        typeEndRecordBuilder.set("partition", "KEY-" + PARTITION_ASSIGNED);
+        producer.send(new ProducerRecord<>(TOPIC, String.valueOf(id), typeEndRecordBuilder.build()));
+    }
 
     private static void sendRecord(GenericData.Record record) {
-
-        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(PARTITION_ASSIGNED), record));
+        producer.send(new ProducerRecord<>(TOPIC, "KEY-" + PARTITION_ASSIGNED, record));
         producer.flush();
         if (record.getSchema().equals(schemaA)) A_COUNT++;
         else if (record.getSchema().equals(schemaB)) B_COUNT++;
@@ -108,6 +109,7 @@ public abstract class WProducerBase {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
 //        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }

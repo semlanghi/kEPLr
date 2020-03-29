@@ -11,6 +11,8 @@ import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
@@ -26,6 +28,8 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
     private final String storeName;
     private final long withinTime;
+    private static Logger LOGGER = LoggerFactory.getLogger(FollowedBySupplierNew.class);
+
 
     private final ValueJoiner<? super V, ? super V, ? extends R> joiner;
 
@@ -174,9 +178,8 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
                     while (iter.hasNext()) {
                         final KeyValue<TypedKey<K>, V> otherRecord = iter.next();
-                        context().forward(
-                                resultType.typed(key.getKey()),
-                                joiner.apply(otherRecord.value, value));
+
+                        context().forward(resultType.typed(key.getKey()), joiner.apply(otherRecord.value, value));
                     }
 
 

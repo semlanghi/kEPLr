@@ -16,6 +16,8 @@ import org.apache.kafka.streams.processor.internals.InternalProcessorContext;
 import org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStoreIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.nio.ByteBuffer;
@@ -47,6 +49,7 @@ public class FollowedByStore implements FollowedByEventStore<Bytes,byte[]> {
 
 
     private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<IInterval<Long>, Long>> lastIterationEvents = new ConcurrentSkipListMap<>();
+    private static Logger LOGGER = LoggerFactory.getLogger(FollowedByStore.class);
 
 
     private final Set<FollowedByWindowStoreIteratorWrapper<?>> openIterators = ConcurrentHashMap.newKeySet();
@@ -355,6 +358,7 @@ public class FollowedByStore implements FollowedByEventStore<Bytes,byte[]> {
     private ArrayList<IInterval> toDelete= new ArrayList<>();
     @Override
     public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long start, long end, boolean delete) {
+        ;
         IInterval<Long> interval = new LongInterval(start,end);
         IInterval<Long> searchInterval = new LongInterval(end-withinMs,start);
 

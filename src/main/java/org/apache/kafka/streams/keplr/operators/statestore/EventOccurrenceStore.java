@@ -67,7 +67,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
         this.retentionPeriod = retentionPeriod;
 
         this.withinMs = withinMs;
-
     }
 
     private static long counter = 0;

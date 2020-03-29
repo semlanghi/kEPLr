@@ -1,6 +1,5 @@
 package evaluation.keplr;
 
-import com.opencsv.CSVWriter;
 import evaluation.ExperimentsConfig;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
@@ -14,18 +13,19 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.*;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeAvro;
 import org.apache.kafka.streams.keplr.ktstream.KTStream;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.AvroTimestampExtractor;
 import utils.KafkaAvroSerDe;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
@@ -54,8 +54,11 @@ public class WBase {
     private static Logger LOGGER = LoggerFactory.getLogger(WBase.class);
     public static GenericRecordBuilder measurementBuilder;
     public static long within;
+    protected static ApplicationSupplier app_supplier;
 
     public static String setup(String[] args) throws IOException, RestClientException {
+
+
         config = new Properties();
         UUID run = UUID.randomUUID();
         TOPIC = args[0];
@@ -67,6 +70,8 @@ public class WBase {
         String num_chunks = args[3];
         String chunks_groth = args[4];
         within = Long.parseLong(args[5]);
+
+        app_supplier = new ApplicationSupplier(Integer.parseInt(broker_count));
 
         config.put(ExperimentsConfig.EXPERIMENT_NAME, TOPIC);
         config.put(ExperimentsConfig.EXPERIMENT_RUN, run.toString());
@@ -87,19 +92,19 @@ public class WBase {
         schemaRegistryClient.register("END", schemaEnd);//, 0, 3);
         schemaRegistryClient.register("Measurement", measurement);//, 0, 4);
 
-        config.put(StreamsConfig.APPLICATION_ID_CONFIG, "windowstore_" + UUID.randomUUID());
+        config.put(StreamsConfig.APPLICATION_ID_CONFIG, args[6]);
         config.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER_URL);
 
         config.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.SCHEMA_REGISTRY_URL);
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaAvroSerDe.class);
         config.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, AvroTimestampExtractor.class);
-        config.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, Integer.parseInt(broker_count));
+        config.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, broker_count);
 
         type1 = new ETypeAvro(schemaA);
         type2 = new ETypeAvro(schemaB);
 
-//        ETypeAvro product = (ETypeAvro) type1.product(type2, false);
+//
 
 
 //        schemaRegistryClient.register("C", product.getSchema());//, 0, 5);
@@ -113,20 +118,20 @@ public class WBase {
         KStream<String, GenericRecord> stream = builder.stream(TOPIC);
         String property = config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT);
 
-
         typedStreams = KTStream.match(stream, type1, type2);
 
     }
 
-    static void createTopology() {
-        Topology topo = builder.build(config);
-        System.out.println(topo.describe());
-    }
 
     static void startStream() {
-        Topology topo = builder.build();
 
-        streams = new KafkaStreams(builder.build(), config);
+        Topology build = builder.build();
+
+        LOGGER.info(build.describe().toString());
+
+        streams = new KafkaStreams(build, config);
+
+        app_supplier.setApp(streams);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Runtime.getRuntime().halt(0);
@@ -189,4 +194,6 @@ public class WBase {
 
         producer.send(new ProducerRecord<>(output_topic, key, measurementBuilder.build()));
     }
+
+
 }

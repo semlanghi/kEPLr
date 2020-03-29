@@ -14,9 +14,8 @@ public class W2 extends WBase {
         setup(args);
         createStream();
         LOGGER.info("OUTPUT ON " + output_topic);
-        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1), within).to(output_topic);
-
-        createTopology();
+        //every A followed by B
+        typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1), within).chunk().throughput(app_supplier).to(output_topic);
         startStream();
     }
 }

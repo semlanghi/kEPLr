@@ -15,10 +15,9 @@ public class W3 extends WBase {
         setup(args);
         createStream();
         LOGGER.info("OUTPUT ON " + output_topic);
-        typedStreams[0].times(1).followedBy(typedStreams[1].times(1), within)
-                .every().to(output_topic);
+        //every (A followed by B)
+        typedStreams[0].times(1).followedBy(typedStreams[1].times(1) , within).every().chunk().throughput(app_supplier).to(output_topic);
 
-        createTopology();
         startStream();
 
     }

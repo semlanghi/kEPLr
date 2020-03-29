@@ -11,16 +11,17 @@ import java.util.function.BinaryOperator;
 /**
  * Class to abstract the concept of event type, the creation of the typed key depends also on the type
  * and is overridden according to the actual {@code EType}.
+ *
  * @param <K>
  * @param <V>
  */
 
-public abstract class EType<K,V> implements Predicate<K,V>{
-    
+public abstract class EType<K, V> implements Predicate<K, V> {
+
     protected String description;
     private boolean onEvery;
-    private boolean chunkLeft=true;
-    private boolean chunkRight=true;
+    private boolean chunkLeft = true;
+    private boolean chunkRight = true;
 
     public EType() {
     }
@@ -49,9 +50,9 @@ public abstract class EType<K,V> implements Predicate<K,V>{
         this.onEvery = onEvery;
     }
 
-    public abstract EType<K,V> everyVersion();
+    public abstract EType<K, V> everyVersion();
 
-    public void chunk(boolean chunkLeft, boolean chunkRight){
+    public void chunk(boolean chunkLeft, boolean chunkRight) {
         this.chunkLeft = chunkLeft;
         this.chunkRight = chunkRight;
     }
@@ -62,14 +63,14 @@ public abstract class EType<K,V> implements Predicate<K,V>{
         this.description = description;
     }
 
-    public EType(EType<?,?>[] types){
+    public EType(EType<?, ?>[] types) {
 
         this.description = Arrays.stream(types)
                 .map(eType -> eType.description)
                 .reduce(new BinaryOperator<String>() {
                     @Override
                     public String apply(String s, String s2) {
-                        return s+"_X_"+s2;
+                        return s + "_X_" + s2;
                     }
                 }).get();
         this.onEvery = false;
@@ -85,13 +86,13 @@ public abstract class EType<K,V> implements Predicate<K,V>{
 
     public abstract long end(V value);
 
-    public long duration(V value){
-        return end(value)-start(value);
+    public long duration(V value) {
+        return end(value) - start(value);
     }
 
-    public abstract EType<K,V> product(EType<K, V> otherType, boolean array);
+    public abstract EType<K, V> product(EType<K, V> otherType, boolean array);
 
-    public abstract ValueJoiner<V,V,V> joiner();
+    public abstract ValueJoiner<V, V, V> joiner();
 
     public String getDescription() {
         return description;
@@ -128,6 +129,7 @@ public abstract class EType<K,V> implements Predicate<K,V>{
     public abstract Class<K> kClass();
 
     public abstract ArrayList<V> extract(V value);
+
     public abstract V wrap(ArrayList<V> value);
 
 
