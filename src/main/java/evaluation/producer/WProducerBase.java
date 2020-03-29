@@ -44,6 +44,7 @@ public abstract class WProducerBase {
     private static Schema schemaA;
     private static Schema schemaEND;
     private static Schema schemaB;
+    static int PARTITION_ASSIGNED;
 
 
     protected static void setup(String[] args) throws IOException, RestClientException {
@@ -64,19 +65,22 @@ public abstract class WProducerBase {
         NUMBER_OF_CHUNKS = Integer.parseInt(args[3]);
         GROWTH_SIZE = Integer.parseInt(args[4]);
         WITHIN = Integer.parseInt(args[5]);
+        PARTITION_ASSIGNED = Integer.parseInt(args[6]);
     }
 
-    static void createRecordA(long id, long time) {
+    static void createRecordA(long id, long time, boolean end) {
         typeARecordBuilder.set("idA", id);
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
+        typeARecordBuilder.set("end", end);
         sendRecord(typeARecordBuilder.build());
     }
 
-    static void createRecordB(long id, long time) {
+    static void createRecordB(long id, long time, boolean end) {
         typeBRecordBuilder.set("idB", id);
         typeBRecordBuilder.set("start_time", time);
         typeBRecordBuilder.set("end_time", time);
+        typeBRecordBuilder.set("end", end);
         sendRecord(typeBRecordBuilder.build());
     }
 
@@ -84,19 +88,17 @@ public abstract class WProducerBase {
         typeEndRecordBuilder.set("idEnd", id);
         typeEndRecordBuilder.set("A_count", A_COUNT);
         typeEndRecordBuilder.set("B_count", B_COUNT);
-        for (int i = 0; i < PARTITIONS; i++) {
-            typeEndRecordBuilder.set("partition", i);
-            producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(id), typeEndRecordBuilder.build()));
-        }
-    }
+        typeEndRecordBuilder.set("partition", PARTITION_ASSIGNED);
+        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(id), typeEndRecordBuilder.build()));
+}
 
     private static void sendRecord(GenericData.Record record) {
-        for (int i = 0; i < PARTITIONS; i++) {
-            producer.send(new ProducerRecord<>(TOPIC, i, String.valueOf(i), record));
-            producer.flush();
-            if (record.getSchema().equals(schemaA)) A_COUNT++;
-            else if (record.getSchema().equals(schemaB)) B_COUNT++;
-        }
+
+        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(PARTITION_ASSIGNED), record));
+        producer.flush();
+        if (record.getSchema().equals(schemaA)) A_COUNT++;
+        else if (record.getSchema().equals(schemaB)) B_COUNT++;
+
     }
 
 

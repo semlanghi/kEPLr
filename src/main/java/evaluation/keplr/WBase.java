@@ -43,7 +43,7 @@ public class WBase {
     private static EType<String, GenericRecord> type1;
     private static EType<String, GenericRecord> type2;
     private static String TOPIC;
-    private static Properties config;
+    public static Properties config;
     private static StreamsBuilder builder;
     static KTStream<String, GenericRecord>[] typedStreams;
     static KafkaProducer<String, GenericRecord> producer;
@@ -112,50 +112,7 @@ public class WBase {
 
         KStream<String, GenericRecord> stream = builder.stream(TOPIC);
         String property = config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT);
-        stream.map(new KeyValueMapper<String, GenericRecord, KeyValue<? extends String, ? extends GenericRecord>>() {
 
-            CSVWriter writer = new CSVWriter(new FileWriter(property, true));
-            private long counter = 0;
-            private long startProc = System.currentTimeMillis();
-
-            @Override
-            public KeyValue<? extends String, ? extends GenericRecord> apply(String key, GenericRecord value) {
-                counter++;
-                if (value.getSchema().equals(schemaEnd)) {
-
-                    streams.localThreadsMetadata().forEach(threadMetadata -> {
-                        String thread = threadMetadata.threadName();
-                        Integer partition = (Integer) value.get("partition");
-                        Object b_count = value.get("B_count");
-                        Object a_count = value.get("A_count");
-                        writer.writeNext(new String[]{
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_NAME),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_RUN),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_BROKER_COUNT),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_INIT_CHUNK_SIZE),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_CHUNK_GROWTH),
-                                config.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW),
-                                String.valueOf(startProc), String.valueOf(System.currentTimeMillis()),
-                                String.valueOf(counter),
-                                String.valueOf(a_count), String.valueOf(b_count), String.valueOf(partition), thread
-                        }, false);
-                        buildMeasurement(startProc, counter, a_count, b_count, partition, thread);
-                        try {
-                            writer.flush();
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                    streams.close();
-                }
-
-                return new KeyValue<>(key, value);
-            }
-
-
-        });
 
         typedStreams = KTStream.match(stream, type1, type2);
 
@@ -167,10 +124,11 @@ public class WBase {
     }
 
     static void startStream() {
+        Topology topo = builder.build();
+
         streams = new KafkaStreams(builder.build(), config);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-
             Runtime.getRuntime().halt(0);
         }));
 
@@ -178,7 +136,7 @@ public class WBase {
             if (KafkaStreams.State.PENDING_SHUTDOWN.equals(newState)) {
                 try {
                     // setup a timer, so if nice exit fails, the nasty exit happens
-                    sendOut("END");
+                    //sendOut("END");
                     Thread.sleep(60000);
                     Runtime.getRuntime().exit(0);
                 } catch (Throwable ex) {

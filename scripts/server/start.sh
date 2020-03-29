@@ -53,10 +53,14 @@ $KAFKA_HOME/bin/kafka-topics --zookeeper localhost:2181 --delete --topic "$exper
 $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions "$broker_count" --topic "$experiment"
 
 # Execute producer
-echo "Starting producer: $experiment"
-java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within}
-echo "Producer finished"
-sleep 10
+for i in $(seq 0 $((broker_count-1)))
+do
+  echo "Starting producer: $experiment"
+  java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i
+  echo "Producer finished"
+  sleep 10
+done
+
 
 #start KSA
 echo "Starting worker: $experiment"

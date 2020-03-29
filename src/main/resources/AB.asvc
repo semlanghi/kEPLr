@@ -11,6 +11,10 @@
        "type": "B"
     },
     {
+          "name": "end",
+          "type": "boolean"
+    },
+    {
       "name": "start_time",
       "type": "long"
     },

@@ -97,12 +97,15 @@ public class ResultDumper {
                         String[] nextLine = {
                                 String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("end_time")),
+                                String.valueOf(value.get("end")),
                                 String.valueOf(x.get("idA")),
                                 String.valueOf(x.get("start_time")),
                                 String.valueOf(x.get("end_time")),
+                                String.valueOf(x.get("end")),
                                 String.valueOf(y.get("idB")),
                                 String.valueOf(y.get("start_time")),
-                                String.valueOf(y.get("end_time"))};
+                                String.valueOf(y.get("end_time")),
+                                String.valueOf(y.get("end"))};
                         outputDumpWriter.writeNext(nextLine, false);
                         outputDumpWriter.flush();
                     } else if (schemaA.equals(schema)) {

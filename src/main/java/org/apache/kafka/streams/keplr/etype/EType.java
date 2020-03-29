@@ -56,6 +56,8 @@ public abstract class EType<K,V> implements Predicate<K,V>{
         this.chunkRight = chunkRight;
     }
 
+    public abstract boolean isThisTheEnd(V value);
+
     public EType(String description) {
         this.description = description;
     }

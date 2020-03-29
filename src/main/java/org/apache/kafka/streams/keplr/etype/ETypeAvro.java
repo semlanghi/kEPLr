@@ -45,6 +45,11 @@ public class ETypeAvro extends EType<String, GenericRecord> {
     }
 
     @Override
+    public boolean isThisTheEnd(GenericRecord value) {
+        return (boolean) value.get("end");
+    }
+
+    @Override
     public TypedKey<String> typed(String key) {
         return new TypedKey<>(key,this.description);
     }
@@ -74,6 +79,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
              Schema schema = SchemaBuilder.record(this.description + "_X_" + otherType.description).fields()
                      .requiredLong("start_time")
                      .requiredLong("end_time")
+                     .requiredBoolean("end")
                      .name("x")
                      .type(this.schema.getAvroSchema())
                      .noDefault()
@@ -99,7 +105,8 @@ public class ETypeAvro extends EType<String, GenericRecord> {
                 public GenericRecord apply(GenericRecord value1, GenericRecord value2) {
 
                     return recordBuilder.set("x", value1).set("y",value2).set("start_time", (long)value1.get("start_time"))
-                            .set("end_time", (long)value2.get("end_time")).build();
+                            .set("end_time", (long)value2.get("end_time"))
+                            .set("end", ((boolean) value1.get("end")) && ((boolean) value2.get("end"))).build();
                 }
             };
         }else{

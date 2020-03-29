@@ -19,19 +19,30 @@ public class W2Producer extends WProducerBase {
 
     private static void createRecords() {
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
-        for (int i = 0; i < NUMBER_OF_CHUNKS; i++) {
+        for (int i = 0; i < NUMBER_OF_CHUNKS - 1; i++) {
             long simulatedTime = 1 + i * WITHIN;
             int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
             createSequentialnAB(currentChunkSize - 1, simulatedTime);
-            System.out.println("Created chunk number: " + (i + 1));
+            System.out.println("Created chunk number: " + (i + 1)+ " for part "+PARTITION_ASSIGNED);
         }
-        sendEndRecord(ID);
+        //sendEndRecord(ID);
+        long simulatedTime = 1 + (NUMBER_OF_CHUNKS-1) * WITHIN;
+        int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * (NUMBER_OF_CHUNKS-1);
+        createLastSequentialnAB(currentChunkSize - 1, simulatedTime);
     }
 
     private static void createSequentialnAB(int n, long time) {
         for (int i = 0; i < n; i++) {
-            createRecordA(ID++, time + i);
+            createRecordA(ID++, time + i, false);
         }
-        createRecordB(ID++, time + n);
+        createRecordB(ID++, time + n, false);
+    }
+
+    private static void createLastSequentialnAB(int n, long time) {
+        for (int i = 0; i < n-1; i++) {
+            createRecordA(ID++, time + i, false);
+        }
+        createRecordA(ID++, time + n - 1, true);
+        createRecordB(ID++, time + n, true);
     }
 }

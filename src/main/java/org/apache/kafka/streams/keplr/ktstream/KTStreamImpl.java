@@ -7,6 +7,7 @@ import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.ChunkProcessorSupplier;
 import org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier;
 import org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew;
+import org.apache.kafka.streams.keplr.operators.ThroughputSupplier;
 import org.apache.kafka.streams.keplr.operators.statestore.*;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.internals.*;
@@ -103,6 +104,22 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
 
         return new KTStreamImpl<>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, chunkNode, builder), this.type, kClass);
+
+    }
+
+    private KTStreamImpl<K,V> throughput(){
+
+        final String processorName = builder.newProcessorName("KTSTREAM-THROUGHPUT-");
+
+        final ProcessorGraphNode<TypedKey<K>, V> throughputNode = new ProcessorGraphNode<>(
+                processorName,
+                new ProcessorParameters<>(new ThroughputSupplier<>(this.type)
+                        , processorName)
+        );
+
+        builder.addGraphNode(Collections.singletonList(this.streamsGraphNode), throughputNode);
+
+        return new KTStreamImpl<>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, throughputNode, builder), this.type, kClass);
 
     }
 
@@ -727,12 +744,12 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public void to(String topic) {
-        KTStreamImpl<K,V> stream = this.chunk();
+        KTStreamImpl<K,V> stream = this.chunk().throughput();
+
         stream.wrappedStream.map(new KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>() {
             @Override
             public KeyValue<K, V> apply(TypedKey<K> key, V value) {
                     return new KeyValue<>(key.getKey(),value);
-
             }
         }).to(topic);
     }
