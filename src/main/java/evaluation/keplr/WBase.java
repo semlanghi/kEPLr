@@ -112,7 +112,7 @@ public class WBase {
 
         KStream<String, GenericRecord> stream = builder.stream(TOPIC);
         String property = config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT);
-
+        
 
         typedStreams = KTStream.match(stream, type1, type2);
 

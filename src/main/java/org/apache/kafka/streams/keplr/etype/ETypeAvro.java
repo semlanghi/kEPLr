@@ -164,6 +164,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
         }
     }
 
+
     @Override
     public boolean test(String key, GenericRecord value) {
         return value.getSchema().equals(schema.getAvroSchema());

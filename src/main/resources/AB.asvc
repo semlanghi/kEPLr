@@ -11,8 +11,8 @@
        "type": "B"
     },
     {
-          "name": "end",
-          "type": "boolean"
+      "name": "end",
+      "type": "boolean"
     },
     {
       "name": "start_time",

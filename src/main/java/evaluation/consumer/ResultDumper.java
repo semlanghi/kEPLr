@@ -105,7 +105,8 @@ public class ResultDumper {
                                 String.valueOf(y.get("idB")),
                                 String.valueOf(y.get("start_time")),
                                 String.valueOf(y.get("end_time")),
-                                String.valueOf(y.get("end"))};
+                                String.valueOf(y.get("end")),
+                                String.valueOf(record.partition())};
                         outputDumpWriter.writeNext(nextLine, false);
                         outputDumpWriter.flush();
                     } else if (schemaA.equals(schema)) {

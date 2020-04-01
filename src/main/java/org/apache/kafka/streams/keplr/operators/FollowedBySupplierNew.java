@@ -48,7 +48,12 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
     @Override
     public Processor<TypedKey<K>, V> get() {
-        return new FollowedByNewProcessor();
+        try {
+            return new FollowedByNewProcessor((EType<K, V>) predType.clone(), (EType<K, V>) succType.clone(), (EType<K, V>) resultType.clone(), (HashMap<EType<K, V>, Boolean>) everysConfig.clone());
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private class FollowedByNewProcessor extends AbstractProcessor<TypedKey<K>,V>{
@@ -64,6 +69,18 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         private Sensor sensor;
         boolean toReset;
 
+        private EType<K,V> predType;
+        private EType<K,V> succType;
+        private EType<K,V> resultType;
+
+        private HashMap<EType<K,V>, Boolean> everysConfig;
+
+        public FollowedByNewProcessor(EType<K, V> predType, EType<K, V> succType, EType<K, V> resultType, HashMap<EType<K, V>, Boolean> everysConfig) {
+            this.predType = predType;
+            this.succType = succType;
+            this.resultType = resultType;
+            this.everysConfig = everysConfig;
+        }
 
         @SuppressWarnings("unchecked")
         @Override
@@ -80,9 +97,6 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         public void process(final TypedKey<K> key, final V value) {
 
             //sensor.record();
-
-
-
             if (key == null || value == null || key.getKey() == null) {
                 streamTime=context().timestamp();
                 LOG.warn(
@@ -93,10 +107,6 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
                 return;
             }
-
-
-
-
 
             if(context().timestamp()>=streamTime){
                 //NORMAL PROCESSING
@@ -110,20 +120,13 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
                 if(key.getType().equals(predType.getDescription())){
 
-
-
                     if(toReset){
                         firstGone=false;
                         toReset=false;
                     }
 
                     if(!firstGone){
-
-
-
-
                         eventStore.putIntervalEvent(key,value,predType.start(value),context().timestamp(), !predType.isChunkLeft());
-
                         if(!everysConfig.get(predType)){
                             firstGone=true;
                             lastPredArrived =context().timestamp();
@@ -132,7 +135,7 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                     }
                 }
                 else {
-                    eventStore.putIntervalEvent(key,value,succType.start(value),context().timestamp(), true);
+                    //eventStore.putIntervalEvent(key,value,succType.start(value),context().timestamp(), true);
                 }
 
                 long inputRecordTimestamp = context().timestamp();
@@ -147,17 +150,8 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                     iter = eventStore.fetchEventsInRight(searchKey, inputRecordTimestamp, inputRecordTimestamp+withinTime);
                 }else{
                     searchKey=predType.typed(key.getKey());
-                    //System.out.println(everysConfig.get(succType));
-                   /* if(resultType.isChunkLeft())
-                        iter = eventStore.fetchEventsInLeft(searchKey, Math.max(inputRecordTimestamp,lastPredArrived), succType.start(value), !everysConfig.get(succType));
-                    else */
 
                    iter = eventStore.fetchEventsInLeft(searchKey,succType.start(value), inputRecordTimestamp,  !everysConfig.get(succType));
-//
-//                    if(iter.hasNext() && resultType.isChunkRight()){
-//                        //withinReset = true;
-//                        firstGone=false;
-//                    }
 
                     //Forced to do this, since the only case in which we reset the search for the A, in the case A->every B
                     // is when we reach the whithin, so basically have to restart the A
@@ -170,38 +164,23 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                         }
 
 
-
-
                     while (iter.hasNext()) {
                         final KeyValue<TypedKey<K>, V> otherRecord = iter.next();
+                        if(!key.getKey().equals(otherRecord.key.getKey()) || !key.getKey().equals(searchKey.getKey())){
+                            System.out.println("KEY DIFFERENT!!");
+                            System.out.println(otherRecord);
+                        }
+
                         context().forward(
                                 resultType.typed(key.getKey()),
                                 joiner.apply(otherRecord.value, value));
                     }
-
-
-
-
-
-
                 }
-
                 streamTime=context().timestamp();
             }else {
                 //OUT-OF-ORDER
-
                 System.out.println("Out of order followed by.\n");
             }
-
-
-
-
-
-            //}
-
-
         }
-
-
     }
 }

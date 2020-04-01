@@ -40,6 +40,7 @@ public class ThroughputSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V>
         long startProc = System.currentTimeMillis();
         long counter = 0;
 
+
         @Override
         public void init(ProcessorContext context) {
             super.init(context);
@@ -67,7 +68,7 @@ public class ThroughputSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V>
                 //Normal Processing
 
                 counter++;
-                System.out.println(counter);
+
                 observedStreamTime = context().timestamp();
 
                 if(type.isThisTheEnd(value)){
@@ -99,12 +100,12 @@ public class ThroughputSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V>
                     }
 
                     context().forward(key, value);
-                    try {
-                        Thread.sleep(60000);
-                        runtime.exit(0);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+//                    try {
+//                        Thread.sleep(60000);
+//                        //runtime.exit(0);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
 
 
                 }else {
