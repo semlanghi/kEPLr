@@ -46,6 +46,8 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
         List<Integer> partitions = new ArrayList<>();
         private long experiment_window;
         private long current_window = 0L;
+        private String run;
+        private String name;
 
         @Override
         public void init(ProcessorContext context) {
@@ -55,8 +57,11 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 
             try {
                 this.experiment_window = Long.parseLong(config.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW));
+
+                this.run = config.getProperty(ExperimentsConfig.EXPERIMENT_RUN);
+                this.name = config.getProperty(ExperimentsConfig.EXPERIMENT_NAME);
                 this.throughput = new CSVWriter(new FileWriter(config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT), true));
-                this.memory = new CSVWriter(new FileWriter("memory.csv", true));
+                this.memory = new CSVWriter(new FileWriter(name + "." + run + ".memory.csv", true));
                 //this.memory = new CSVWriter(new FileWriter(thread+"keys.csv", true));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -92,8 +97,8 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
                 if (endtime > current_window) {
                     long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
                     memory.writeNext(new String[]{
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_NAME),
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_RUN),
+                            name,
+                            run,
                             String.valueOf(counter),
                             String.valueOf(memoryUsed),
                             String.valueOf(System.currentTimeMillis()),
@@ -119,8 +124,8 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
                     Object b_count = ((GenericRecord) ((GenericRecord) value).get("y")).get("idB");
                     Object b_partition = ((GenericRecord) ((GenericRecord) value).get("y")).get("partition");
                     throughput.writeNext(new String[]{
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_NAME),
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_RUN),
+                            name,
+                            run,
                             config.getProperty(ExperimentsConfig.EXPERIMENT_BROKER_COUNT),
                             config.getProperty(ExperimentsConfig.EXPERIMENT_INIT_CHUNK_SIZE),
                             config.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS),
