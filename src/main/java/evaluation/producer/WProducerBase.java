@@ -116,7 +116,7 @@ public abstract class WProducerBase {
         producerConfig.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 500000000L);
         //producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
         producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, FixedNumberCustomPartitioner.class.getName());
-        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
+        //producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }
 }
