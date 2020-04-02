@@ -61,9 +61,9 @@ $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-f
 #    done
 # sleep 10
 
-   echo "Starting application instance $i for $experiment"
-   nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} ${RUN}  &> KSA.out &
-   sleep 10
+echo "Starting application instance $i for $experiment"
+nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} ${RUN}  &> KSA.out &
+sleep 10
   
 # Execute producer
 for i in $(seq 0 $((9-1)))

@@ -37,13 +37,17 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
     private class ThroughputProcessor extends AbstractProcessor<TypedKey<K>, V> implements Processor<TypedKey<K>, V> {
 
         private long observedStreamTime = 0;
-        CSVWriter writer;
+        CSVWriter throughput;
+        private CSVWriter memory;
         ProcessorContext context;
         Properties config = (Properties) WBase.config.clone();
         long startProc = System.currentTimeMillis();
         long counter = 0;
         List<Integer> partitions = new ArrayList<>();
-        private CSVWriter writer2;
+        private long experiment_window;
+        private long current_window = 0L;
+        private String run;
+        private String name;
 
         @Override
         public void init(ProcessorContext context) {
@@ -52,8 +56,13 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
             String thread = Thread.currentThread().getName();
 
             try {
-                this.writer = new CSVWriter(new FileWriter(config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT), true));
-                //this.writer2 = new CSVWriter(new FileWriter(thread+"keys.csv", true));
+                this.experiment_window = Long.parseLong(config.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW));
+
+                this.run = config.getProperty(ExperimentsConfig.EXPERIMENT_RUN);
+                this.name = config.getProperty(ExperimentsConfig.EXPERIMENT_NAME);
+                this.throughput = new CSVWriter(new FileWriter(config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT), true));
+                this.memory = new CSVWriter(new FileWriter(name + "." + run + ".memory.csv", true));
+                //this.memory = new CSVWriter(new FileWriter(thread+"keys.csv", true));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -71,10 +80,11 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 
             String thread = Thread.currentThread().getName();
             if (context().timestamp() >= observedStreamTime) {
+                Runtime runtime = Runtime.getRuntime();
                 //Normal Processing
 //                try {
-//                    writer2.writeNext(new String[]{String.valueOf(key.getKey()), String.valueOf(context().partition())});
-//                    writer2.flush();
+//                    memory.writeNext(new String[]{String.valueOf(key.getKey()), String.valueOf(context().partition())});
+//                    memory.flush();
 //                } catch (IOException e) {
 //                    e.printStackTrace();
 //                }
@@ -82,10 +92,30 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 //                System.out.println(counter);
                 observedStreamTime = context().timestamp();
 
+                GenericRecord value1 = (GenericRecord) value;
+                long endtime = (Long) value1.get("end_time");
+                if (endtime > current_window) {
+                    long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
+                    memory.writeNext(new String[]{
+                            name,
+                            run,
+                            String.valueOf(counter),
+                            String.valueOf(memoryUsed),
+                            String.valueOf(System.currentTimeMillis()),
+                            thread,
+                            String.valueOf(current_window),
+                            String.valueOf(endtime),
+                            String.valueOf(observedStreamTime)
+                    }, false);
+                    current_window += experiment_window;
+                    try {
+                        memory.flush();
+                    } catch (IOException e) {
+
+                    }
+                }
+
                 if (type.isThisTheEnd(value)) {
-                    Runtime runtime = Runtime.getRuntime();
-
-
                     long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
 
                     String key2 = (String) key.getKey();
@@ -93,9 +123,9 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
                     Object a_partition = ((GenericRecord) ((GenericRecord) value).get("x")).get("partition");
                     Object b_count = ((GenericRecord) ((GenericRecord) value).get("y")).get("idB");
                     Object b_partition = ((GenericRecord) ((GenericRecord) value).get("y")).get("partition");
-                    writer.writeNext(new String[]{
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_NAME),
-                            config.getProperty(ExperimentsConfig.EXPERIMENT_RUN),
+                    throughput.writeNext(new String[]{
+                            name,
+                            run,
                             config.getProperty(ExperimentsConfig.EXPERIMENT_BROKER_COUNT),
                             config.getProperty(ExperimentsConfig.EXPERIMENT_INIT_CHUNK_SIZE),
                             config.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS),
@@ -108,24 +138,16 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
                     }, false);
 
                     try {
-                        writer.flush();
+                        throughput.flush();
 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
                     context().forward(key, value);
-                    try {
-                        synchronized (app) {
-                            Thread.sleep(60000);
-
-                            app.close();
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    synchronized (app) {
+                        app.close();
                     }
-
-
                 } else {
                     context().forward(key, value);
                 }
