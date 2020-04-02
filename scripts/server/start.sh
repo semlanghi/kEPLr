@@ -71,7 +71,7 @@ do
   echo "Starting producer: $experiment"
   nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i $((within*nr_of_chunks*(i/broker_count)))&> Producer${i}.out &
   echo "Producer finished"
-  sleep 40
+  sleep 20
 done
 
 #
