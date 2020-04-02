@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-export _JAVA_OPTIONS="-Xmx3g"
+export _JAVA_OPTIONS="-Xmx10g"
 experiment=$1
 broker_count=$2
 echo $broker_count
@@ -71,7 +71,7 @@ do
   echo "Starting producer: $experiment"
   nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i $((within*nr_of_chunks*(i/broker_count)))&> Producer${i}.out &
   echo "Producer finished"
-  sleep 10
+  sleep 40
 done
 
 #
