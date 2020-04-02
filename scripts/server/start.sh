@@ -62,14 +62,14 @@ $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-f
 # sleep 10
 
    echo "Starting application instance $i for $experiment"
-  nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} ${RUN}  &> KSA.out &
-  
+   nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} ${RUN}  &> KSA.out &
+   sleep 10
   
 # Execute producer
-for i in $(seq 0 $((broker_count-1)))
+for i in $(seq 0 $((9-1)))
 do
   echo "Starting producer: $experiment"
-  nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i &> Producer${i}.out &
+  nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i $((within*nr_of_chunks*(i/broker_count)))&> Producer${i}.out &
   echo "Producer finished"
   sleep 10
 done

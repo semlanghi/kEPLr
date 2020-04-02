@@ -25,6 +25,7 @@ public abstract class WProducerBase {
     static int INITIAL_CHUNK_SIZE;
     static int NUMBER_OF_CHUNKS;
     static int GROWTH_SIZE;
+    static int INITIAL_SIMULATED_TIME;
 
 
     static String BOOTSTRAP_SERVER_URL = "localhost:9092";
@@ -65,6 +66,9 @@ public abstract class WProducerBase {
         GROWTH_SIZE = Integer.parseInt(args[4]);
         WITHIN = Integer.parseInt(args[5]);
         PARTITION_ASSIGNED = Integer.parseInt(args[6]);
+        INITIAL_SIMULATED_TIME = Integer.parseInt(args[7]);
+
+
     }
 
     static void createRecordA(long id, long time, boolean end) {
@@ -109,7 +113,8 @@ public abstract class WProducerBase {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-        producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
+        //producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
+        producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, FixedNumberCustomPartitioner.class.getName());
 //        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }

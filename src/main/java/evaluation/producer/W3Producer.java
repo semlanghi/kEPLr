@@ -23,17 +23,31 @@ public class W3Producer extends WProducerBase{
     private static void createRecords() {
         System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
         for (int i = 0; i < NUMBER_OF_CHUNKS-1; i++) {
-            long simulatedTime = 1 + i* WITHIN;
+            long simulatedTime = 1 + i* WITHIN + INITIAL_SIMULATED_TIME;
             int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
             createSequentialAB(currentChunkSize/2, simulatedTime);
 
             System.out.println("Created chunk number: " + (i + 1)+" for partition " + PARTITION_ASSIGNED);
         }
         int i = NUMBER_OF_CHUNKS-1;
-        long simulatedTime = 1 + i* WITHIN;
+        long simulatedTime = 1 + i* WITHIN + INITIAL_SIMULATED_TIME;
         int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
-        createLastSequentialAB(currentChunkSize/2, simulatedTime);
+
         //sendEndRecord(ID);
+
+        if(PARTITIONS==3){
+            if(PARTITION_ASSIGNED>=6)
+                createLastSequentialAB(currentChunkSize/2, simulatedTime);
+            else createSequentialAB(currentChunkSize/2, simulatedTime);
+        } else if(PARTITIONS==6){
+            if(PARTITION_ASSIGNED>=3)
+                createLastSequentialAB(currentChunkSize/2, simulatedTime);
+            else createSequentialAB(currentChunkSize/2, simulatedTime);
+        } else if(PARTITIONS==9){
+            createLastSequentialAB(currentChunkSize/2, simulatedTime);
+        }
+
+
     }
 
     private static void createSequentialAB(int nrOfPairs, long time){

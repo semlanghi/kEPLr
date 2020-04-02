@@ -53,7 +53,7 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 
             try {
                 this.writer = new CSVWriter(new FileWriter(config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT), true));
-                this.writer2 = new CSVWriter(new FileWriter(thread+"keys.csv", true));
+                //this.writer2 = new CSVWriter(new FileWriter(thread+"keys.csv", true));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -72,12 +72,12 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
             String thread = Thread.currentThread().getName();
             if (context().timestamp() >= observedStreamTime) {
                 //Normal Processing
-                try {
-                    writer2.writeNext(new String[]{String.valueOf(key.getKey()), String.valueOf(context().partition())});
-                    writer2.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    writer2.writeNext(new String[]{String.valueOf(key.getKey()), String.valueOf(context().partition())});
+//                    writer2.flush();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
                 counter++;
 //                System.out.println(counter);
                 observedStreamTime = context().timestamp();

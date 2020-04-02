@@ -14,7 +14,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
 
     private final EType<K,V> type;
     private long mithinMs;
-    private long lastStart=0;
+
 
     public ChunkProcessorSupplier(EType<K, V> type, long mithinMs) {
         this.type = type;
@@ -38,7 +38,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
         private long focus;
         private NumberInterval<Long> lastValidEvent;
         private NumberInterval<Long> actualSession = new LongInterval(0L,0L);
-
+        private long lastStart=0;
         private Sensor sensor;
 
 
@@ -122,7 +122,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
             }else{
                 //Out-of-Order Processing
                 outOfOrder=true;
-                System.out.println("Every chunk, out of order.");
+                System.out.println("Every chunk, out of order. Time of the event" + context().timestamp()+" stream time "+observedStreamTime+" Key "+key);
             }
         }
     }
