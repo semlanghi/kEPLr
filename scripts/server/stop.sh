@@ -12,6 +12,21 @@ chunk_growth=$5
 within=5000
 DUMP=$6
 
+if [ -z "$KAFKA_HOME" ]
+then
+      KAFKA_HOME="/root/confluent-5.4.1"
+else
+      echo "KAFKA_HOME is $KAFKA_HOME"
+fi
+
+if [ -z "$PROJECT_DIR" ]
+then
+      PROJECT_DIR="/root/kEPLr"
+else
+      echo "PROJECT_DIR is $PROJECT_DIR"
+fi
+
+
 # stop brokers
 echo "Stopping brokers"
 for i in $(seq 0 $END)
