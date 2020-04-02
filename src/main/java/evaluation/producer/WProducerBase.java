@@ -113,10 +113,10 @@ public abstract class WProducerBase {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-        //producerConfig.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 1000000000L);
+        producerConfig.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 500000000L);
         //producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, CustomPartitioner.class.getName());
         producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, FixedNumberCustomPartitioner.class.getName());
-//        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
+        //producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }
 }
