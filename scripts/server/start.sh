@@ -66,12 +66,11 @@ nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.ke
 sleep 10
   
 # Execute producer
-for i in $(seq 0 $((9-1)))
+for i in $(seq 0 $((broker_count-1)))
 do
   echo "Starting producer: $experiment"
-  nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} $i $((within*nr_of_chunks*(i/broker_count)))&> Producer${i}.out &
+  nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} $((nr_of_chunks*broker_count)) ${chunk_growth} ${within} $((i+6)) 0&> Producer${i}.out &
   echo "Producer finished"
-  sleep 20
 done
 
 #
