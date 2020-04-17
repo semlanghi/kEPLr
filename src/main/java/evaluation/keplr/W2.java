@@ -1,7 +1,6 @@
 package evaluation.keplr;
 
 import com.opencsv.CSVWriter;
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
@@ -111,7 +110,7 @@ public class W2 {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = W2.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {

@@ -1,7 +1,6 @@
 package evaluation.kafkastreams;
 
 import org.apache.kafka.streams.*;
-import evaluation.producer.GenericRecordProducer;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -130,7 +129,7 @@ public class MainKafkaStreamsExample {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = MainKafkaStreamsExample.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {

@@ -23,7 +23,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Serdes;
-import evaluation.producer.GenericRecordProducer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -151,7 +150,7 @@ public class EsperEnvironment {
 
     private static Schema loadSchema(final String name) throws IOException {
         try (
-                final InputStream input = GenericRecordProducer.class
+                final InputStream input = EsperEnvironment.class
                         .getClassLoader()
                         .getResourceAsStream(name)
         ) {
