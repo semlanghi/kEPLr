@@ -1,13 +1,10 @@
 package org.apache.kafka.streams.keplr.ktstream;
 
 import evaluation.keplr.ApplicationSupplier;
-import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
-import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.util.Arrays;
