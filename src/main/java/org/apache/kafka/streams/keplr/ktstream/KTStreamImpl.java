@@ -7,6 +7,7 @@ import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.ChunkProcessorSupplier;
 import org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier;
 import org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew;
+import org.apache.kafka.streams.keplr.operators.ThroughputSupplier;
 import org.apache.kafka.streams.keplr.operators.statestore.*;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.internals.*;
@@ -108,186 +109,23 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     }
 
-    /*
+    private KTStreamImpl<K,V> throughput(){
 
-    public KTStream<K,V> every(){
+        final String processorName = builder.newProcessorName("KTSTREAM-THROUGHPUT-");
 
-        StatefulProcessorNode node = (StatefulProcessorNode) this.streamsGraphNode;
-
-        System.out.println("STREAM GRAPH NODE IS "+node.nodeName()+node.processorParameters().processorName());
-
-        String name = builder.newProcessorName("EVERY-");
-
-        final StatefulProcessorNode<TypedKey<K>, V> node1 = new StatefulProcessorNode<TypedKey<K>,V>(
-                name,
-                new ProcessorParameters<TypedKey<K>, V>(new EverySupplier<K, V>(this.type, node.processorParameters().processorSupplier()),name),
-                node.getStoreBuilder()
-        );
-        this.builder.addGraphNode(this.streamsGraphNode.parentNodes(),node1
-                );
-        Collection<StreamsGraphNode> coll = this.streamsGraphNode.parentNodes();
-
-        for (StreamsGraphNode temp: coll
-        ) {
-            if(!originNode.contains(temp.nodeName()))
-                wrapNodeEvery((StatefulProcessorNode) temp);
-            temp.children().remove(this.streamsGraphNode);
-        }
-
-        return new KTStream<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, node1, builder),this.type, kClass, this.originNode);
-
-    }
-
-
-
-
-    private void wrapNodeEvery(StatefulProcessorNode node){
-        String name = builder.newProcessorName("EVERY-");
-
-        final StatefulProcessorNode<TypedKey<K>, V> node1 = new StatefulProcessorNode<TypedKey<K>,V>(
-                name,
-                new ProcessorParameters<TypedKey<K>, V>(new EverySupplier<K, V>(this.type, node.processorParameters().processorSupplier()),name),
-                node.getStoreBuilder()
-        );
-
-
-        for (StreamsGraphNode temp: this.streamsGraphNode.children()
-        ) {
-
-            node1.addChild(temp);
-        }
-        this.streamsGraphNode.clearChildren();
-
-
-        for (StreamsGraphNode temp: this.streamsGraphNode.parentNodes()
-        ) {
-
-            temp.children().remove(this.streamsGraphNode);
-            temp.addChild(node1);
-        }
-        this.streamsGraphNode.parentNodes().clear();
-
-        for (StreamsGraphNode temp: this.streamsGraphNode.parentNodes()){
-            if(originNode.contains(temp.nodeName()))
-                return;
-            if(temp instanceof StatefulProcessorNode)
-                wrapNodeEvery((StatefulProcessorNode) temp);
-        }
-    }
-
-    private KTStream<K,V> after(EType<K,V> otherType, String storeName, long withinMs){
-
-        final String processorName = builder.newProcessorName("KTSTREAM-AFTER-");
-        final ProcessorGraphNode<TypedKey<K>, V> afterNode = new ProcessorGraphNode<>(
+        final ProcessorGraphNode<TypedKey<K>, V> throughputNode = new ProcessorGraphNode<>(
                 processorName,
-                new ProcessorParameters<>(new AfterSupplier<>(this.type, otherType, storeName, withinMs)
+                new ProcessorParameters<>(new ThroughputSupplier<>(this.type)
                         , processorName)
         );
 
+        builder.addGraphNode(Collections.singletonList(this.streamsGraphNode), throughputNode);
 
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
-        builder.addGraphNode(Arrays.asList(this.streamsGraphNode), afterNode);
-
-        return new KTStream<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, afterNode, builder),this.type, kClass, this.originNode);
+        return new KTStreamImpl<>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, throughputNode, builder), this.type, kClass);
 
     }
 
 
-
-    public <R> KTStream<K,V> followedByFirst(final KTStream<K, V> otherStream, final long withinMs,
-                                       final ValueJoiner<V, V, R> joiner){
-
-
-
-
-        final String processorName = builder.newProcessorName("KTSTREAM-FOLLOWEDBY-");
-
-        UUID id = UUID.randomUUID();
-
-        FollowedByWindowBytesStoreSupplier storeSupplier = new FollowedByWindowBytesStoreSupplier("_Store_"+id, 5L, 100L, false,
-        5L, Long.MAX_VALUE);
-
-
-        final StoreBuilder<EventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
-
-        EType<K,V> resultType = this.type.product(otherStream.type, false);
-
-        KTStream<K,V> afterStream= otherStream.after(this.type,"_Store_"+id, withinMs);
-        KStreamImpl<K,V> othStream = (KStreamImpl<K, V>) afterStream.wrappedStream;
-        HashMap<EType<K, V>, Boolean> everysConfig = new HashMap<>();
-        everysConfig.put(this.type, true);
-        everysConfig.put(otherStream.type, false);
-
-        final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
-                processorName,
-                new ProcessorParameters<>(new FollowedByFirstSupplier<>(this.type,otherStream.type, resultType, everysConfig, "_Store_"+id, withinMs, joiner),processorName),
-                supportStore
-        );
-
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
-        builder.addGraphNode(Arrays.asList(this.streamsGraphNode, othStream.streamsGraphNode), followedByNode);
-
-        this.originNode.addAll(otherStream.originNode);
-
-        return new KTStream<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass, this.originNode);
-    }
-
-
-    public <R> KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
-                                                final ValueJoiner<V, V, R> joiner){
-        KTStream<K,V> ktStream = this.chunk();
-        return ktStream.followedByInternal(otherStream,withinMs,joiner);
-    }
-
-
-
-    public <R> KTStream<K,V> followedByInternal(final KTStream<K, V> otherStream, final long withinMs,
-                                        final ValueJoiner<V, V, R> joiner){
-
-
-
-        final String processorName = builder.newProcessorName("KTSTREAM-FOLLOWEDBY-");
-
-        EventStore<Bytes,byte[]> bytesEventStore;
-        bytesEventStore = new FollowedByWindowStore("_Store_"+id++, "metrics", 5L, 100L, false, 5,5, withinMs);
-
-        UUID id = UUID.randomUUID();
-
-        FollowedByWindowBytesStoreSupplier storeSupplier = new FollowedByWindowBytesStoreSupplier("_Store_"+id, 5L, 100L, false,
-                5L, withinMs);
-
-        final StoreBuilder<EventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
-
-        KTStream<K,V> othStream = otherStream; //.after(this.type,"_Store_"+id,withinMs );
-        KStreamImpl<K,V> kStream = (KStreamImpl<K, V>) othStream.wrappedStream;
-
-        EType<K,V> resultType = this.type.product(othStream.type, false);
-
-
-        HashMap<EType<K, V>, Boolean> everysConfig = new HashMap<>();
-        everysConfig.put(this.type, this.type.isOnEvery());
-        everysConfig.put(othStream.type, othStream.type.isOnEvery());
-
-        resultType.chunk(!everysConfig.get(this.type),!everysConfig.get(othStream.type));
-
-        final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
-                processorName,
-                new ProcessorParameters<>(new FollowedBySupplier<>(this.type,othStream.type, resultType, everysConfig, "_Store_"+id, withinMs, joiner),processorName),
-                supportStore
-        );
-
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
-        builder.addGraphNode(Arrays.asList(this.streamsGraphNode, othStream.streamsGraphNode), followedByNode);
-
-        this.originNode.addAll(othStream.originNode);
-
-        return new KTStream<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass, this.originNode);
-    }*/
 
     @Override
     public <R> KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
@@ -400,10 +238,11 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
 
         final String processorName = builder.newProcessorName("KTSTREAM-FOLLOWEDBY-");
+        final String storeName=builder.newProcessorName("KTSTREAM-FOLLOWEDBY-STORE-");
 
         UUID id = UUID.randomUUID();
 
-        FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier("_Store_"+id, 100L, 100L, false,
+        FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier(storeName, 100L, 100L, false,
                 5L, withinMs);
 
         final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
@@ -421,9 +260,11 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
-                new ProcessorParameters<>(new FollowedBySupplierNew<>(this.type, otherStream.type(), resultType, everysConfig, "_Store_"+id, withinMs, joiner),processorName),
+                new ProcessorParameters<>(new FollowedBySupplierNew<>(this.type, otherStream.type(), resultType, everysConfig, storeName, withinMs, joiner),processorName),
                 supportStore
         );
+
+
 
 
         //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
@@ -727,12 +568,12 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public void to(String topic) {
-        KTStreamImpl<K,V> stream = this.chunk();
+        KTStreamImpl<K,V> stream = this.chunk().throughput();
+
         stream.wrappedStream.map(new KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>() {
             @Override
             public KeyValue<K, V> apply(TypedKey<K> key, V value) {
                     return new KeyValue<>(key.getKey(),value);
-
             }
         }).to(topic);
     }

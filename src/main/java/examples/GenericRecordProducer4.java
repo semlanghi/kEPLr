@@ -1,4 +1,4 @@
-package evaluation.producer;
+package examples;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;

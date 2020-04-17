@@ -1,6 +1,5 @@
 package org.apache.kafka.streams;
 
-
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
 import org.apache.avro.Schema;

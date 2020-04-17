@@ -15,7 +15,7 @@ import java.util.function.BinaryOperator;
  * @param <V>
  */
 
-public abstract class EType<K,V> implements Predicate<K,V>{
+public abstract class EType<K,V> implements Predicate<K,V>, Cloneable{
     
     protected String description;
     private boolean onEvery;
@@ -55,6 +55,8 @@ public abstract class EType<K,V> implements Predicate<K,V>{
         this.chunkLeft = chunkLeft;
         this.chunkRight = chunkRight;
     }
+
+    public abstract boolean isThisTheEnd(V value);
 
     public EType(String description) {
         this.description = description;
@@ -129,4 +131,8 @@ public abstract class EType<K,V> implements Predicate<K,V>{
     public abstract V wrap(ArrayList<V> value);
 
 
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 }

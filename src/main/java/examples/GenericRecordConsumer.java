@@ -1,4 +1,4 @@
-package evaluation.consumer;
+package examples;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

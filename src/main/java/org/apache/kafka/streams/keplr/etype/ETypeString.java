@@ -20,6 +20,11 @@ public class ETypeString extends EType<String,String>{
         return type;
     }
 
+    @Override
+    public boolean isThisTheEnd(String value) {
+        return false;
+    }
+
     public ETypeString(EType[] types) {
         super(types);
     }

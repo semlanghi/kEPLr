@@ -1,18 +1,24 @@
-package evaluation.keplr;
+package examples;
 
-import org.apache.kafka.streams.*;
+import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeString;
 import org.apache.kafka.streams.keplr.ktstream.KTStream;
+<<<<<<< HEAD:src/main/java/evaluation/keplr/MainStringExample.java
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.kafka.common.serialization.Serdes;
+=======
+>>>>>>> record-producers:src/main/java/examples/MainStringExample.java
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import utils.MyTimestampExtractor;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -74,6 +80,7 @@ public class MainStringExample {
 
     }
 
+<<<<<<< HEAD:src/main/java/evaluation/keplr/MainStringExample.java
     private static Schema loadSchema(final String name) throws IOException {
         try (
                 final InputStream input = MainStringExample.class
@@ -83,4 +90,6 @@ public class MainStringExample {
             return new Schema.Parser().parse(input);
         }
     }
+=======
+>>>>>>> record-producers:src/main/java/examples/MainStringExample.java
 }

@@ -1,11 +1,15 @@
 {
+  "namespace": "ee.ut.avro",
   "type": "record",
   "name": "A",
-  "namespace": "namespace1",
   "fields": [
     {
       "name": "idA",
       "type": "long"
+    },
+    {
+      "name": "end",
+      "type": "boolean"
     },
     {
       "name": "start_time",

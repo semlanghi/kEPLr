@@ -13,6 +13,10 @@ import java.util.function.ToLongFunction;
 
 public class ETypeAvro extends EType<String, GenericRecord> {
 
+    public Schema getSchema() {
+        return schema.getAvroSchema();
+    }
+
     //@JsonSerialize(using = AvroModule.SchemaSerializer.class)
     private AvroSchema schema;
 
@@ -36,7 +40,13 @@ public class ETypeAvro extends EType<String, GenericRecord> {
     public EType<String, GenericRecord> everyVersion() {
         EType<String,GenericRecord> type = new ETypeAvro(schema.getAvroSchema());
         type.setOnEvery(true);
+        type.chunk(this.isChunkLeft(), this.isChunkRight());
         return type;
+    }
+
+    @Override
+    public boolean isThisTheEnd(GenericRecord value) {
+        return (boolean) value.get("end");
     }
 
     @Override
@@ -68,26 +78,25 @@ public class ETypeAvro extends EType<String, GenericRecord> {
 
 
     @Override
-    public EType<String, GenericRecord> product(EType<String, GenericRecord> otherType,
-                                                boolean array) {
-        if(otherType instanceof ETypeAvro) {
-            Schema schema = SchemaBuilder
-                    .record(this.description + "_X_" + otherType.description)
-                    .fields()
-                    .requiredLong("start_time")
-                    .requiredLong("end_time")
-                    .name("x")
-                    .type(this.schema.getAvroSchema())
-                    .noDefault()
-                    .name("y")
-                    .type(((ETypeAvro) otherType).schema.getAvroSchema())
-                    .noDefault()
-                    .endRecord();
-            return new ETypeAvro(schema);
-        }else {
-            System.out.println("product not possible between incompatible types");
-            return null;
-        }
+    public EType<String, GenericRecord> product(EType<String, GenericRecord> otherType, boolean array) {
+
+         if(otherType instanceof ETypeAvro) {
+             Schema schema = SchemaBuilder.record(this.description + "_X_" + otherType.description).fields()
+                     .requiredLong("start_time")
+                     .requiredLong("end_time")
+                     .requiredBoolean("end")
+                     .name("x")
+                     .type(this.schema.getAvroSchema())
+                     .noDefault()
+                     .name("y")
+                     .type(((ETypeAvro) otherType).schema.getAvroSchema())
+                     .noDefault()
+                     .endRecord();
+             return new ETypeAvro(schema);
+         }else {
+             System.out.println("product not possible between incompatible types");
+             return null;
+         }
     }
 
     @Override
@@ -99,7 +108,8 @@ public class ETypeAvro extends EType<String, GenericRecord> {
                 public GenericRecord apply(GenericRecord value1, GenericRecord value2) {
 
                     return recordBuilder.set("x", value1).set("y",value2).set("start_time", (long)value1.get("start_time"))
-                            .set("end_time", (long)value2.get("end_time")).build();
+                            .set("end_time", (long)value2.get("end_time"))
+                            .set("end", ((boolean) value1.get("end")) && ((boolean) value2.get("end"))).build();
                 }
             };
         }else{
@@ -156,6 +166,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
             return null;
         }
     }
+
 
     @Override
     public boolean test(String key, GenericRecord value) {

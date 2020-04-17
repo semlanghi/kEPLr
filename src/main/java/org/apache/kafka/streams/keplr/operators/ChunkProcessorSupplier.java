@@ -13,13 +13,6 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> type;
-    private long mithinMs;
-    private long lastStart=0;
-
-    public ChunkProcessorSupplier(EType<K, V> type, long mithinMs) {
-        this.type = type;
-        this.mithinMs = mithinMs;
-    }
 
     public ChunkProcessorSupplier(EType<K, V> type) {
         this.type = type;
@@ -27,34 +20,40 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
 
     @Override
     public Processor<TypedKey<K>, V> get() {
-        return new ChunkProcessor();
+        try {
+            return new ChunkProcessor((EType<K,V>) type.clone());
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private class ChunkProcessor extends AbstractProcessor<TypedKey<K>,V> implements Processor<TypedKey<K>,V>{
 
-
+        private EType<K,V> type;
         private long observedStreamTime = 0;
         private long lastIteration = 0;
         private long focus;
-        private NumberInterval<Long> lastValidEvent;
-        private NumberInterval<Long> actualSession = new LongInterval(0L,0L);
-
-        private Sensor sensor;
+        private long counter;
+        private long lastStart=0;
 
 
         private boolean outOfOrder = false;
 
+        public ChunkProcessor(EType<K,V> type) {
+            this.type = type;
+        }
 
         @Override
         public void init(ProcessorContext context) {
             super.init(context);
-            sensor = context.metrics().addLatencyAndThroughputSensor("kEPLr-scope", "kEPLr", "chunk-on-"+type.getDescription(), Sensor.RecordingLevel.INFO);
+
         }
 
         @Override
         public void process(TypedKey<K> key, V value) {
 
-            sensor.record();
+
 
             if(key==null || value==null){
                 System.out.println("Chiave null");
@@ -68,10 +67,9 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
                 outOfOrder = false;
 
                 observedStreamTime = context().timestamp();
+                counter++;
+                //System.out.println(counter + " partition "+context().partition() + " real partition " + key.getKey().toString() + " task "+context().taskId()+" Thread "+Thread.currentThread().getName());
 
-
-
-                //System.out.println(key.getType().toString());
                 if(type.isOnEvery()) {
                     //Chunking
                     if (type.isChunkRight())
@@ -79,7 +77,6 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
                     else {
                         focus = type.end(value);
                     }
-
                     if (focus > lastIteration) {
                         if(!type.isChunkRight() && type.isChunkLeft()){
                             if(type.start(value)==lastStart){
@@ -93,7 +90,6 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
                                     lastStart=type.start(value);
                                     context().forward(key,value);
                                     return;
-
                                 }
                             }
                         }else{
@@ -104,17 +100,9 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
                                 if (type.isChunkLeft())
                                     lastIteration = type.end(value);
                                 else lastIteration = type.start(value);
-
-                                //System.out.println(lastIteration);
                             }
                         }
-
-
                     }
-
-
-
-
                 }else{
                     context().forward(key, value);
                 }
