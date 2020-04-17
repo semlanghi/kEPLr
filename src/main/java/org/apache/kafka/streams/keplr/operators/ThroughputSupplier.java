@@ -11,6 +11,8 @@ import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,6 +25,8 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 
     private final ApplicationSupplier app;
     EType<K, V> type;
+    private static Logger LOGGER = LoggerFactory.getLogger(ThroughputSupplier.class);
+
 
     public ThroughputSupplier(EType<K, V> type, ApplicationSupplier app) {
         this.type = type;
@@ -62,12 +66,9 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
                 this.name = config.getProperty(ExperimentsConfig.EXPERIMENT_NAME);
                 this.throughput = new CSVWriter(new FileWriter(config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT), true));
                 this.memory = new CSVWriter(new FileWriter(name + "." + run + ".memory.csv", true));
-                //this.memory = new CSVWriter(new FileWriter(thread+"keys.csv", true));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-
         }
 
         @Override
@@ -82,14 +83,7 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
             if (context().timestamp() >= observedStreamTime) {
                 Runtime runtime = Runtime.getRuntime();
                 //Normal Processing
-//                try {
-//                    memory.writeNext(new String[]{String.valueOf(key.getKey()), String.valueOf(context().partition())});
-//                    memory.flush();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
                 counter++;
-//                System.out.println(counter);
                 observedStreamTime = context().timestamp();
 
                 GenericRecord value1 = (GenericRecord) value;
@@ -155,7 +149,7 @@ public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, 
 
             } else {
                 //Out-of-Order Processing
-                System.out.println("Throughput Processor, out of order.");
+                LOGGER.debug("Throughput Processor, out of order.");
             }
         }
     }

@@ -20,6 +20,10 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
+/**
+ * First avro example with KEPLr DSL. It prints continuously the metrics related
+ * to the producers, in terms of byte written and writing rate.
+ */
 public class MainAvroExample {
 
     public static void main(String[] args) throws InterruptedException, IOException {
@@ -35,20 +39,15 @@ public class MainAvroExample {
         config.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, KafkaAvroSerDe.class);
-        //config.put(KTStreamsConfig.DEFAULT_INSTANCEOF_CLASS_CONFIG, EqualsPredicateInstanceof.class);
         config.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, AvroTimestampExtractor.class);
-
 
         EType<String,GenericRecord> type1 = new ETypeAvro(loadSchema("A.asvc"));
         EType<String,GenericRecord> type2 = new ETypeAvro(loadSchema("B.asvc"));
-
-        //EType [] types = {type1,type2};
 
         StreamsBuilder builder = new StreamsBuilder();
 
         KStream<String,GenericRecord> stream = builder.stream("AB_input_part");
         KTStream<String,GenericRecord>[] typedStreams = KTStream.match(stream, type1,type2);
-
 
         typedStreams[0].times(1).every().followedBy(typedStreams[1].times(1).every(), 60000L)
                 .to("output_final_part1");
@@ -59,11 +58,7 @@ public class MainAvroExample {
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
         streams.start();
 
-
-
-
         while (true){
-
             streams.metrics().forEach(new BiConsumer<MetricName, Metric>() {
 
                 @Override
@@ -72,7 +67,6 @@ public class MainAvroExample {
                         System.out.println(metricName.group()+" "+metricName.description()+" "+metricName.name()+" and value: " +metric.metricValue());
                 }
             });
-            //Thread.sleep(500L);
         }
 
     }

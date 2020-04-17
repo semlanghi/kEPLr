@@ -156,7 +156,6 @@ public class WrappedEventOccurrenceStore<K,V>
             try {
                 iter.close();
             } finally {
-                //metrics.recordLatency(sensor, startNs, time.nanoseconds());
             }
         }
 

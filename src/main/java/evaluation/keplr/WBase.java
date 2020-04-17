@@ -32,6 +32,13 @@ import java.util.UUID;
 
 import static evaluation.ExperimentsConfig.loadSchema;
 
+
+/**
+ * Class to setup the examples. All the parameters are set up as static.
+ * It is extended by all the Wn classes.
+ *
+ * @see W1,W2,W3,W4
+ */
 public class WBase {
 
     static String ab = "ab";
@@ -56,6 +63,18 @@ public class WBase {
     public static long within;
     protected static ApplicationSupplier app_supplier;
 
+
+    /**
+     * This method takes all the arguments of the {@link W1#main(String[])} method,
+     * from all the Wn classes. Also, it creates all the configuration objects.
+     *
+     * @see Properties
+     * @see ExperimentsConfig
+     * @param args
+     * @return
+     * @throws IOException
+     * @throws RestClientException
+     */
     public static String setup(String[] args) throws IOException, RestClientException {
 
 
@@ -104,25 +123,35 @@ public class WBase {
         type1 = new ETypeAvro(schemaA);
         type2 = new ETypeAvro(schemaB);
 
-//
-
-
-//        schemaRegistryClient.register("C", product.getSchema());//, 0, 5);
         return output_topic;
-
     }
 
-    static void createStream() throws InterruptedException, IOException, RestClientException {
+    /**
+     * This method create the {@link KStream} from the {@link WBase#TOPIC} parameter.
+     * Then it applies the {@link KTStream#match(KStream, EType[])} operator,
+     * creating multiple {@link KTStream}.
+     *
+     * @see KStream
+     * @see KTStream
+     * @see StreamsBuilder
+     */
+    static void createStream() {
         builder = new StreamsBuilder();
-
         KStream<String, GenericRecord> stream = builder.stream(TOPIC);
-        String property = config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT);
-
         typedStreams = KTStream.match(stream, type1, type2);
-
     }
 
 
+    /**
+     * Here we build up the {@link Topology} using it to create the
+     * {@link KafkaStreams} object.
+     * Then, it sets up the stopping of the application through the
+     * {@link ApplicationSupplier} object.
+     *
+     * @see Topology
+     * @see ApplicationSupplier
+     * @see KafkaStreams
+     */
     static void startStream() {
 
         Topology build = builder.build();
@@ -158,42 +187,4 @@ public class WBase {
         streams.start();
 
     }
-
-
-    private static void buildMeasurement(long counter, long start_, Object a_count, Object b_count, int partition, String thread) {
-
-        measurementBuilder = new GenericRecordBuilder(measurement);
-        measurementBuilder.set(ExperimentsConfig.RECORD_NAME, config.getProperty(ExperimentsConfig.EXPERIMENT_NAME));
-        measurementBuilder.set(ExperimentsConfig.RECORD_RUN, config.getProperty(ExperimentsConfig.EXPERIMENT_RUN));
-        measurementBuilder.set(ExperimentsConfig.RECORD_start_time, start_);
-        measurementBuilder.set(ExperimentsConfig.RECORD_end_time, System.currentTimeMillis());
-        measurementBuilder.set(ExperimentsConfig.RECORD_BROKER_COUNT, Integer.parseInt(config.getProperty(ExperimentsConfig.EXPERIMENT_BROKER_COUNT)));
-        measurementBuilder.set(ExperimentsConfig.RECORD_INIT_CHUNK_SIZE, Integer.parseInt(config.getProperty(ExperimentsConfig.EXPERIMENT_INIT_CHUNK_SIZE)));
-        measurementBuilder.set(ExperimentsConfig.RECORD_NUM_CHUNKS, Integer.parseInt(config.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS)));
-        measurementBuilder.set(ExperimentsConfig.RECORD_CHUNK_GROWTH, Integer.parseInt(config.getProperty(ExperimentsConfig.EXPERIMENT_CHUNK_GROWTH)));
-        measurementBuilder.set(ExperimentsConfig.RECORD_RECORDS_COUNT, counter);
-        measurementBuilder.set(ExperimentsConfig.RECORD_WINDOW, Long.parseLong(config.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)));
-        measurementBuilder.set(ExperimentsConfig.RECORD_PARTITION, partition);
-        measurementBuilder.set(ExperimentsConfig.RECORD_THREAD, thread);
-        measurementBuilder.set("A_count", a_count);
-        measurementBuilder.set("B_count", b_count);
-
-
-    }
-
-    private static void sendOut(String key) {
-        LOGGER.info("Sending out END");
-        Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVER_URL);
-        producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.SCHEMA_REGISTRY_URL);
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
-        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
-//
-        producer = new KafkaProducer<>(producerConfig);
-
-        producer.send(new ProducerRecord<>(output_topic, key, measurementBuilder.build()));
-    }
-
-
 }

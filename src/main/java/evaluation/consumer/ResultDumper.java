@@ -25,6 +25,12 @@ import java.util.UUID;
 
 import static evaluation.ExperimentsConfig.loadSchema;
 
+
+/**
+ * A dumper used to dump the result in a file. Representing the whole
+ * event, together with the actual partition from which the
+ * event comes from.
+ */
 public class ResultDumper {
     static final String ab = "ab";
     static final String SCHEMA_REGISTRY_URL = "mock://" + ab;

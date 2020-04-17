@@ -16,6 +16,9 @@ import utils.MyTimestampExtractor;
 import java.util.Properties;
 import java.util.UUID;
 
+/**
+ * First example of KEPLr's DSL using String-String pairs.
+ */
 public class MainStringExample {
 
     public static void main(String[] args) throws InterruptedException {
@@ -31,7 +34,6 @@ public class MainStringExample {
         config.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        //config.put(KTStreamsConfig.DEFAULT_INSTANCEOF_CLASS_CONFIG, EqualsPredicateInstanceof.class);
         config.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, MyTimestampExtractor.class);
 
         EType<String,String> type1 = new ETypeString("Smoke");
@@ -46,12 +48,7 @@ public class MainStringExample {
 
 
         typedStreams[0].times(1).followedBy(typedStreams[1].times(1), 5L,
-                new ValueJoiner<String, String, String>() {
-                    @Override
-                    public String apply(String value1, String value2) {
-                        return value1+"_followedBy_"+value2;
-                    }
-                }).every().to("output_final1");
+                (value1, value2) -> value1+"_followedBy_"+value2).every().to("output_final1");
 
         Topology topo = builder.build(config);
 
@@ -59,18 +56,6 @@ public class MainStringExample {
 
         KafkaStreams streams = new KafkaStreams(builder.build(), config);
         streams.start();
-
-        /*while (true){
-
-            streams.metrics().forEach(new BiConsumer<MetricName, Metric>() {
-                @Override
-                public void accept(MetricName metricName, Metric metric) {
-                        if(metricName.equals("process-rate"))
-                            System.out.println(metricName.name()+" and value: " +metric.metricValue());
-                }
-            });
-            Thread.sleep(30000L);
-        }*/
 
     }
 

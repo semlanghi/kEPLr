@@ -5,6 +5,10 @@ import org.apache.kafka.common.Cluster;
 
 import java.util.Map;
 
+/**
+ * Partitioner used to define the partitioning adapted to the asymmetric
+ * configuration of the number of partitions and number of keys.
+ */
 public class FixedNumberCustomPartitioner implements Partitioner {
 
 

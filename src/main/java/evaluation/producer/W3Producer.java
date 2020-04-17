@@ -4,16 +4,19 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import java.io.IOException;
 
+/**
+ * Creates records for example 3.
+ * The records are grouped into chunks of size equal to the
+ * {@link evaluation.keplr.WBase#within} parameter. The records are set up as in the following:
+ *
+ * <-------------within---------------><-------------within--------------->
+ * ABABABABABAB...                     ABABABABABABAB...
+ *
+ * @see evaluation.keplr.W3
+ */
 public class W3Producer extends WProducerBase{
 
     private static long ID = 0;
-    /**
-     * Creates sequential records (pairs) of type A and type B in fixed "time chunks"
-     * Each pair contains of:
-     * record A with idA: X and start_time=end_time=Y
-     * record B with idB: X and start_time=end_time=Y+1
-     * Every new chunk has double the size (number of pairs) of previous chunk
-     */
 
     public static void main(String[] args) throws IOException, RestClientException {
         setup(args);
@@ -34,8 +37,10 @@ public class W3Producer extends WProducerBase{
         int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * i;
 
         //sendEndRecord(ID);
+        if(PARTITIONS==1){
+            createLastSequentialAB(currentChunkSize/2, simulatedTime);
 
-        if(PARTITIONS==3){
+        }else if(PARTITIONS==3){
             if(PARTITION_ASSIGNED>=6)
                 createLastSequentialAB(currentChunkSize/2, simulatedTime);
             else createSequentialAB(currentChunkSize/2, simulatedTime);
@@ -46,6 +51,7 @@ public class W3Producer extends WProducerBase{
         } else if(PARTITIONS==9){
             createLastSequentialAB(currentChunkSize/2, simulatedTime);
         }
+
 
 
     }

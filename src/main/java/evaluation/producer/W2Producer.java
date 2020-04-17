@@ -4,12 +4,20 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 
 import java.io.IOException;
 
+/**
+ * Creates records for example 2.
+ * The records are grouped into chunks of size equal to the
+ * {@link evaluation.keplr.WBase#within} parameter. The records are set up as in the following:
+ *
+ * <-------------within---------------><-------------within--------------->
+ * <-----As----->                      <-----As----->
+ * AAAAAAAAAAA...B                     AAAAAAAAAAA...B
+ *
+ * @see evaluation.keplr.W2
+ */
 public class W2Producer extends WProducerBase {
     private static long ID = 1;
 
-    /**
-     * Creates sequential n type A and a single type B record in fixed "time chunks"
-     */
     public static void main(String[] args) throws IOException, RestClientException {
 
 
@@ -25,9 +33,9 @@ public class W2Producer extends WProducerBase {
             createSequentialnAB(currentChunkSize - 1, simulatedTime);
             System.out.println("Created chunk number: " + (i + 1)+ " for part "+PARTITION_ASSIGNED);
         }
-        //sendEndRecord(ID);
         long simulatedTime = 1 + (NUMBER_OF_CHUNKS-1) * WITHIN +INITIAL_SIMULATED_TIME;
         int currentChunkSize = INITIAL_CHUNK_SIZE + GROWTH_SIZE * (NUMBER_OF_CHUNKS-1);
+
         if(PARTITIONS==3){
             if(PARTITION_ASSIGNED>=6)
                 createLastSequentialnAB(currentChunkSize - 1, simulatedTime);

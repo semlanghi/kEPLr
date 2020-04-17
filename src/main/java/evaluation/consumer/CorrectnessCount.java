@@ -19,6 +19,10 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
+
+/**
+ * Consumer used to count the events from a certain topic.
+ */
 public class CorrectnessCount {
     static String ab = "ab";
     static SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(ab);

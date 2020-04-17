@@ -11,6 +11,8 @@ import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -22,6 +24,8 @@ public class EventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedK
     private final int eventOccurences;
     private final String storeName;
     private final boolean every;
+    private static Logger LOGGER = LoggerFactory.getLogger(EventOccurrenceSupplier.class);
+
 
 
 
@@ -113,39 +117,13 @@ public class EventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedK
             }else{
                 //Out-of-Order Processing
                 outOfOrder = true;
-
-                /*
-                Here I can take also in account interval events, by fetching with the start and ending time
-                 */
-                /*KeyValueIterator<TypedKey<K>,long[]> overlappingStates = eventStore.fetchEvents(activeKey, context().timestamp());
-
-                while(overlappingStates.hasNext()){
-
-                    //Merge found intervals with the new event, restoring it, and if full, forward it.
-                    KeyValue<TypedKey<K>,long[]> composite = overlappingStates.next();
-                    long[] nwArray = mergeInterval(composite.value, context().timestamp());
-
-                    //Update the composite event in the store
-
-                    eventStore.putCompositeEvent(activeKey, nwArray);
-                    forwardCompositeEvent(compositeType.typed(activeKey.getKey()), nwArray);
-
-                }
-
-                 */
-
-
-
-
+                LOGGER.debug("Event Occurrence, Out of Order Processing.");
             }
-
-            //eventTimestamps.get(activeKey).clear();
-
         }
 
         private void mergeInternalInterval(TreeSet<Long> interval,long time){
-
             //Interval Merging, inserting another timestamp
+
             interval.add(time);
 
             if(interval.size()>eventOccurences) {
@@ -158,17 +136,6 @@ public class EventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedK
                 }
             }
 
-
-        }
-
-        private long[] mergeInterval(long[] array, long time){
-
-            //Interval Merging, inserting another timestamp
-            long[] nwArray = ArrayUtils.add(array, time);
-            Arrays.sort(nwArray);
-            if(array.length>=eventOccurences)
-                return ArrayUtils.subarray(nwArray,0,eventOccurences);
-            else return nwArray;
 
         }
 

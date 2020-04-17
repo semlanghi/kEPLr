@@ -30,7 +30,6 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
     private final long withinTime;
     private static Logger LOGGER = LoggerFactory.getLogger(FollowedBySupplierNew.class);
 
-
     private final ValueJoiner<? super V, ? super V, ? extends R> joiner;
 
     public FollowedBySupplierNew(final EType<K, V> predType, final EType<K, V> succType,
@@ -45,9 +44,7 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         if(!this.everysConfig.get(predType) && !this.everysConfig.get(succType)){
             this.everysConfig.put(predType,true);
             this.everysConfig.put(succType,true);
-
         }
-
     }
 
     @Override
@@ -74,18 +71,10 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         public void init(final ProcessorContext context) {
             super.init(context);
             eventStore = (FollowedByEventStore<TypedKey<K>, V>) context.getStateStore(storeName );
-           // sensor = context.metrics().addLatencyAndThroughputSensor("scope","entity",
-             //       "operation_followed_by", org.apache.kafka.common.metrics.Sensor.RecordingLevel.INFO);
         }
-
-        //TODO: classe intermedia, AbstractTypedProcessor
 
         @Override
         public void process(final TypedKey<K> key, final V value) {
-
-            //sensor.record();
-
-
 
             if (key == null || value == null || key.getKey() == null) {
                 streamTime=context().timestamp();
@@ -93,14 +82,8 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                         "Skipping record due to null key or value. key=[{}] value=[{}] topic=[{}] partition=[{}] offset=[{}]",
                         key, value, context().topic(), context().partition(), context().offset()
                 );
-                //metrics.skippedRecordsSensor().record();
-
                 return;
             }
-
-
-
-
 
             if(context().timestamp()>=streamTime){
                 //NORMAL PROCESSING
@@ -114,8 +97,6 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
                 if(key.getType().equals(predType.getDescription())){
 
-
-
                     if(toReset){
                         firstGone=false;
                         toReset=false;
@@ -123,16 +104,12 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
                     if(!firstGone){
 
-
-
-
                         eventStore.putIntervalEvent(key,value,predType.start(value),context().timestamp(), !predType.isChunkLeft());
 
                         if(!everysConfig.get(predType)){
                             firstGone=true;
                             lastPredArrived =context().timestamp();
                         }
-
                     }
                 }
                 else {
@@ -149,62 +126,33 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                 if(key.getType().equals(predType.getDescription())){
                     searchKey=succType.typed(key.getKey());
                     iter = eventStore.fetchEventsInRight(searchKey, inputRecordTimestamp, inputRecordTimestamp+withinTime);
-                }else{
+                } else{
                     searchKey=predType.typed(key.getKey());
-                    //System.out.println(everysConfig.get(succType));
-                   /* if(resultType.isChunkLeft())
-                        iter = eventStore.fetchEventsInLeft(searchKey, Math.max(inputRecordTimestamp,lastPredArrived), succType.start(value), !everysConfig.get(succType));
-                    else */
 
-                   iter = eventStore.fetchEventsInLeft(searchKey,succType.start(value), inputRecordTimestamp,  !everysConfig.get(succType));
-//
-//                    if(iter.hasNext() && resultType.isChunkRight()){
-//                        //withinReset = true;
-//                        firstGone=false;
-//                    }
+                    iter = eventStore.fetchEventsInLeft(searchKey,succType.start(value), inputRecordTimestamp,  !everysConfig.get(succType));
 
                     //Forced to do this, since the only case in which we reset the search for the A, in the case A->every B
                     // is when we reach the whithin, so basically have to restart the A
 
-                        if(!resultType.isChunkRight())
-                            {
-                            if(lastPredArrived+withinTime<context().timestamp()){
-                                toReset=true;
-                            }
+                    if(!resultType.isChunkRight())
+                        {
+                        if(lastPredArrived+withinTime<context().timestamp()){
+                            toReset=true;
                         }
-
-
-
+                    }
 
                     while (iter.hasNext()) {
                         final KeyValue<TypedKey<K>, V> otherRecord = iter.next();
 
                         context().forward(resultType.typed(key.getKey()), joiner.apply(otherRecord.value, value));
                     }
-
-
-
-
-
-
                 }
 
                 streamTime=context().timestamp();
             }else {
                 //OUT-OF-ORDER
-
-                System.out.println("Out of order followed by.\n");
+                LOGGER.debug("Out of order followed by.");
             }
-
-
-
-
-
-            //}
-
-
         }
-
-
     }
 }

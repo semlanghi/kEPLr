@@ -54,13 +54,6 @@ $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-f
 $KAFKA_HOME/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1 --partitions "$broker_count" --topic "output_$experiment"
 
 
-
-# start KSA
-#  for i in $(seq 0 $((broker_count-1)))
-#    do
-#    done
-# sleep 10
-
 echo "Starting application instance $i for $experiment"
 nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.keplr.${experiment} ${experiment} ${broker_count} ${init_chunk_size} ${nr_of_chunks} ${chunk_growth} ${within} ${RUN}  &> KSA.out &
 sleep 10
@@ -72,27 +65,3 @@ do
   nohup java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.producer.${experiment}Producer ${experiment} ${broker_count} ${init_chunk_size} $((nr_of_chunks*broker_count)) ${chunk_growth} ${within} $((i+6)) 0&> Producer${i}.out &
   echo "Producer finished"
 done
-
-#
-#if ${DUMP}
-#then
-#    #start dumper
-#    echo "Starting dumper: $experiment"
-#    java -cp $PROJECT_DIR/target/keplr-jar-with-dependencies.jar evaluation.consumer.ResultDumper $experiment
-#    echo "dumper finished: $experiment"
-#    sleep 10
-#fi
-# #
-
-# # stop brokers
-# echo "Stopping brokers"
-# for i in $(seq 0 $END)
-#   do
-#     $KAFKA_HOME/bin/kafka-server-stop $PROJECT_DIR/configs/server-$i.properties &
-#   done
-# $KAFKA_HOME/bin/kafka-server-stop $PROJECT_DIR/configs/server-$((broker_count-1)).properties & sleep 10
-
-# # stop zookeeper
-# echo "Stopping zookeeper"
-# $KAFKA_HOME/bin/zookeeper-server-stop $KAFKA_HOME/etc/kafka/zookeeper.properties
-

@@ -7,6 +7,10 @@ import org.apache.kafka.common.PartitionInfo;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Partitioner used to partition according to the number
+ * contained in the key.
+ */
 public class CustomPartitioner implements Partitioner {
 
     @Override

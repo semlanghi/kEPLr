@@ -6,6 +6,10 @@ import org.apache.avro.Schema;
 import java.io.IOException;
 import java.io.InputStream;
 
+
+/**
+ * Configuration class to sets up the name of the experiment's properties.
+ */
 public class ExperimentsConfig {
 
     private static SchemaRegistryClient registryClient;
