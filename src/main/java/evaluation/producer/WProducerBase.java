@@ -16,16 +16,31 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import static evaluation.ExperimentsConfig.loadSchema;
 
+/**
+ * Abstract class extended by all the producers.
+ * The records are grouped into chunks of size equal to the
+ * {@link evaluation.keplr.WBase#within} parameter. The chunks present an
+ * {@link WProducerBase#INITIAL_CHUNK_SIZE}, that sets up the initial size of the chunk.
+ * Then, the {@link WProducerBase#NUMBER_OF_CHUNKS} sets up the number of chunks that should
+ * be created and so the length of the experiment.
+ * The {@link WProducerBase#GROWTH_SIZE} sets the increment in size of a successive chunk with
+ * respect to the predecessor.
+ *
+ * <---------------------WITHIN-------------------><---------------------WITHIN------------------->
+ * <-INITIAL_CHUNK_SIZE->                          <-INITIAL_CHUNK_SIZE-><-GROWTH_SIZE->
+ *
+ * @see W1Producer,W2Producer,W3Producer,W4Producer
+ */
 public abstract class WProducerBase {
     static int WITHIN;
     static int INITIAL_CHUNK_SIZE;
     static int NUMBER_OF_CHUNKS;
     static int GROWTH_SIZE;
+    static int INITIAL_SIMULATED_TIME;
 
 
     static String BOOTSTRAP_SERVER_URL = "localhost:9092";
@@ -44,7 +59,7 @@ public abstract class WProducerBase {
     private static Schema schemaA;
     private static Schema schemaEND;
     private static Schema schemaB;
-    static int PARTITION_ASSIGNED;
+    static Integer PARTITION_ASSIGNED;
 
 
     protected static void setup(String[] args) throws IOException, RestClientException {
@@ -57,8 +72,8 @@ public abstract class WProducerBase {
         schemaRegistryClient.register("A", schemaA);
         schemaRegistryClient.register("B", schemaB);
         schemaRegistryClient.register("END", schemaEND);
-        producer = new KafkaProducer<>(getProducerConfig());
 
+        producer = new KafkaProducer<>(getProducerConfig());
         TOPIC = args[0];
         PARTITIONS = Integer.parseInt(args[1]);
         INITIAL_CHUNK_SIZE = Integer.parseInt(args[2]);
@@ -66,6 +81,7 @@ public abstract class WProducerBase {
         GROWTH_SIZE = Integer.parseInt(args[4]);
         WITHIN = Integer.parseInt(args[5]);
         PARTITION_ASSIGNED = Integer.parseInt(args[6]);
+        INITIAL_SIMULATED_TIME = Integer.parseInt(args[7]);
     }
 
     static void createRecordA(long id, long time, boolean end) {
@@ -73,28 +89,22 @@ public abstract class WProducerBase {
         typeARecordBuilder.set("start_time", time);
         typeARecordBuilder.set("end_time", time);
         typeARecordBuilder.set("end", end);
+        typeARecordBuilder.set("partition", "KEY-" + PARTITION_ASSIGNED);
         sendRecord(typeARecordBuilder.build());
     }
 
     static void createRecordB(long id, long time, boolean end) {
         typeBRecordBuilder.set("idB", id);
         typeBRecordBuilder.set("start_time", time);
-        typeBRecordBuilder.set("end_time", time);
         typeBRecordBuilder.set("end", end);
+        typeBRecordBuilder.set("end_time", time);
+        typeBRecordBuilder.set("partition", "KEY-" + PARTITION_ASSIGNED);
+
         sendRecord(typeBRecordBuilder.build());
     }
 
-    static void sendEndRecord(long id) {
-        typeEndRecordBuilder.set("idEnd", id);
-        typeEndRecordBuilder.set("A_count", A_COUNT);
-        typeEndRecordBuilder.set("B_count", B_COUNT);
-        typeEndRecordBuilder.set("partition", PARTITION_ASSIGNED);
-        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(id), typeEndRecordBuilder.build()));
-}
-
     private static void sendRecord(GenericData.Record record) {
-
-        producer.send(new ProducerRecord<>(TOPIC, PARTITION_ASSIGNED, String.valueOf(PARTITION_ASSIGNED), record));
+        producer.send(new ProducerRecord<>(TOPIC, "KEY-" + PARTITION_ASSIGNED, record));
         producer.flush();
         if (record.getSchema().equals(schemaA)) A_COUNT++;
         else if (record.getSchema().equals(schemaB)) B_COUNT++;
@@ -108,7 +118,8 @@ public abstract class WProducerBase {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
-//        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
+        producerConfig.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 500000000L);
+        producerConfig.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, FixedNumberCustomPartitioner.class.getName());
         return producerConfig;
     }
 }

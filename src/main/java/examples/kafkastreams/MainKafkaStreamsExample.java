@@ -1,10 +1,5 @@
 package examples.kafkastreams;
 
-
-<<<<<<< HEAD:src/main/java/evaluation/kafkastreams/MainKafkaStreamsExample.java
-import org.apache.kafka.streams.*;
-=======
->>>>>>> record-producers:src/main/java/examples/kafkastreams/MainKafkaStreamsExample.java
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;

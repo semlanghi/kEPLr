@@ -11,6 +11,8 @@ import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
@@ -26,6 +28,7 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
     private final String storeName;
     private final long withinTime;
+    private static Logger LOGGER = LoggerFactory.getLogger(FollowedBySupplierNew.class);
 
     private final ValueJoiner<? super V, ? super V, ? extends R> joiner;
 
@@ -41,9 +44,7 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         if(!this.everysConfig.get(predType) && !this.everysConfig.get(succType)){
             this.everysConfig.put(predType,true);
             this.everysConfig.put(succType,true);
-
         }
-
     }
 
     @Override
@@ -87,24 +88,17 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
         public void init(final ProcessorContext context) {
             super.init(context);
             eventStore = (FollowedByEventStore<TypedKey<K>, V>) context.getStateStore(storeName );
-           // sensor = context.metrics().addLatencyAndThroughputSensor("scope","entity",
-             //       "operation_followed_by", org.apache.kafka.common.metrics.Sensor.RecordingLevel.INFO);
         }
-
-        //TODO: classe intermedia, AbstractTypedProcessor
 
         @Override
         public void process(final TypedKey<K> key, final V value) {
 
-            //sensor.record();
             if (key == null || value == null || key.getKey() == null) {
                 streamTime=context().timestamp();
                 LOG.warn(
                         "Skipping record due to null key or value. key=[{}] value=[{}] topic=[{}] partition=[{}] offset=[{}]",
                         key, value, context().topic(), context().partition(), context().offset()
                 );
-                //metrics.skippedRecordsSensor().record();
-
                 return;
             }
 
@@ -131,7 +125,6 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                             firstGone=true;
                             lastPredArrived =context().timestamp();
                         }
-
                     }
                 }
                 else {
@@ -148,38 +141,31 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
                 if(key.getType().equals(predType.getDescription())){
                     searchKey=succType.typed(key.getKey());
                     iter = eventStore.fetchEventsInRight(searchKey, inputRecordTimestamp, inputRecordTimestamp+withinTime);
-                }else{
+                } else{
                     searchKey=predType.typed(key.getKey());
 
-                   iter = eventStore.fetchEventsInLeft(searchKey,succType.start(value), inputRecordTimestamp,  !everysConfig.get(succType));
+                    iter = eventStore.fetchEventsInLeft(searchKey,succType.start(value), inputRecordTimestamp,  !everysConfig.get(succType));
+
 
                     //Forced to do this, since the only case in which we reset the search for the A, in the case A->every B
                     // is when we reach the whithin, so basically have to restart the A
 
-                        if(!resultType.isChunkRight())
-                            {
-                            if(lastPredArrived+withinTime<context().timestamp()){
-                                toReset=true;
-                            }
+                    if(!resultType.isChunkRight())
+                        {
+                        if(lastPredArrived+withinTime<context().timestamp()){
+                            toReset=true;
                         }
-
+                    }
 
                     while (iter.hasNext()) {
                         final KeyValue<TypedKey<K>, V> otherRecord = iter.next();
-                        if(!key.getKey().equals(otherRecord.key.getKey()) || !key.getKey().equals(searchKey.getKey())){
-                            System.out.println("KEY DIFFERENT!!");
-                            System.out.println(otherRecord);
-                        }
-
-                        context().forward(
-                                resultType.typed(key.getKey()),
-                                joiner.apply(otherRecord.value, value));
+                        context().forward(resultType.typed(key.getKey()), joiner.apply(otherRecord.value, value));
                     }
                 }
                 streamTime=context().timestamp();
             }else {
                 //OUT-OF-ORDER
-                System.out.println("Out of order followed by.\n");
+                LOGGER.info("Out of order followed by.");
             }
         }
     }

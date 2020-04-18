@@ -1,34 +1,98 @@
 package org.apache.kafka.streams.keplr.ktstream;
 
-import org.apache.kafka.streams.keplr.etype.EType;
+import evaluation.keplr.ApplicationSupplier;
 import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public interface KTStream<K,V> extends KStream<TypedKey<K>, V> {
+/**
+ * The KTStream represents the a typed version of the {@link KStream}.
+ * Every implementation presents an {@link EType} parameter, which represents the
+ * stream's type, and the type of every event that is inside that stream, i.e.
+ * presents a {@link TypedKey} containing the same type.
+ * Being a wrapper, the KTStream contains and extend a {@link KStream} instance
+ * characterized by typed events (with a {@link TypedKey}).
+ *
+ * @param <K> The original key class
+ * @param <V> The value class
+ */
+public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
 
-    public KTStream<K,V> every();
+    /**
+     * The every instruction sets up the correlated chunking operation, by setting the
+     * stream's type with the {@link EType#isOnEvery()} flag.
+     *
+     * @see org.apache.kafka.streams.keplr.operators.ChunkProcessorSupplier
+     * @return An every-typed version of the current instance.
+     */
+    public KTStream<K, V> every();
 
-    public <R> KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
-                                            final ValueJoiner<V, V, R> joiner);
-    public KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs);
+    /**
+     * The followed by operation, in order to detect a particular event followed by another.
+     * It is considered equal to a join operation between to {@link KTStream} instances.
+     * For feasibility reasons, it takes also a parameter to set the scope of the search.
+     *
+     * @see org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew
+     * @see org.apache.kafka.streams.keplr.operators.statestore.FollowedByStore
+     * @param otherStream The other {@link KTStream}
+     * @param withinMs The maximum distance allowed between a predecessor and a successor event.
+     * @param joiner The joiner to merge two events.
+     * @param <R>
+     * @return The merged typed stream, with a composite type
+     */
+    public <R> KTStream<K, V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
+                                         final ValueJoiner<V, V, R> joiner);
 
-    public KStream<TypedKey<K>,V> wrappedStream();
+    /**
+     * The followed by operation, in order to detect a particular event followed by another.
+     * It is considered equal to a join operation between to {@link KTStream} instances.
+     * For feasibility reasons, it takes also a parameter to set the scope of the search.
+     * In this case, the {@link ValueJoiner} from the type of the resulting composite stream,
+     * through the {@link EType#joiner()} method.
+     *
+     * @see org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew
+     * @see org.apache.kafka.streams.keplr.operators.statestore.FollowedByStore
+     * @param otherStream The other {@link KTStream}
+     * @param withinMs The maximum distance allowed between a predecessor and a successor event.
+     * @return The merged typed stream, with a composite type
+     */
+    public KTStream<K, V> followedBy(final KTStream<K, V> otherStream, final long withinMs);
 
-    public EType<K,V> type();
+    public KStream<TypedKey<K>, V> wrappedStream();
 
-    public KTStream<K,V> times(int i);
+    public EType<K, V> type();
 
+    /**
+     * Method to set up the accumulation of events of the same type. It can be seen as a
+     * n-join operation. In particular, the {@link EType#product(EType, boolean)} method is applied
+     * iteratively to compose a composite type composed by the wrapping of the current type for n times.
+     *
+     * @see org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier
+     * @see org.apache.kafka.streams.keplr.operators.statestore.EventOccurrenceStore
+     * @param i The number of events we want to accumulate.
+     * @return The composite stream formed by composite accumulated events.
+     */
+    public KTStream<K, V> times(int i);
+
+    /**
+     *
+     *
+     * @see KStream
+     * @param stream The original {@link KStream}
+     * @param types The {@link EType} instances to match
+     * @param <K> The original key class
+     * @param <V> The value class
+     * @return An array of {@link KTStream}, each one containing a type specified in the input.
+     */
     public static <K, V> KTStream<K, V>[] match(KStream<K, V> stream, EType<K, V>... types) {
-        Iterator<EType<K,V>> typeIterator = Arrays.asList(types).iterator();
+        Iterator<EType<K, V>> typeIterator = Arrays.asList(types).iterator();
 
         List<KTStream<K, V>> typedStreams = Arrays.stream(stream.branch(types))
                 .map(kvkStream -> {
@@ -39,8 +103,12 @@ public interface KTStream<K,V> extends KStream<TypedKey<K>, V> {
                 }).collect(Collectors.toList());
 
         KTStreamImpl<K, V>[] streams = new KTStreamImpl[typedStreams.size()];
-        streams=typedStreams.toArray(streams);
+        streams = typedStreams.toArray(streams);
 
         return streams;
     }
+
+    public KTStreamImpl<K, V> throughput(ApplicationSupplier app);
+
+    public KTStreamImpl<K,V> chunk();
 }

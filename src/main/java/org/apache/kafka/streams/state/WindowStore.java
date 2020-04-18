@@ -31,7 +31,7 @@ import static org.apache.kafka.streams.internals.ApiUtils.prepareMillisCheckFail
  * Note, that the stores's physical key type is {@link Windowed Windowed&lt;K&gt;}.
  *
  * @param <K> Type of keys
- * @param <V> Type of values
+ * @param <V> Type of valuesjo
  */
 public interface WindowStore<K, V> extends StateStore, ReadOnlyWindowStore<K, V> {
 

@@ -10,6 +10,14 @@ import org.apache.kafka.common.serialization.Serdes;
 import java.util.Arrays;
 import java.util.Properties;
 
+/**
+ * Consumer to test the ability to consume the Avro records,
+ * testing also the integration with the Schema Registry. It consumes the events
+ * printing them on the console.
+ *
+ * @see org.apache.avro.generic.GenericRecord
+ * @see AbstractKafkaAvroSerDeConfig#SCHEMA_REGISTRY_URL_CONFIG
+ */
 public class GenericRecordConsumer {
 
     public static void main(String[] args){

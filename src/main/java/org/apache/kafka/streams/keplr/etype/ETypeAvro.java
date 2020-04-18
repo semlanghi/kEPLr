@@ -13,27 +13,15 @@ import java.util.function.ToLongFunction;
 
 public class ETypeAvro extends EType<String, GenericRecord> {
 
-    public Schema getSchema() {
-        return schema.getAvroSchema();
-    }
-
-    //@JsonSerialize(using = AvroModule.SchemaSerializer.class)
     private AvroSchema schema;
-
-
-    //private GenericRecordBuilder recordBuilder;
-
-    public ETypeAvro() {
-    }
-
-
 
     public ETypeAvro(Schema schema) {
         this.description = schema.getName();
-
         this.schema = new AvroSchema(schema);
+    }
 
-        //this.recordBuilder = new GenericRecordBuilder(schema);
+    public Schema getSchema() {
+        return schema.getAvroSchema();
     }
 
     @Override
@@ -75,8 +63,15 @@ public class ETypeAvro extends EType<String, GenericRecord> {
                         .name());
     }
 
-
-
+    /**
+     * The product in this case is performed by nesting the current type and the other type
+     * into a single composite type. It sees the original types as nested elements, under
+     * two attributes named x (element of the current type) and y (element of the other type).
+     *
+     * @param otherType The other type from which the type product is formed.
+     * @deprecated @param array
+     * @return The avro type product
+     */
     @Override
     public EType<String, GenericRecord> product(EType<String, GenericRecord> otherType, boolean array) {
 
@@ -99,6 +94,11 @@ public class ETypeAvro extends EType<String, GenericRecord> {
          }
     }
 
+    /**
+     * In this case the start time and end time are, respectively, the minimum and maximum
+     * between the original events' start and end timestamps.
+     * @return The composite event
+     */
     @Override
     public ValueJoiner<GenericRecord, GenericRecord, GenericRecord> joiner() {
         if(this.schema.getAvroSchema().getField("x")!=null){
@@ -116,7 +116,6 @@ public class ETypeAvro extends EType<String, GenericRecord> {
             System.out.println("This is not a composite type, so no joiner can be get from it.");
             return null;
         }
-
     }
 
     @Override
@@ -140,8 +139,6 @@ public class ETypeAvro extends EType<String, GenericRecord> {
         }
 
         if(schema.getAvroSchema().getField("x")!=null){
-
-
             long minStart = value.stream().mapToLong(new ToLongFunction<GenericRecord>() {
                 @Override
                 public long applyAsLong(GenericRecord value) {

@@ -1,5 +1,6 @@
 package org.apache.kafka.streams.keplr.ktstream;
 
+import evaluation.keplr.ApplicationSupplier;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.keplr.etype.EType;
@@ -30,7 +31,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     EType<K,V> type;
     KStream<TypedKey<K>, V> wrappedStream;
     final Class<K> kClass;
-    //private Set<String> originNode;
 
 
     private static long id = 0;
@@ -48,39 +48,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         return type;
     }
 
-    /*
-    private KTStream(KStream<TypedKey<K>, V> stream, EType<K, V> type, Class<K> kClass, Set<String> originNode){
-        super((KStreamImpl<TypedKey<K>,V>)stream);
-        this.type = type;
-        this.wrappedStream = stream;
-        this.kClass = kClass;
-        this.originNode = originNode;
-    }
-
-
-    public void setOriginNode(String originNode) {
-        this.originNode = new HashSet<>();
-        this.originNode.add(originNode);
-    }*/
-
-    /*@Override
-    public KTStream<K,V> every(){
-
-        final String processorName = builder.newProcessorName("KTSTREAM-EVERY-");
-        EType<K,V> everyType = this.type.everyVersion();
-        final ProcessorGraphNode<TypedKey<K>, V> everyNode = new ProcessorGraphNode<>(
-                processorName,
-                new ProcessorParameters<>(new EveryChunkedSupplier<>()
-                        , processorName)
-        );
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
-        builder.addGraphNode(Collections.singletonList(this.streamsGraphNode), everyNode);
-
-        return new KTStreamImpl<>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, everyNode, builder), everyType, kClass);
-    }*/
-
     @Override
     public KTStream<K,V> every(){
 
@@ -89,7 +56,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         return this;
     }
 
-    private KTStreamImpl<K,V> chunk(){
+    public KTStreamImpl<K,V> chunk(){
 
         final String processorName = builder.newProcessorName("KTSTREAM-CHUNK-");
 
@@ -99,23 +66,19 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
                         , processorName)
         );
 
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
         builder.addGraphNode(Collections.singletonList(this.streamsGraphNode), chunkNode);
-
 
         return new KTStreamImpl<>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, chunkNode, builder), this.type, kClass);
 
     }
 
-    private KTStreamImpl<K,V> throughput(){
+    public KTStreamImpl<K,V> throughput(ApplicationSupplier app){
 
         final String processorName = builder.newProcessorName("KTSTREAM-THROUGHPUT-");
 
         final ProcessorGraphNode<TypedKey<K>, V> throughputNode = new ProcessorGraphNode<>(
                 processorName,
-                new ProcessorParameters<>(new ThroughputSupplier<>(this.type)
+                new ProcessorParameters<>(new ThroughputSupplier<>(this.type, app)
                         , processorName)
         );
 
@@ -125,19 +88,14 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     }
 
-
-
     @Override
     public <R> KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs,
                                         final ValueJoiner<V, V, R> joiner){
-        //KTStream<K,V> ktStreamImpl = this.chunk();
         return this.chunk().followedByInternal(otherStream,withinMs,joiner);
     }
 
     @Override
-    public KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs
-                                           ){
-        //KTStream<K,V> ktStreamImpl =
+    public KTStream<K,V> followedBy(final KTStream<K, V> otherStream, final long withinMs){
         return this.chunk().followedByInternal(otherStream,withinMs);
     }
 
@@ -150,8 +108,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     public KTStream<K,V> followedByInternal(final KTStream<K, V> otherStream, final long withinMs){
 
         final String processorName = builder.newProcessorName("KTSTREAM-FOLLOWEDBY-");
-
-        //EventStore<Bytes,byte[]> bytesEventStore = new FollowedByWindowStore("_Store_"+id++, "metrics", 5L, 100L, false, 5,5, withinMs);
 
         UUID id = UUID.randomUUID();
 
@@ -178,59 +134,10 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         );
 
 
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
         builder.addGraphNode(Arrays.asList(this.streamsGraphNode, kStream.streamsGraphNode), followedByNode);
-
-        //this.originNode.addAll(othStream.originNode);
 
         return new KTStreamImpl<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass);
     }
-
-
-/*
-    public KTStream<K,V> followedByInternal(final KTStream<K, V> otherStream, final long withinMs){
-
-        final String processorName = builder.newProcessorName("KTSTREAM-FOLLOWEDBY-");
-
-        //EventStore<Bytes,byte[]> bytesEventStore = new FollowedByWindowStore("_Store_"+id++, "metrics", 5L, 100L, false, 5,5, withinMs);
-
-        UUID id = UUID.randomUUID();
-
-        FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier("_Store_"+id, withinMs*2, 100L, false,
-                5L, withinMs);
-
-        final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
-
-        KStreamImpl<K,V> kStream = (KStreamImpl<K, V>) otherStream.wrappedStream();
-
-        EType<K,V> resultType = this.type.product(otherStream.type(), false);
-
-
-        HashMap<EType<K, V>, Boolean> everysConfig = new HashMap<>();
-        everysConfig.put(this.type, this.type.isOnEvery());
-        everysConfig.put(otherStream.type(), otherStream.type().isOnEvery());
-
-        resultType.chunk(!everysConfig.get(this.type),!everysConfig.get(otherStream.type()));
-
-        final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
-                processorName,
-                new ProcessorParameters<>(new FollowedBySupplierWOChunk<>(this.type, otherStream.type(), resultType, everysConfig, "_Store_"+id, withinMs, resultType.joiner()),processorName),
-                supportStore
-        );
-
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
-        builder.addGraphNode(Arrays.asList(this.streamsGraphNode, kStream.streamsGraphNode), followedByNode);
-
-        //this.originNode.addAll(othStream.originNode);
-
-        return new KTStreamImpl<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass);
-    }
-
-
- */
 
     public <R> KTStream<K,V> followedByInternal(final KTStream<K, V> otherStream, final long withinMs,
                                                     final ValueJoiner<V, V, R> joiner){
@@ -264,14 +171,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
                 supportStore
         );
 
-
-
-
-        //final ProcessorParameters<TypedKey<K>, V> processorParameters = new ProcessorParameters<TypedKey<K>, V>(
-        //final ProcessorGraphNode<TypedKey<K>, V> followedByNode = new ProcessorGraphNode<>(processorName, processorParameters);
         builder.addGraphNode(Arrays.asList(this.streamsGraphNode, kStream.streamsGraphNode), followedByNode);
-
-        //this.originNode.addAll(othStream.originNode);
 
         return new KTStreamImpl<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass);
     }
@@ -307,81 +207,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         return new KTStreamImpl<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass);
     }
-
-    /*
-    public <R> KTStream<K,V> timesFirst(final int eventOccurrences){
-
-        final String processorName = builder.newProcessorName("KTSTREAM-TIMES-");
-
-        EventStore<Bytes,byte[]> bytesEventStore;
-
-        bytesEventStore = new FollowedByWindowStore("_Store_"+id++, "metrics", 5L, 100L, false, 5,5, Long.MAX_VALUE);
-
-        UUID id = UUID.randomUUID();
-
-        FollowedByWindowBytesStoreSupplier storeSupplier = new FollowedByWindowBytesStoreSupplier("_Store_"+id, 100L, 100L, false,
-                100L, Long.MAX_VALUE);
-
-        final StoreBuilder<EventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
-
-        EType<K,V> resultType;
-        if(eventOccurrences==1)
-            resultType = type;
-        else resultType = type.product(type, true);
-
-
-        for(int i=1; i<eventOccurrences; i++){
-            resultType=resultType.product(type, true);
-        }
-
-        final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
-                processorName,
-                new ProcessorParameters<TypedKey<K>, V>(new EventOccurrenceFirstSupplier<K, V>(resultType,this.type,Integer.MAX_VALUE, eventOccurrences,  "_Store_"+id,false),processorName),
-                supportStore
-        );
-
-        builder.addGraphNode(Arrays.asList(this.streamsGraphNode), followedByNode);
-
-        return new KTStream<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass, originNode);
-    }
-
-
-
-    public static <K,V> KTStreamImpl<K, V>[] match(KStream<K,V> stream, EType<K,V>... types){
-
-        Iterator<EType<K,V>> typeIterator = Arrays.asList(types).iterator();
-
-        List<KTStreamImpl<K, V>> typedStreams = Arrays.stream(stream.branch(types))
-                .map(kvkStream -> {
-                    EType<K,V> tempType = typeIterator.next();
-
-                    KTStreamImpl<K,V> stream1 = new KTStreamImpl<>(kvkStream.map((key, value) -> new KeyValue<>(tempType.typed(key), value)), tempType, tempType.kClass());
-                    //stream1.setOriginNode(stream1.streamsGraphNode.nodeName());
-                    return stream1;
-                }).collect(Collectors.toList());
-
-        KTStreamImpl<K, V>[] streams = new KTStreamImpl[typedStreams.size()];
-        streams=typedStreams.toArray(streams);
-
-        return streams;
-
-    }
-
-
-
-    public KStream followedByJoin(final KTStream<K,V> otherStream, final long withinMs,
-                                  final ValueJoiner<V, V, V> joiner){
-
-
-        KStreamImplJoinNew join = new KStreamImplJoinNew(false, false);
-
-
-        //return  join.join(wrappedStream, otherStream.wrappedStream, joiner,
-             //   JoinWindows.of(Duration.ofMillis(0)).after(Duration.ofMillis(withinMs)),
-               // Joined.with(null, null,null));
-
-        return null;
-    };*/
 
     @Override
     public KTStream<K,V> filter(Predicate<? super TypedKey<K>,
@@ -427,13 +252,13 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
             final StreamsGraphNode thisStreamsGraphNode = ((AbstractStream) lhs).streamsGraphNode;
             final StreamsGraphNode otherStreamsGraphNode = ((AbstractStream) other).streamsGraphNode;
 
-            //protected -> public
+            // Library change: protected -> public
             final StoreBuilder<WindowStore<K, V>> thisWindowStore =
                     joinWindowStoreBuilder(joinThisName, windows, joined.keySerde(), joined.valueSerde());
             final StoreBuilder<WindowStore<K, V>> otherWindowStore =
                     joinWindowStoreBuilder(joinOtherName, windows, joined.keySerde(), joined.otherValueSerde());
 
-            //private class -> public
+            // Library change: private class -> public
             final KStreamJoinWindow<K, V> thisWindowedStream = new KStreamJoinWindow<>(thisWindowStore.name());
 
             final ProcessorParameters<K, V> thisWindowStreamProcessorParams = new ProcessorParameters<>(thisWindowedStream, thisWindowStreamName);
@@ -503,35 +328,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         return wrappedStream.peek(action);
     }
 
-
-
-
-    /*@Override
-    public KTStream<K,V>[] branch(Predicate<? super TypedKey<K>, ? super V>... predicates) {
-
-
-        List<KTStream<K,V>> streams = Arrays.stream(wrappedStream.branch(predicates)).map(new Function<KStream<K,V>, KTStream<K,V>>() {
-            @Override
-            public KTStream<K, V> apply(KStream<K, V> kStream) {
-                return new KTStream<>(kStream,type);
-            }
-
-        }).collect(Collectors.toList());
-
-        KTStream<K,V>[] array = new KTStream[streams.size()];
-        array = streams.toArray(array);
-
-
-
-
-
-        return null;
-
-
-    }
-
-     */
-
     @Override
     public KStream merge(KStream stream) {
         return null;
@@ -540,8 +336,6 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public KStream<TypedKey<K>, V>[] branch(Predicate<? super TypedKey<K>, ? super V>... predicates) {
-
-
         List<KTStreamImpl<K,V>> streams = Arrays.stream(wrappedStream.branch(predicates)).map(new Function<KStream<TypedKey<K>,V>, KTStreamImpl<K,V>>() {
             @Override
             public KTStreamImpl<K, V> apply(KStream<TypedKey<K>, V> typedKeyVKStream) {
@@ -568,14 +362,8 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
     @Override
     public void to(String topic) {
-        KTStreamImpl<K,V> stream = this.chunk().throughput();
-
-        stream.wrappedStream.map(new KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>() {
-            @Override
-            public KeyValue<K, V> apply(TypedKey<K> key, V value) {
-                    return new KeyValue<>(key.getKey(),value);
-            }
-        }).to(topic);
+        KTStreamImpl<K,V> stream = this;
+        stream.wrappedStream.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(),value)).to(topic);
     }
 
     @Override

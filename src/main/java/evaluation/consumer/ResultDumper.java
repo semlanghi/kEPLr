@@ -25,6 +25,12 @@ import java.util.UUID;
 
 import static evaluation.ExperimentsConfig.loadSchema;
 
+
+/**
+ * A dumper used to dump the result in a file. Representing the whole
+ * event, together with the actual partition from which the
+ * event comes from.
+ */
 public class ResultDumper {
     static final String ab = "ab";
     static final String SCHEMA_REGISTRY_URL = "mock://" + ab;
@@ -48,7 +54,7 @@ public class ResultDumper {
         run = args[1];
         output_topic = "output_" + args[0];
 
-        outputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".output.dump.csv", true));
+
         reportWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".reports.csv", true));
         inputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".input.dump.csv", true));
 
@@ -72,9 +78,6 @@ public class ResultDumper {
         UUID uuid = UUID.randomUUID();
 
         props.put(ConsumerConfig.GROUP_ID_CONFIG, uuid.toString());
-        props.put(ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 0);
-        props.put(ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG, 0);
-        props.put(ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, 500);
         props.put(ConsumerConfig.CLIENT_ID_CONFIG, uuid.toString());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -83,6 +86,19 @@ public class ResultDumper {
         Consumer<String, GenericRecord> consumer = new KafkaConsumer<>(props);
 
         consumer.subscribe(Arrays.asList(input_topic, output_topic));
+
+        consumer.poll(0);
+
+        outputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".output.dump.csv", true));
+
+        String[] header = {"AXB", "start_time", "start_time", "end_time", "end", "idA", "start_timeA", "end_timeA", "partitionA", "isEndA",
+                "idB", "start_timeB", "end_timeB", "partitionB", "isendB"};
+        outputDumpWriter.writeNext(header, false);
+        outputDumpWriter.flush();
+
+        consumer.assignment().forEach(topicPartition -> {
+            System.out.println(topicPartition.partition());
+        });
 
         while (true) {
             ConsumerRecords<String, GenericRecord> poll = consumer.poll(Duration.ofMillis(500));
@@ -94,34 +110,36 @@ public class ResultDumper {
                         GenericRecord x = (GenericRecord) value.get("x");
                         GenericRecord y = (GenericRecord) value.get("y");
 //                        String[] header = {"start_time", "end_time", "idA", "start_timeA", "end_timeA", "idB", "start_timeB", "end_timeB"};
-                        String[] nextLine = {
+                        String[] nextLine = {"AXB",
+                                String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("end_time")),
                                 String.valueOf(value.get("end")),
                                 String.valueOf(x.get("idA")),
                                 String.valueOf(x.get("start_time")),
                                 String.valueOf(x.get("end_time")),
+                                String.valueOf(x.get("partition")),
                                 String.valueOf(x.get("end")),
                                 String.valueOf(y.get("idB")),
                                 String.valueOf(y.get("start_time")),
                                 String.valueOf(y.get("end_time")),
-                                String.valueOf(y.get("end")),
-                                String.valueOf(record.partition())};
+                                String.valueOf(y.get("partition")),
+                                String.valueOf(y.get("end"))};
                         outputDumpWriter.writeNext(nextLine, false);
                         outputDumpWriter.flush();
                     } else if (schemaA.equals(schema)) {
 //                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"A", String.valueOf(value.get("idA")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time"))};
+                        String[] nextLine = {"A", String.valueOf(value.get("idA")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
                         inputDumpWriter.writeNext(nextLine, false);
                         inputDumpWriter.flush();
                     } else if (schemaB.equals(schema)) {
 //                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"B", String.valueOf(value.get("idB")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time"))};
+                        String[] nextLine = {"B", String.valueOf(value.get("idB")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
                         inputDumpWriter.writeNext(nextLine, false);
                         inputDumpWriter.flush();
                     } else if (schemaEND.equals(schema)) {
 //                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"END", String.valueOf(value.get("idEnd")), String.valueOf(value.get("A_count")), String.valueOf(value.get("B_count")), String.valueOf(value.get("partition"))};
+                        String[] nextLine = {"END", String.valueOf(value.get("idEnd")), String.valueOf(value.get("A_count")), String.valueOf(value.get("B_count")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
                         inputDumpWriter.writeNext(nextLine, false);
                         inputDumpWriter.flush();
                     } else {

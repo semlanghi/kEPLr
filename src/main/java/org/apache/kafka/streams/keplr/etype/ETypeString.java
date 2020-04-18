@@ -94,7 +94,6 @@ public class ETypeString extends EType<String,String>{
         return String.class;
     }
 
-    //TODO: concetto di test equivalent to instanceof
     @Override
     public boolean test(String key, String value) {
         return value.substring(0,1).equals(this.description);

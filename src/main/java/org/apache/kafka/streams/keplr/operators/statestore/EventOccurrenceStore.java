@@ -49,10 +49,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
     private final long retentionPeriod;
 
-
-
-
-
     // New Structure
     private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<IInterval<Long>, long[]>> compositeEvents = new ConcurrentSkipListMap<>();
     private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<Long, Set<byte[]>>> singleEvents = new ConcurrentSkipListMap<>();
@@ -67,7 +63,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
         this.retentionPeriod = retentionPeriod;
 
         this.withinMs = withinMs;
-
     }
 
     private static long counter = 0;
@@ -127,48 +122,9 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
         return org.apache.kafka.common.utils.Bytes.wrap(buf.array());
     }
 
-    private void removeExpiredSegments() {
-        long minLiveTime = Math.max(0L, observedStreamTime - retentionPeriod + 1);
-//        for (final FollowedByWindowStore.FollowedByWindowStoreIteratorWrapper it : openIterators) {
-//            minLiveTime = Math.min(minLiveTime, context.timestamp());
-//        }
-       // WindowValueMap.headMap(minLiveTime, false).clear();
-    }
-
 
     @Override
     public byte[] fetch(Bytes key, long windowStartTimestamp) {
-
-        /*
-        Objects.requireNonNull(key, "key cannot be null");
-
-        removeExpiredSegments();
-
-        if (windowStartTimestamp <= observedStreamTime - retentionPeriod) {
-            return null;
-        }
-
-        final ConcurrentSkipListSet<Long> wvMap = this.KeyWindowMap.get(key);
-        if (wvMap == null) {
-            return null;
-        } else {
-
-            List<byte[]> collection = this.tree.overlapStream(new LongInterval(windowStartTimestamp,windowStartTimestamp))
-                    .map(interval -> interval.getNormStart())
-                    .sorted()
-                    .map(start -> {
-                        WindowSuccMap.put((Long) start,WindowSuccMap.get(start) -1);
-                        return WindowValueMap.get(start);
-                    })
-                    .collect(Collectors.toList());
-
-
-            return collection.get(0);
-
-        }
-
-         */
-
         return null;
     }
 
@@ -176,42 +132,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
     @Override
     public WindowStoreIterator<byte[]> fetch(Bytes key, long timeFrom, long timeTo) {
-        /*
-        Objects.requireNonNull(key, "key cannot be null");
-
-        removeExpiredSegments();
-
-        if (timeFrom <= observedStreamTime - retentionPeriod) {
-            return null;
-        }
-
-        final ConcurrentSkipListSet<Long> wvMap = this.KeyWindowMap.get(key);
-        if (wvMap == null) {
-            return null;
-        } else {
-            //overlapStream only iff timeFrom==timeTo
-            ConcurrentNavigableMap<Long,byte[]> collection = this.tree.overlapStream(new LongInterval(timeFrom,timeTo))
-                    .map(new Function<IInterval, Long>() {
-                        @Override
-                        public Long apply(IInterval interval) {
-                            Long start = (Long)interval.getNormStart();
-                            WindowSuccMap.put(start,WindowSuccMap.get(start) -1);
-                            return start;
-                        }
-                    })
-                    .reduce(new ConcurrentSkipListMap<Long, byte[]>(),
-                            (map,time) -> {map.put(time,WindowValueMap.get(time));
-                                return map;},
-                            (map1,map2) -> {map1.putAll(map2);
-                                return map1;});
-
-
-
-            return null;//new FollowedByWindowStoreIteratorWrapper(collection.entrySet().iterator(), openIterators::remove, false);
-
-        }
-
-         */
         return null;
     }
 
@@ -350,8 +270,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
                     }
                 }).iterator(),openIterators::remove, false);
 
-
-
     }
 
     @Override
@@ -366,10 +284,6 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
         return new EventOccurrenceIteratorWrapper<byte[]>(it,openIterators::remove, false);
     }
-
-
-
-
 
     interface ClosingCallback {
         void deregisterIterator(final EventOccurrenceStore.EventOccurrenceIteratorWrapper iterator);

@@ -1,5 +1,6 @@
 package org.apache.kafka.streams.keplr.operators;
 
+import com.brein.time.timeintervals.intervals.IInterval;
 import com.brein.time.timeintervals.intervals.LongInterval;
 import com.brein.time.timeintervals.intervals.NumberInterval;
 import org.apache.kafka.common.metrics.Sensor;
@@ -9,10 +10,13 @@ import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> type;
+    private static Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorSupplier.class);
 
     public ChunkProcessorSupplier(EType<K, V> type) {
         this.type = type;
@@ -20,12 +24,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
 
     @Override
     public Processor<TypedKey<K>, V> get() {
-        try {
-            return new ChunkProcessor((EType<K,V>) type.clone());
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return new ChunkProcessor();
     }
 
     private class ChunkProcessor extends AbstractProcessor<TypedKey<K>,V> implements Processor<TypedKey<K>,V>{
@@ -34,15 +33,8 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
         private long observedStreamTime = 0;
         private long lastIteration = 0;
         private long focus;
-        private long counter;
         private long lastStart=0;
-
-
-        private boolean outOfOrder = false;
-
-        public ChunkProcessor(EType<K,V> type) {
-            this.type = type;
-        }
+        private Sensor sensor;
 
         @Override
         public void init(ProcessorContext context) {
@@ -63,15 +55,11 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
 
             if(context().timestamp()>=observedStreamTime){
                 //Normal Processing
-
-                outOfOrder = false;
-
                 observedStreamTime = context().timestamp();
-                counter++;
-                //System.out.println(counter + " partition "+context().partition() + " real partition " + key.getKey().toString() + " task "+context().taskId()+" Thread "+Thread.currentThread().getName());
 
                 if(type.isOnEvery()) {
                     //Chunking
+
                     if (type.isChunkRight())
                         focus = type.start(value);
                     else {
@@ -109,8 +97,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
 
             }else{
                 //Out-of-Order Processing
-                outOfOrder=true;
-                System.out.println("Every chunk, out of order.");
+                LOGGER.debug("Every chunk, out of order. Time of the event" + context().timestamp()+" stream time "+observedStreamTime+" Key "+key);
             }
         }
     }

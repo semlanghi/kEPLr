@@ -55,7 +55,7 @@ public class EsperEnvironment {
 
         Configuration config = new Configuration();
 
-        //config.getCompiler().getByteCode().setAllowSubscriber(true);
+
         config.getCompiler().getByteCode().setAccessModifiersPublic();
         config.getCompiler().getByteCode().setBusModifierEventType(EventTypeBusModifier.BUS);
 
