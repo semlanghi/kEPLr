@@ -14,6 +14,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Iterator;
 
+/**
+ * Class that provides a plot form a given CSV file.
+ * @see XYSeries
+ */
 public class Plotter extends ApplicationFrame {
 
     public static void main(final String[] args) throws FileNotFoundException {

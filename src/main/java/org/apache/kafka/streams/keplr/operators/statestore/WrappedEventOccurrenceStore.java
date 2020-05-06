@@ -14,6 +14,11 @@ import org.apache.kafka.streams.state.StateSerdes;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 
+/**
+ * Wrapper for the {@link EventOccurrenceEventStore} that provides serialization and deserialization.
+ * @param <K>
+ * @param <V>
+ */
 public class WrappedEventOccurrenceStore<K,V>
         extends WrappedStateStore<EventOccurrenceEventStore<Bytes, byte[]>, TypedKey<K>, V>
         implements EventOccurrenceEventStore<TypedKey<K>, V> {

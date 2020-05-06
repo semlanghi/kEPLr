@@ -33,6 +33,18 @@ import java.util.function.Predicate;
 import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.EXPIRED_WINDOW_RECORD_DROP;
 import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.addInvocationRateAndCount;
 
+/**
+ * Byte-based implementation of the {@link FollowedByEventStore}. It uses three different structures to store the events.
+ * Events are stored as "interval events", i.e. events with a duration. Each event is defined by their {@link IInterval},
+ * and their key, here represented in {@link Bytes}.
+ * The {@link IntervalTree} structure is used to keep all intervals for a certain key, and for retrieving the
+ * overlapping intervals with a given one.
+ * We also keep a structure to maintain the last iteration of for a specific event.
+ *
+ * @see ConcurrentNavigableMap
+ * @see IntervalTree
+ * @see IInterval
+ */
 
 public class FollowedByStore extends InMemoryWindowStore implements FollowedByEventStore<Bytes,byte[]> {
 

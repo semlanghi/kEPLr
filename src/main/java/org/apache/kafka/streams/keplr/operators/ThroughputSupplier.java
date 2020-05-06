@@ -20,7 +20,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-
+/**
+ * Supplier for the {@link ThroughputProcessor}, which stops the computation once the END event arrived, providing
+ * the different metrics on a CSV file. The ending of the computation is performed through the {@link ApplicationSupplier}, which
+ * collects the ending of all tasks, i.e., {@link ApplicationSupplier#close()}, and then perform the actual stop.
+ *
+ * @see ApplicationSupplier
+ * @see CSVWriter
+ * @param <K>
+ * @param <V>
+ */
 public class ThroughputSupplier<K, V> implements ProcessorSupplier<TypedKey<K>, V> {
 
     private final ApplicationSupplier app;

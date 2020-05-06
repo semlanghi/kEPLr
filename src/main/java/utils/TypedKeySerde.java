@@ -8,6 +8,13 @@ import org.apache.kafka.streams.keplr.etype.TypedKey;
 
 import java.io.IOException;
 
+/**
+ * A {@link Serde} for the {@link TypedKey} representation. It uses an {@link ObjectMapper} to
+ * first convert the value as a string. And then create a bytes representation based on that.
+ *
+ * @see ObjectMapper
+ * @param <K>
+ */
 public class TypedKeySerde<K> implements Serde<TypedKey<K>> {
 
     private ObjectMapper mapper = new ObjectMapper();

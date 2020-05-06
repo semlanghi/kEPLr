@@ -16,6 +16,17 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+
+/**
+ * Supplier for the {@link EventOccurrenceProcessor}, which associate events with the same type in one, single,
+ * complex event. Gathering the timestamps in a {@link TreeSet} structure in order to keep them ordered.
+ * Then, once complete, it uses that structure to perform a {@link EventOccurrenceEventStore#retrieveEvents(Object, long[])}
+ * method and {@link ProcessorContext#forward(Object, Object)} the complex event, formed through a
+ * {@link org.apache.kafka.streams.kstream.ValueJoiner<K,V,VR>}.
+ * @param <K>
+ * @param <V>
+ * @param <VR>
+ */
 public class EventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> compositeType;
@@ -121,6 +132,13 @@ public class EventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedK
             }
         }
 
+        /**
+         * Method for the addition of a timestamp in the {@param eventTimestamps} parameter. It takes into account
+         * out-of-order computation, i.e., when the collection is full and a late record arrived. More specifically,
+         * it adds the new timestamp and removes the new most recent one.
+         * @param interval
+         * @param time
+         */
         private void mergeInternalInterval(TreeSet<Long> interval,long time){
             //Interval Merging, inserting another timestamp
 

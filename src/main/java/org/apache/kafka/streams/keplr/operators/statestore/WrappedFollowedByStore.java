@@ -14,6 +14,15 @@ import org.apache.kafka.streams.state.StateSerdes;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 
+/**
+ * Wrapper for the {@link FollowedByEventStore} that provides serialization and deserialization functions.
+ *
+ * @see Serde
+ * @see StateSerdes
+ * @param <K>
+ * @param <V>
+ */
+
 public class WrappedFollowedByStore<K,V>
         extends WrappedStateStore<FollowedByEventStore<Bytes, byte[]>, TypedKey<K>, V>
         implements FollowedByEventStore<TypedKey<K>, V>{

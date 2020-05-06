@@ -5,6 +5,14 @@ import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.state.internals.AbstractStoreBuilder;
 
+/**
+ * Builder for the the {@link org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier},
+ * keeping a {@link EventOccurrenceBytesStoreSupplier}, which eventually will return the {@link EventOccurrenceEventStore} instance,
+ * parametrized in bytes.
+ * @param <K>
+ * @param <V>
+ */
+
 public class EventOccurrenceStoreBuilder<K,V> extends AbstractStoreBuilder<TypedKey<K>, V, EventOccurrenceEventStore<TypedKey<K>, V>> {
 
     private final EventOccurrenceBytesStoreSupplier storeSupplier;

@@ -30,6 +30,14 @@ import java.util.function.Function;
 import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.EXPIRED_WINDOW_RECORD_DROP;
 import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.addInvocationRateAndCount;
 
+/**
+ * Events are stored by their key and their interval. In particular, the aggregated and complex event is stored with all
+ * the timestamps that compose it. The timestamps then are used to retrieve the different values.
+ *
+ * @see ConcurrentNavigableMap
+ * @see IntervalTree
+ * @see IInterval
+ */
 
 public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byte[]> {
 

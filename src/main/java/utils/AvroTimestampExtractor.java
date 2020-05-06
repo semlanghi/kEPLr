@@ -4,6 +4,13 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.streams.processor.TimestampExtractor;
 
+/**
+ * A {@link TimestampExtractor} for the {@link GenericRecord} (Avro) representation.
+ * It extracts the timestamp from the "end_time" field of the record.
+ *
+ * @see GenericRecord
+ * @see org.apache.avro.Schema
+ */
 public class AvroTimestampExtractor implements TimestampExtractor {
 
     @Override

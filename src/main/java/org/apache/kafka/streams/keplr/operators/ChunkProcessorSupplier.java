@@ -13,6 +13,13 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * Supplier for the {@link ChunkProcessor}, that performs the chunk operation according to the every
+ * configuration of the iinput events.
+ * @param <K>
+ * @param <V>
+ */
 public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> type;
@@ -26,6 +33,7 @@ public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K
     public Processor<TypedKey<K>, V> get() {
         return new ChunkProcessor();
     }
+
 
     private class ChunkProcessor extends AbstractProcessor<TypedKey<K>,V> implements Processor<TypedKey<K>,V>{
 

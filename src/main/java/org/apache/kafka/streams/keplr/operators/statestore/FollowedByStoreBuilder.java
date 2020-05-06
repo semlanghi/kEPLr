@@ -5,6 +5,14 @@ import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.state.internals.AbstractStoreBuilder;
 
+/**
+ * Builder for the the {@link org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew},
+ * keeping a {@link FollowedByBytesStoreSupplier}, which eventually will return the {@link FollowedByEventStore} instance,
+ * parametrized in bytes.
+ * @param <K>
+ * @param <V>
+ */
+
 public class FollowedByStoreBuilder<K,V> extends AbstractStoreBuilder<TypedKey<K>, V, FollowedByEventStore<TypedKey<K>, V>> {
 
     private final FollowedByBytesStoreSupplier storeSupplier;

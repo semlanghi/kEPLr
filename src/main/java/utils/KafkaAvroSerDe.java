@@ -8,6 +8,12 @@ import org.apache.kafka.common.serialization.Serializer;
 
 import java.util.Map;
 
+/**
+ * A {@link Serde} for the Avro Representation, containing the already implemented
+ * serializer and deserializer.
+ * @see KafkaAvroDeserializer
+ * @see KafkaAvroSerializer
+ */
 public class KafkaAvroSerDe  implements Serde<Object> {
 
     Serializer<Object> serializer;
@@ -22,7 +28,6 @@ public class KafkaAvroSerDe  implements Serde<Object> {
     public void configure(Map<String, ?> configs, boolean isKey) {
         serializer.configure(configs, isKey);
         deserializer.configure(configs, isKey);
-
     }
 
     @Override
