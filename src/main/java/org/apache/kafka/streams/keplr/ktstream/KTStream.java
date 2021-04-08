@@ -87,7 +87,8 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      * @see KStream
      * @param stream The original {@link KStream}
      * @param types The {@link EType} instances to match
-     * @param <K> The original key class
+     * @param <K> The origtypedStreams[0].times(1).every().followedBy(typedStreams[1].times(1).every(), 60000L)
+                .to("output_final_part1");inal key class
      * @param <V> The value class
      * @return An array of {@link KTStream}, each one containing a type specified in the input.
      */

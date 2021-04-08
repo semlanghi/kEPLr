@@ -1,4 +1,4 @@
-package org.apache.kafka.streams.keplr.operators.statestore;
+package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
@@ -15,17 +15,14 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 
 /**
- * Wrapper for the {@link FollowedByEventStore} that provides serialization and deserialization functions.
- *
- * @see Serde
- * @see StateSerdes
+ * Wrapper for the {@link EventOccurrenceEventStore} that provides serialization and deserialization.
  * @param <K>
  * @param <V>
  */
+public class WrappedEventOccurrenceStore<K,V>
+        extends WrappedStateStore<EventOccurrenceEventStore<Bytes, byte[]>, TypedKey<K>, V>
+        implements EventOccurrenceEventStore<TypedKey<K>, V> {
 
-public class WrappedFollowedByStore<K,V>
-        extends WrappedStateStore<FollowedByEventStore<Bytes, byte[]>, TypedKey<K>, V>
-        implements FollowedByEventStore<TypedKey<K>, V>{
 
     private final long windowSizeMs;
     private final String metricScope;
@@ -38,12 +35,12 @@ public class WrappedFollowedByStore<K,V>
     public void init(ProcessorContext context, StateStore root) {
         super.init(context, root);
         serdes = new StateSerdes<TypedKey<K>, V>(
-                ProcessorStateManager.storeChangelogTopic("TEST",name()),//context.applicationId(), name()),
+                ProcessorStateManager.storeChangelogTopic(context.applicationId(), name()),
                 keySerde == null ? (Serde<TypedKey<K>>) context.keySerde() : keySerde,
                 valueSerde == null ? (Serde<V>) context.valueSerde() : valueSerde);
     }
 
-    public WrappedFollowedByStore(FollowedByEventStore<Bytes,byte[]> bytesWindowStore, long windowSize, String metricsScope, Time time, Serde<TypedKey<K>> keySerde, Serde<V> valueSerde) {
+    public WrappedEventOccurrenceStore(EventOccurrenceEventStore<Bytes,byte[]> bytesWindowStore, long windowSize, String metricsScope, Time time, Serde<TypedKey<K>> keySerde, Serde<V> valueSerde) {
         super(bytesWindowStore);
         this.time=time;
         this.metricScope = metricsScope;
@@ -53,37 +50,40 @@ public class WrappedFollowedByStore<K,V>
     }
 
 
+    @Override
+    public void putIntervalEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
+        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value), timestamp, false);
 
+    }
 
     private Bytes keyBytes(final TypedKey<K> key) {
         return Bytes.wrap(serdes.rawKey(key));
     }
 
-
-
-
     @Override
-    public void putIntervalEvent(TypedKey<K> key, V value, long start, long end, boolean allowOverlaps) {
-        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value),start,end, allowOverlaps);
+    public void putCompositeEvent(TypedKey<K> key, long[] timestamps) {
+        wrapped().putCompositeEvent(keyBytes(key), timestamps);
     }
 
 
-
+    @Override
+    public void put(TypedKey<K> key, V value, long timestamp) {
+        wrapped().put(keyBytes(key), serdes.rawValue(value),timestamp);
+    }
 
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInLeft(TypedKey<K> key, long start, long end, boolean delete) {
-        return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInLeft(keyBytes(key), start,end, delete),
+    public KeyValueIterator<TypedKey<K>, long[]> fetchEvents(TypedKey<K> key, long timestamp) {
+        return new EventOccurrenceWrapperKeyValueCompositeIterator(
+                wrapped().fetchEvents(keyBytes(key), timestamp),
                 serdes,
                 time);
     }
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInRight(TypedKey<K> key, long start, long end) {
-
-        return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInRight(keyBytes(key), start,end),
+    public KeyValueIterator<TypedKey<K>, V> retrieveEvents(TypedKey<K> key, long[] timestamps) {
+        return new EventOccurrenceWrapperKeyValueIterator(
+                wrapped().retrieveEvents(keyBytes(key), timestamps),
                 serdes,
                 time);
     }
@@ -94,10 +94,6 @@ public class WrappedFollowedByStore<K,V>
 
     }
 
-    @Override
-    public void put(TypedKey<K> key, V value, long windowStartTimestamp) {
-
-    }
 
     @Override
     public V fetch(TypedKey<K> key, long time) {
@@ -124,16 +120,16 @@ public class WrappedFollowedByStore<K,V>
         return null;
     }
 
-    private class FollowedByWrapperKeyValueIterator<K, V> implements KeyValueIterator<TypedKey<K>, V> {
+    private class EventOccurrenceWrapperKeyValueIterator implements KeyValueIterator<TypedKey<K>, V> {
 
         private final KeyValueIterator<Bytes, byte[]> iter;
         private final StateSerdes<TypedKey<K>, V> serdes;
         private final long startNs;
         private final Time time;
 
-        FollowedByWrapperKeyValueIterator(final KeyValueIterator<Bytes, byte[]> iter,
-                                        final StateSerdes<TypedKey<K>, V> serdes,
-                                        final Time time) {
+        EventOccurrenceWrapperKeyValueIterator(final KeyValueIterator<Bytes, byte[]> iter,
+                                               final StateSerdes<TypedKey<K>, V> serdes,
+                                               final Time time) {
             this.iter = iter;
             this.serdes = serdes;
             this.startNs = time.nanoseconds();
@@ -165,7 +161,6 @@ public class WrappedFollowedByStore<K,V>
             try {
                 iter.close();
             } finally {
-                //metrics.recordLatency(sensor, startNs, time.nanoseconds());
             }
         }
 
@@ -175,16 +170,16 @@ public class WrappedFollowedByStore<K,V>
         }
     }
 
-    private class FollowedByWrapperKeyValueCompositeIterator<K, V> implements KeyValueIterator<TypedKey<K>, long[]> {
+    private class EventOccurrenceWrapperKeyValueCompositeIterator implements KeyValueIterator<TypedKey<K>, long[]> {
 
         private final KeyValueIterator<Bytes, long[]> iter;
         private final StateSerdes<TypedKey<K>, V> serdes;
         private final long startNs;
         private final Time time;
 
-        FollowedByWrapperKeyValueCompositeIterator(final KeyValueIterator<Bytes, long[]> iter,
-                                          final StateSerdes<TypedKey<K>, V> serdes,
-                                          final Time time) {
+        EventOccurrenceWrapperKeyValueCompositeIterator(final KeyValueIterator<Bytes, long[]> iter,
+                                                        final StateSerdes<TypedKey<K>, V> serdes,
+                                                        final Time time) {
             this.iter = iter;
             this.serdes = serdes;
             this.startNs = time.nanoseconds();

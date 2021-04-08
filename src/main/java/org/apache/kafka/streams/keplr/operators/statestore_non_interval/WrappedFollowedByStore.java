@@ -1,4 +1,4 @@
-package org.apache.kafka.streams.keplr.operators.statestore;
+package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Bytes;
@@ -25,7 +25,7 @@ import org.apache.kafka.streams.state.internals.WrappedStateStore;
 
 public class WrappedFollowedByStore<K,V>
         extends WrappedStateStore<FollowedByEventStore<Bytes, byte[]>, TypedKey<K>, V>
-        implements FollowedByEventStore<TypedKey<K>, V>{
+        implements FollowedByEventStore<TypedKey<K>, V> {
 
     private final long windowSizeMs;
     private final String metricScope;
@@ -38,7 +38,7 @@ public class WrappedFollowedByStore<K,V>
     public void init(ProcessorContext context, StateStore root) {
         super.init(context, root);
         serdes = new StateSerdes<TypedKey<K>, V>(
-                ProcessorStateManager.storeChangelogTopic("TEST",name()),//context.applicationId(), name()),
+                ProcessorStateManager.storeChangelogTopic("TEST", name()),
                 keySerde == null ? (Serde<TypedKey<K>>) context.keySerde() : keySerde,
                 valueSerde == null ? (Serde<V>) context.valueSerde() : valueSerde);
     }
@@ -63,8 +63,8 @@ public class WrappedFollowedByStore<K,V>
 
 
     @Override
-    public void putIntervalEvent(TypedKey<K> key, V value, long start, long end, boolean allowOverlaps) {
-        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value),start,end, allowOverlaps);
+    public void putIntervalEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
+        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value), timestamp, allowOverlaps);
     }
 
 
@@ -72,18 +72,18 @@ public class WrappedFollowedByStore<K,V>
 
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInLeft(TypedKey<K> key, long start, long end, boolean delete) {
+    public KeyValueIterator<TypedKey<K>, V> fetchEventsInLeft(TypedKey<K> key, long timestamp, boolean delete) {
         return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInLeft(keyBytes(key), start,end, delete),
+                wrapped().fetchEventsInLeft(keyBytes(key), timestamp, delete),
                 serdes,
                 time);
     }
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInRight(TypedKey<K> key, long start, long end) {
+    public KeyValueIterator<TypedKey<K>, V> fetchEventsInRight(TypedKey<K> key, long timestamp) {
 
         return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInRight(keyBytes(key), start,end),
+                wrapped().fetchEventsInRight(keyBytes(key), timestamp),
                 serdes,
                 time);
     }

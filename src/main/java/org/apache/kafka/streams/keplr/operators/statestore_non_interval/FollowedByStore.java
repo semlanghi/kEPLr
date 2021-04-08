@@ -1,4 +1,4 @@
-package org.apache.kafka.streams.keplr.operators.statestore;
+package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 
 import com.brein.time.timeintervals.collections.ListIntervalCollection;
 import com.brein.time.timeintervals.indexes.IntervalTree;
@@ -13,13 +13,11 @@ import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.processor.internals.InternalProcessorContext;
-import org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.apache.kafka.streams.state.internals.InMemoryWindowStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -30,16 +28,13 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.EXPIRED_WINDOW_RECORD_DROP;
-import static org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl.addInvocationRateAndCount;
-
 /**
  * Byte-based implementation of the {@link FollowedByEventStore}. It uses three different structures to store the events.
  * Events are stored as "interval events", i.e. events with a duration. Each event is defined by their {@link IInterval},
- * and their key, here represented in {@link Bytes}.
+ * and their (Typed)key, here represented in {@link Bytes}.
  * The {@link IntervalTree} structure is used to keep all intervals for a certain key, and for retrieving the
  * overlapping intervals with a given one.
- * We also keep a structure to maintain the last iteration of for a specific event.
+ * We also keep a structure to maintain the last iteration of for a specific event. //TODO what is that??? What for???
  *
  * @see ConcurrentNavigableMap
  * @see IntervalTree
@@ -59,9 +54,12 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     private InternalProcessorContext context;
     private Sensor expiredRecordSensor;
 
+    //This one contains eventTrees for same (Typed)key
     private final ConcurrentNavigableMap<Bytes, IntervalTree> comparationBase = new ConcurrentSkipListMap<>();
-    private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<IInterval<Long>, byte[]>> immutableEvents = new ConcurrentSkipListMap<>();
-    private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<IInterval<Long>, Long>> lastIterationEvents = new ConcurrentSkipListMap<>();
+
+    //This one contains events themselves (values) for the current (Typed)key and Interval
+    private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<Long, byte[]>> immutableEvents = new ConcurrentSkipListMap<>();
+    //what is this??? contains end of all current intervals??? for what purpose???
 
     private static Logger LOGGER = LoggerFactory.getLogger(FollowedByStore.class);
 
@@ -83,19 +81,19 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
         this.context = (InternalProcessorContext) context;
 
 //        final StreamsMetricsImpl metrics = this.context.metrics();
-        //       final String taskName = context.taskId().toString();
-        //      expiredRecordSensor = metrics.storeLevelSensor(
-        //             taskName,
-        //             name(),
-        //             EXPIRED_WINDOW_RECORD_DROP,
-        //             Sensor.RecordingLevel.INFO
-        //     );
-        //     addInvocationRateAndCount(
-        //             expiredRecordSensor,
-        //             "stream-" + metricScope + "-metrics",
-        //            metrics.tagMap("task-id", taskName, metricScope + "-id", name()),
-        //           EXPIRED_WINDOW_RECORD_DROP
-        //   );
+//        final String taskName = context.taskId().toString();
+//        expiredRecordSensor = metrics.storeLevelSensor(
+//                taskName,
+//                name(),
+//                EXPIRED_WINDOW_RECORD_DROP,
+//                Sensor.RecordingLevel.INFO
+//        );
+//        addInvocationRateAndCount(
+//                expiredRecordSensor,
+//                "stream-" + metricScope + "-metrics",
+//                metrics.tagMap("task-id", taskName, metricScope + "-id", name()),
+//                EXPIRED_WINDOW_RECORD_DROP
+//        );
 
         if (root != null) {
             context.register(root, (key, value) -> {
@@ -125,15 +123,15 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     @Override
     public void put(Bytes key, byte[] value, long timestamp) {
 
-        putIntervalEvent(key, value, timestamp,timestamp, true);
+        putIntervalEvent(key, value, timestamp, true);
     }
 
-    private static org.apache.kafka.common.utils.Bytes wrapForDups(final org.apache.kafka.common.utils.Bytes key, final int seqnum) {
+    private static Bytes wrapForDups(final Bytes key, final int seqnum) {
         final ByteBuffer buf = ByteBuffer.allocate(key.get().length + SEQNUM_SIZE);
         buf.put(key.get());
         buf.putInt(seqnum);
 
-        return org.apache.kafka.common.utils.Bytes.wrap(buf.array());
+        return Bytes.wrap(buf.array());
     }
 
 
@@ -189,92 +187,58 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     }
 
     @Override
-    public void putIntervalEvent(Bytes key, byte[] value, long start, long end, boolean allowOverlaps) {
-        IInterval<Long> interval = new LongInterval(start, end);
-
-
-        lastIterationEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
-
+    public void putIntervalEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
+        //TODO why compute only if absent - this need some explanation??? compute if key is missing? seems fishy
         //define how comparison is done for immutable events
-        immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>(new Comparator<IInterval<Long>>() {
-            @Override
-            public int compare(IInterval<Long> o1, IInterval<Long> o2) {
-                return o1.getNormEnd().compareTo(o2.getNormEnd());
-            }
-        }));
-
-        comparationBase.computeIfAbsent(key, bytes -> IntervalTreeBuilder.newBuilder()
-                .usePredefinedType(IntervalTreeBuilder.IntervalType.LONG)
-                .collectIntervals(interval1 -> new ListIntervalCollection())
-                .build());
-        if(!allowOverlaps){
-            if(comparationBase.get(key).overlapStream(interval).findAny().isPresent())
-                return;
-        }
-
-        comparationBase.get(key).add(interval);
-        immutableEvents.get(key).put(interval,value);
-        lastIterationEvents.get(key).put(interval, interval.getNormEnd());
+        immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
+        immutableEvents.get(key).put(timestamp,value);
     }
 
     long lastCompositeGarbaging=0;
 
-    public void garbageCollectorComposite(Bytes key, long end){
+    public void garbageCollectorComposite(Bytes key, long timestamp){
 
-        if(comparationBase.get(key)!=null) {
-
-            Collection<IInterval> reinsert= comparationBase.get(key).overlap(new LongInterval(end-withinMs, end));
-
-            comparationBase.get(key).clear();
-            comparationBase.get(key).addAll(reinsert);
-            lastIterationEvents.get(key).headMap(new LongInterval(end-withinMs, end-withinMs)).clear();
-            immutableEvents.get(key).headMap(new LongInterval(end-withinMs, end-withinMs)).clear();
+        if(immutableEvents.get(key)!=null) {
+            immutableEvents.get(key).headMap(timestamp).clear();
 
         }
     }
 
 
 
-    private ConcurrentSkipListSet<IInterval> toDelete= new ConcurrentSkipListSet();
+    private ConcurrentSkipListSet<Long> toDelete= new ConcurrentSkipListSet();
     @Override
-    public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long start, long end, boolean delete) {
+    public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long timestamp, boolean delete) {
+        //TODO what is the usecase? should we still have start and end times for fetch???
+        //TODO timestamp included or excluded???
 
-        IInterval<Long> interval = new LongInterval(start,end);
-        IInterval<Long> searchInterval = new LongInterval(end-withinMs,start);
 
-        if(lastCompositeGarbaging+withinMs*10<end){
-            garbageCollectorComposite(key,end);
-            lastCompositeGarbaging = end;
+        IInterval<Long> searchInterval = new LongInterval(timestamp-withinMs, timestamp);
+
+        //TODO ASK samuele-what is lastCompositeGarbaging, for now end->timestamp
+        if(lastCompositeGarbaging+withinMs*10<timestamp){
+            garbageCollectorComposite(key,timestamp);
+            lastCompositeGarbaging = timestamp;
         }
 
-        lastIterationEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
-        immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>((o1, o2) -> o1.getNormEnd().compareTo(o2.getNormEnd())));
-        ConcurrentNavigableMap<IInterval<Long>, byte[]> map = immutableEvents.get(key).headMap(interval);
-        comparationBase.computeIfAbsent(key, bytes -> IntervalTreeBuilder.newBuilder()
-                .usePredefinedType(IntervalTreeBuilder.IntervalType.LONG)
-                .collectIntervals(interval1 -> new ListIntervalCollection())
-                .build());
+        immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
+        ConcurrentNavigableMap<Long, byte[]> map = immutableEvents.get(key).headMap(timestamp);
 
-        Iterator<Map.Entry<Bytes, byte[]>> it = comparationBase.get(key).overlapStream(searchInterval).filter(interval13 -> {
-            Long temp = lastIterationEvents.get(key).get(interval13);
-            if(map.containsKey(interval13) && start>temp){
-                lastIterationEvents.get(key).put(interval13, end);
-                if(delete){
-                    toDelete.add(interval13);
-                }
+        //get intervals that fell inside searchinterval then filter further based on ...
+        Iterator<Map.Entry<Bytes, byte[]>> it = immutableEvents.get(key)
+            .tailMap(timestamp-withinMs)
+            .keySet()
+            .stream()
+            .filter(timestamp2 -> {
+                if (delete) {toDelete.add(timestamp2);}
                 return true;
-            }else{
-                return false;
-            }
-        }).sorted((o1, o2) -> {
-            if(o1.getNormEnd().compareTo(o2.getNormEnd())==0){
-                return o1.getNormStart().compareTo(o2.getNormStart());
-            }else return  o1.getNormEnd().compareTo(o2.getNormEnd());
-        }).map((Function<IInterval, Map.Entry<Bytes, byte[]>>) interval12 -> new HashMap.SimpleEntry<>(key,immutableEvents.get(key).get(interval12))).iterator();
+            })
+            .map((Function<Long, Map.Entry<Bytes, byte[]>>) timestamp2 -> new HashMap.SimpleEntry<>(key,immutableEvents.get(key).get(timestamp2))).iterator();
+
+        //TODO ASK SAMUELE, so we delete all events with the current type??? not just one specific event???
+        //TODO WHY WAS THERE SORTED IF THIS IS concurrentnavigatablemap
 
         toDelete.forEach(t -> {
-            lastIterationEvents.get(key).remove(t);
-            comparationBase.get(key).remove(t);
             immutableEvents.get(key).remove(t);
         });
 
@@ -284,33 +248,19 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     }
 
     @Override
-    public KeyValueIterator<Bytes, byte[]> fetchEventsInRight(Bytes key, long start, long end) {
-        IInterval<Long> interval1 = new LongInterval(start,end);
-
-        comparationBase.computeIfAbsent(key, bytes -> IntervalTreeBuilder.newBuilder()
-                .usePredefinedType(IntervalTreeBuilder.IntervalType.LONG)
-                .collectIntervals(interval11 -> new ListIntervalCollection())
-                .build());
-        Iterator<Map.Entry<Bytes, byte[]>> it = comparationBase.get(key).overlapStream(interval1).filter(new Predicate<IInterval>() {
-            @Override
-            public boolean test(IInterval interval) {
-                return ((NumberInterval)interval1).irIncludes(interval);
-            }
-        }).map((Function<IInterval, Map.Entry<Bytes, byte[]>>) interval -> new HashMap.SimpleEntry<>(key,immutableEvents.get(key).get(interval))).iterator();
-
-
-        return new FollowedByWindowStoreIteratorWrapper<>(it,openIterators::remove, false);
-
+    public KeyValueIterator<Bytes, byte[]> fetchEventsInRight(Bytes key, long timestamp) {
+        //TODO: IS PLACEHOLDER
+        return fetchEventsInLeft(key,timestamp,false);
     }
 
 
     interface ClosingCallback {
         void deregisterIterator(final FollowedByStore.FollowedByWindowStoreIteratorWrapper iterator);
     }
-    private static org.apache.kafka.common.utils.Bytes getKey(final org.apache.kafka.common.utils.Bytes keyBytes) {
+    private static Bytes getKey(final Bytes keyBytes) {
         final byte[] bytes = new byte[keyBytes.get().length  - SEQNUM_SIZE];
         System.arraycopy(keyBytes.get(), 0, bytes, 0, bytes.length);
-        return org.apache.kafka.common.utils.Bytes.wrap(bytes);
+        return Bytes.wrap(bytes);
 
     }
 
