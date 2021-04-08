@@ -1,11 +1,7 @@
 package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 
-import com.brein.time.timeintervals.collections.ListIntervalCollection;
 import com.brein.time.timeintervals.indexes.IntervalTree;
-import com.brein.time.timeintervals.indexes.IntervalTreeBuilder;
 import com.brein.time.timeintervals.intervals.IInterval;
-import com.brein.time.timeintervals.intervals.LongInterval;
-import com.brein.time.timeintervals.intervals.NumberInterval;
 import org.apache.kafka.common.metrics.Sensor;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KeyValue;
@@ -26,7 +22,6 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Byte-based implementation of the {@link FollowedByEventStore}. It uses three different structures to store the events.
@@ -34,7 +29,7 @@ import java.util.function.Predicate;
  * and their (Typed)key, here represented in {@link Bytes}.
  * The {@link IntervalTree} structure is used to keep all intervals for a certain key, and for retrieving the
  * overlapping intervals with a given one.
- * We also keep a structure to maintain the last iteration of for a specific event. //TODO what is that??? What for???
+ * We also keep a structure to maintain the last iteration of for a specific event.
  *
  * @see ConcurrentNavigableMap
  * @see IntervalTree
@@ -123,7 +118,7 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     @Override
     public void put(Bytes key, byte[] value, long timestamp) {
 
-        putIntervalEvent(key, value, timestamp, true);
+        putEvent(key, value, timestamp, true);
     }
 
     private static Bytes wrapForDups(final Bytes key, final int seqnum) {
@@ -187,9 +182,7 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     }
 
     @Override
-    public void putIntervalEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
-        //TODO why compute only if absent - this need some explanation??? compute if key is missing? seems fishy
-        //define how comparison is done for immutable events
+    public void putEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
         immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
         immutableEvents.get(key).put(timestamp,value);
     }
@@ -208,25 +201,19 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
 
     private ConcurrentSkipListSet<Long> toDelete= new ConcurrentSkipListSet();
     @Override
-    public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long timestamp, boolean delete) {
-        //TODO what is the usecase? should we still have start and end times for fetch???
-        //TODO timestamp included or excluded???
+    public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long start, long end, boolean delete) {
 
-
-        IInterval<Long> searchInterval = new LongInterval(timestamp-withinMs, timestamp);
-
-        //TODO ASK samuele-what is lastCompositeGarbaging, for now end->timestamp
-        if(lastCompositeGarbaging+withinMs*10<timestamp){
-            garbageCollectorComposite(key,timestamp);
-            lastCompositeGarbaging = timestamp;
+        //TODO is start correct? previously here was end?
+        if(lastCompositeGarbaging+withinMs*10<start){
+            garbageCollectorComposite(key,start);
+            lastCompositeGarbaging = start;
         }
 
         immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
-        ConcurrentNavigableMap<Long, byte[]> map = immutableEvents.get(key).headMap(timestamp);
+        ConcurrentNavigableMap<Long, byte[]> map = immutableEvents.get(key).headMap(start);
 
-        //get intervals that fell inside searchinterval then filter further based on ...
         Iterator<Map.Entry<Bytes, byte[]>> it = immutableEvents.get(key)
-            .tailMap(timestamp-withinMs)
+            .subMap(start-withinMs,false, end,true) //TODO within from start???
             .keySet()
             .stream()
             .filter(timestamp2 -> {
@@ -234,9 +221,6 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
                 return true;
             })
             .map((Function<Long, Map.Entry<Bytes, byte[]>>) timestamp2 -> new HashMap.SimpleEntry<>(key,immutableEvents.get(key).get(timestamp2))).iterator();
-
-        //TODO ASK SAMUELE, so we delete all events with the current type??? not just one specific event???
-        //TODO WHY WAS THERE SORTED IF THIS IS concurrentnavigatablemap
 
         toDelete.forEach(t -> {
             immutableEvents.get(key).remove(t);
@@ -248,9 +232,9 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     }
 
     @Override
-    public KeyValueIterator<Bytes, byte[]> fetchEventsInRight(Bytes key, long timestamp) {
+    public KeyValueIterator<Bytes, byte[]> fetchEventsInRight(Bytes key, long start, long end) {
         //TODO: IS PLACEHOLDER
-        return fetchEventsInLeft(key,timestamp,false);
+        return fetchEventsInLeft(key, start, end,false);
     }
 
 

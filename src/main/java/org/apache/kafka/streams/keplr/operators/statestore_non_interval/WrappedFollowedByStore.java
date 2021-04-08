@@ -63,8 +63,8 @@ public class WrappedFollowedByStore<K,V>
 
 
     @Override
-    public void putIntervalEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
-        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value), timestamp, allowOverlaps);
+    public void putEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
+        wrapped().putEvent(keyBytes(key), serdes.rawValue(value), timestamp, allowOverlaps);
     }
 
 
@@ -72,18 +72,18 @@ public class WrappedFollowedByStore<K,V>
 
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInLeft(TypedKey<K> key, long timestamp, boolean delete) {
+    public KeyValueIterator<TypedKey<K>, V> fetchEventsInLeft(TypedKey<K> key, long start, long end, boolean delete) {
         return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInLeft(keyBytes(key), timestamp, delete),
+                wrapped().fetchEventsInLeft(keyBytes(key), start, end, delete),
                 serdes,
                 time);
     }
 
     @Override
-    public KeyValueIterator<TypedKey<K>, V> fetchEventsInRight(TypedKey<K> key, long timestamp) {
+    public KeyValueIterator<TypedKey<K>, V> fetchEventsInRight(TypedKey<K> key, long start , long end) {
 
         return new FollowedByWrapperKeyValueIterator<K,V>(
-                wrapped().fetchEventsInRight(keyBytes(key), timestamp),
+                wrapped().fetchEventsInRight(keyBytes(key), start, end),
                 serdes,
                 time);
     }

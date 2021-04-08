@@ -24,9 +24,9 @@ class StateStoreNonIntervalTest {
         store.init(null,null);
         //store.put(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL",6L);
         //store.put(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL2",9L);
-        store.putIntervalEvent(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL2",9L,true);
-        store.putIntervalEvent(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL6",10L,true);
-        KeyValueIterator<TypedKey<String>, String> returnVal = store.fetchEventsInLeft(new TypedKey<String>("TEST1", "TEST_TYPE"), 11L, false);
+        store.putEvent(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL2",9L,true);
+        store.putEvent(new TypedKey<>("TEST1", "TEST_TYPE"),"TEST_VAL6",10L,true);
+        KeyValueIterator<TypedKey<String>, String> returnVal = store.fetchEventsInLeft(new TypedKey<String>("TEST1", "TEST_TYPE"), 5L, 15L, false);
         System.out.println(returnVal.hasNext());
         System.out.println(returnVal.next());
         System.out.println(returnVal.next());
