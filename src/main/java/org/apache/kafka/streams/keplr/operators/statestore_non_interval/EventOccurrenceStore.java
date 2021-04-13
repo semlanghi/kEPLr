@@ -185,7 +185,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
     }
 
     @Override
-    public void putIntervalEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
+    public void putEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
         //TODO This is just quick fix
         long start = timestamp;
         long end = timestamp;
@@ -260,7 +260,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
     @Override
     public void put(Bytes key, byte[] value, long timestamp) {
-        putIntervalEvent(key, value, timestamp, false);
+        putEvent(key, value, timestamp, false);
     }
 
 

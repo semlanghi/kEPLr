@@ -51,8 +51,8 @@ public class WrappedEventOccurrenceStore<K,V>
 
 
     @Override
-    public void putIntervalEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
-        wrapped().putIntervalEvent(keyBytes(key), serdes.rawValue(value), timestamp, false);
+    public void putEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
+        wrapped().putEvent(keyBytes(key), serdes.rawValue(value), timestamp, false);
 
     }
 
