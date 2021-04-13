@@ -25,11 +25,18 @@ import java.util.function.BinaryOperator;
 public abstract class EType<K, V> implements Predicate<K, V> {
 
     protected String description;
-    private boolean onEvery;
-    private boolean chunkLeft = true;
-    private boolean chunkRight = true;
+    protected boolean onEvery;
+    protected boolean chunkLeft = true;
+    protected boolean chunkRight = true;
 
     public EType() {
+    }
+
+    protected EType(String description, boolean onEvery, boolean chunkLeft, boolean chunkRight) {
+        this.description = description;
+        this.onEvery = onEvery;
+        this.chunkLeft = chunkLeft;
+        this.chunkRight = chunkRight;
     }
 
     public boolean isChunkLeft() {
@@ -195,7 +202,5 @@ public abstract class EType<K, V> implements Predicate<K, V> {
     public abstract V wrap(ArrayList<V> value);
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
+    public abstract EType<K,V> clone() throws CloneNotSupportedException;
 }

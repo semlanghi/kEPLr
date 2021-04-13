@@ -64,8 +64,8 @@ public class InMemoryWindowStore implements WindowStore<Bytes, byte[]> {
     private final long windowSize;
     private final boolean retainDuplicates;
 
-    private final ConcurrentNavigableMap<Long, ConcurrentNavigableMap<Bytes, byte[]>> segmentMap = new ConcurrentSkipListMap<>();
-    private final Set<InMemoryWindowStoreIteratorWrapper> openIterators = ConcurrentHashMap.newKeySet();
+    protected final ConcurrentNavigableMap<Long, ConcurrentNavigableMap<Bytes, byte[]>> segmentMap = new ConcurrentSkipListMap<>();
+    protected final Set<InMemoryWindowStoreIteratorWrapper> openIterators = ConcurrentHashMap.newKeySet();
 
     private volatile boolean open = false;
 

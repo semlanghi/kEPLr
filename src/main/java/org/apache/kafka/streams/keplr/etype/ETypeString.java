@@ -11,6 +11,10 @@ public class ETypeString extends EType<String,String>{
     public ETypeString() {
     }
 
+    private ETypeString(String description, boolean onEvery, boolean chunkLeft, boolean chunkRight) {
+        super(description, onEvery, chunkLeft, chunkRight);
+    }
+
     @Override
     public EType<String, String> everyVersion() {
         EType<String,String> type =  new ETypeString(this.description);
@@ -46,6 +50,11 @@ public class ETypeString extends EType<String,String>{
                 return s+"/"+s2;
             }
         }).get();
+    }
+
+    @Override
+    public EType<String, String> clone() throws CloneNotSupportedException {
+        return new ETypeString(description, onEvery, chunkLeft, chunkRight);
     }
 
 
@@ -98,6 +107,8 @@ public class ETypeString extends EType<String,String>{
     public boolean test(String key, String value) {
         return value.substring(0,1).equals(this.description);
     }
+
+
 
 
 }

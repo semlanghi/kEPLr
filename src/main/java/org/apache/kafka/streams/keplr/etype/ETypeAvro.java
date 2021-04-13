@@ -20,6 +20,11 @@ public class ETypeAvro extends EType<String, GenericRecord> {
         this.schema = new AvroSchema(schema);
     }
 
+    private ETypeAvro(String description, boolean onEvery, boolean chunkLeft, boolean chunkRight, AvroSchema schema) {
+        super(description, onEvery, chunkLeft, chunkRight);
+        this.schema = schema;
+    }
+
     public Schema getSchema() {
         return schema.getAvroSchema();
     }
@@ -162,6 +167,11 @@ public class ETypeAvro extends EType<String, GenericRecord> {
             System.out.println("not wrappable");
             return null;
         }
+    }
+
+    @Override
+    public EType<String, GenericRecord> clone() throws CloneNotSupportedException {
+        return new ETypeAvro(description, onEvery, chunkLeft, chunkRight,schema);
     }
 
 

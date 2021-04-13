@@ -2,6 +2,7 @@ package org.apache.kafka.streams.keplr.operators.statestore;
 
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.state.KeyValueIterator;
+import org.apache.kafka.streams.state.WindowStoreIterator;
 
 
 /**
@@ -11,8 +12,10 @@ import org.apache.kafka.streams.state.KeyValueIterator;
  */
 public interface FollowedByEventStore<K, V> extends EventStore<K, V> {
 
+    @Deprecated
     public KeyValueIterator<K, V> fetchEventsInLeft(K key, long start, long end, boolean delete);
 
+    @Deprecated
     public KeyValueIterator<K, V> fetchEventsInRight(K key, long start, long end);
 
 }

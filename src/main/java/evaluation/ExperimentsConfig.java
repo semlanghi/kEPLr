@@ -48,6 +48,7 @@ public class ExperimentsConfig {
     public static final String RECORD_THREAD = "thread";
 
     public static final String SCHEMA_REGISTRY_URL = "mock://ab";
+    public static final String SCHEMA_REGISTRY_SCOPE = "ab";
 
     public static Schema loadSchema(final String name) throws IOException {
         try (
