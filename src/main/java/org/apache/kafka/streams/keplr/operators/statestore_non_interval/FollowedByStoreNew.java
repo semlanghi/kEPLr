@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 
 /**
- * Byte-based implementation of the {@link FollowedByEventStore}. It uses three different structures to store the events.
+ * Byte-based implementation of the {@link FollowedByEventStoreNew}. It uses three different structures to store the events.
  * Events are stored as "interval events", i.e. events with a duration. Each event is defined by their {@link IInterval},
  * and their (Typed)key, here represented in {@link Bytes}.
  * The {@link IntervalTree} structure is used to keep all intervals for a certain key, and for retrieving the
@@ -36,7 +36,7 @@ import java.util.function.Function;
  * @see IInterval
  */
 
-public class FollowedByStore extends InMemoryWindowStore implements FollowedByEventStore<Bytes,byte[]> {
+public class FollowedByStoreNew extends InMemoryWindowStore implements FollowedByEventStoreNew<Bytes,byte[]> {
 
 
 
@@ -56,13 +56,13 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
     private final ConcurrentNavigableMap<Bytes, ConcurrentNavigableMap<Long, byte[]>> immutableEvents = new ConcurrentSkipListMap<>();
     //what is this??? contains end of all current intervals??? for what purpose???
 
-    private static Logger LOGGER = LoggerFactory.getLogger(FollowedByStore.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(FollowedByStoreNew.class);
 
 
     private final Set<FollowedByWindowStoreIteratorWrapper<?>> openIterators = ConcurrentHashMap.newKeySet();
     private final Long withinMs;
 
-    public FollowedByStore(String name, String metricScope, long retentionPeriod, long windowSize, boolean retainDuplicates, long numberPreds, long numberSucc, Long withinMs) {
+    public FollowedByStoreNew(String name, String metricScope, long retentionPeriod, long windowSize, boolean retainDuplicates, long numberPreds, long numberSucc, Long withinMs) {
         super(name, retentionPeriod, windowSize, retainDuplicates, metricScope);
         this.name = name;
         this.metricScope = metricScope;
@@ -199,36 +199,33 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
 
 
 
-    private ConcurrentSkipListSet<Long> toDelete= new ConcurrentSkipListSet();
+
     @Override
     public KeyValueIterator<Bytes, byte[]> fetchEventsInLeft(Bytes key, long start, long end, boolean delete) {
 
-        //TODO is start correct? previously here was end?
         if(lastCompositeGarbaging+withinMs*10<start){
             garbageCollectorComposite(key,start);
             lastCompositeGarbaging = start;
         }
 
+
         immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
-        ConcurrentNavigableMap<Long, byte[]> map = immutableEvents.get(key).headMap(start);
 
         Iterator<Map.Entry<Bytes, byte[]>> it = immutableEvents.get(key)
-            .subMap(start-withinMs,false, end,true) //TODO within from start???
+            .subMap(start,false, end,true) //TODO within from start???
             .keySet()
             .stream()
-            .filter(timestamp2 -> {
-                if (delete) {toDelete.add(timestamp2);}
-                return true;
-            })
             .map((Function<Long, Map.Entry<Bytes, byte[]>>) timestamp2 -> new HashMap.SimpleEntry<>(key,immutableEvents.get(key).get(timestamp2))).iterator();
 
-        toDelete.forEach(t -> {
-            immutableEvents.get(key).remove(t);
-        });
 
-        toDelete.clear();
+        Map toDelete = immutableEvents.get(key)
+                .subMap(start,false, end,true);
 
-        return new FollowedByWindowStoreIteratorWrapper<>(it,openIterators::remove, false);
+        return new FollowedByWindowStoreIteratorWrapper<>(it, iterator -> {
+            openIterators.remove(iterator);
+            if(delete)
+                toDelete.clear();
+        }, false);
     }
 
     @Override
@@ -239,7 +236,7 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
 
 
     interface ClosingCallback {
-        void deregisterIterator(final FollowedByStore.FollowedByWindowStoreIteratorWrapper iterator);
+        void deregisterIterator(final FollowedByStoreNew.FollowedByWindowStoreIteratorWrapper iterator);
     }
     private static Bytes getKey(final Bytes keyBytes) {
         final byte[] bytes = new byte[keyBytes.get().length  - SEQNUM_SIZE];
@@ -256,10 +253,10 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
 
 
         private final boolean retainDuplicates;
-        private final FollowedByStore.ClosingCallback callback;
+        private final FollowedByStoreNew.ClosingCallback callback;
 
         FollowedByWindowStoreIteratorWrapper(final Iterator<Map.Entry<Bytes, V>> recordIterator,
-                                           final FollowedByStore.ClosingCallback callback,
+                                           final FollowedByStoreNew.ClosingCallback callback,
                                            final boolean retainDuplicates) {
             this.retainDuplicates = retainDuplicates;
             this.recordIterator = recordIterator;
@@ -269,6 +266,7 @@ public class FollowedByStore extends InMemoryWindowStore implements FollowedByEv
         public boolean hasNext() {
             return recordIterator.hasNext();
         }
+
 
         @Override
         public KeyValue<Bytes, V> next() {

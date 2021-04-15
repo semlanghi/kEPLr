@@ -10,15 +10,16 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.ETypeAvro;
+import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.ktstream.KTStream;
 import org.apache.kafka.streams.keplr.ktstream.WrappedKStreamImpl;
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
+import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.kstream.internals.KStreamImpl;
 import utils.AvroTimestampExtractor;
 import utils.KafkaAvroSerDe;
@@ -36,8 +37,9 @@ public class KEPLrMain {
 
     public static final String DEFAULT_BOOTSTRAP_SERVER_URL = "localhost:9092";
     public static final String DEFAULT_APPLICATION_PREFIX = "main-default-";
-    public static final String DEFAULT_INPUT_TOPIC = "input-topic";
-    public static final String DEFAULT_OUTPUT_TOPIC = "output-topic";
+    public static final String DEFAULT_INPUT_TOPIC = "input-topic1";
+    public static final String DEFAULT_OUTPUT_TOPIC = "output-topic21";
+
 
     public static void main(String[] args) throws IOException, RestClientException {
         Properties config = new Properties();
@@ -61,7 +63,7 @@ public class KEPLrMain {
         EType<String, GenericRecord> type2 = new ETypeAvro(schemaB);
 
         StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, GenericRecord> stream = builder.stream(DEFAULT_INPUT_TOPIC);
+        KStream<String, GenericRecord> stream = builder.stream(DEFAULT_INPUT_TOPIC, Consumed.with(Serdes.String(), null));
         WrappedKStreamImpl<String,GenericRecord> wrappedKStream =
                 new WrappedKStreamImpl<>((KStreamImpl<String, GenericRecord>) stream);
 
@@ -70,7 +72,7 @@ public class KEPLrMain {
 
         long within = 5L;
 
-        typedStreams[0].every().followedBy(typedStreams[1].every(), within);
+        typedStreams[0].followedBy(typedStreams[1].every(), within).to(DEFAULT_OUTPUT_TOPIC);
 
 
         Topology build = builder.build();

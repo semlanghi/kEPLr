@@ -34,6 +34,7 @@ public abstract class OrderingAbstractProcessorSupplier<K,V> extends KEPLrAbstra
 
         @Override
         public boolean isActive(K key) {
+            advancementStore.putIfAbsent(key, context().timestamp());
             return context().timestamp() >= advancementStore.get(key);
         }
 

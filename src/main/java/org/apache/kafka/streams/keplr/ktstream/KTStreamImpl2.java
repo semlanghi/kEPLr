@@ -11,6 +11,9 @@ import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.*;
 import org.apache.kafka.streams.keplr.operators.statestore.*;
+import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByBytesStoreSupplierNew;
+import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByEventStoreNew;
+import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByStoreBuilderNew;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.internals.*;
 import org.apache.kafka.streams.kstream.internals.graph.*;
@@ -61,14 +64,14 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         final String processorName = builder.newProcessorName(FOLLOWEDBY_NAME);
         final String followedByStoreName = builder.newStoreName(FOLLOWEDBY_STORE_NAME);
         final String leftStoreName = builder.newStoreName(GATEWAY_STORE_NAME);
-        final String rightStoreName = builder.newProcessorName(GATEWAY_STORE_NAME);
+        final String rightStoreName = builder.newStoreName(GATEWAY_STORE_NAME);
 
         KTStreamImpl2<K,V> left = (KTStreamImpl2<K, V>) gateway(leftStoreName);
         KTStreamImpl2<K,V> right = (KTStreamImpl2<K, V>) gateway(rightStoreName);
 
-        FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier(followedByStoreName, withinMs*2, 100L, false,
+        FollowedByBytesStoreSupplierNew storeSupplier = new FollowedByBytesStoreSupplierNew(followedByStoreName, withinMs*2, 100L, false,
                 5L, withinMs);
-        StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
+        StoreBuilder<FollowedByEventStoreNew<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilderNew<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
 
         builder.addStateStore(supportStore);
 
@@ -88,16 +91,51 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
     @Override
     public KTStream<K, V> followedBy(KTStream<K, V> otherStream, long withinMs) {
-        return null;
+
+        final String processorName = builder.newProcessorName(FOLLOWEDBY_NAME);
+        final String followedByStoreName = builder.newStoreName(FOLLOWEDBY_STORE_NAME);
+        final String leftStoreName = builder.newStoreName(GATEWAY_STORE_NAME);
+        final String rightStoreName = builder.newStoreName(GATEWAY_STORE_NAME);
+        final String advancementStoreName = builder.newStoreName(GATEWAY_STORE_NAME);
+
+        KTStreamImpl2<K,V> left = (KTStreamImpl2<K, V>) gateway(leftStoreName);
+        KTStreamImpl2<K,V> right = (KTStreamImpl2<K, V>) ((KTStreamImpl2<K, V>) otherStream).gateway(rightStoreName);
+
+        FollowedByBytesStoreSupplierNew storeSupplier = new FollowedByBytesStoreSupplierNew(followedByStoreName, withinMs*2, 100L, false,
+                5L, withinMs);
+        StoreBuilder<FollowedByEventStoreNew<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilderNew<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
+
+        StoreBuilder<KeyValueStore<K, Long>> advancementStoreBuilder = Stores.keyValueStoreBuilder(
+                Stores.persistentKeyValueStore(advancementStoreName),
+                ((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
+        );
+
+        builder.addStateStore(supportStore);
+        builder.addStateStore(advancementStoreBuilder);
+
+        EType<K,V> resultType = this.type.product(otherStream.type(), false);
+
+        final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
+                processorName,
+                new ProcessorParameters<>(new FollowedBySupplier<>(this.type, otherStream.type(), resultType, advancementStoreName, leftStoreName, rightStoreName, followedByStoreName, withinMs, resultType.joiner()), processorName),
+                new String[]{followedByStoreName,leftStoreName,rightStoreName, advancementStoreName}
+        );
+
+        builder.addGraphNode(Arrays.asList(left.streamsGraphNode, right.streamsGraphNode), followedByNode);
+
+        return new KTStreamImpl2<>(name, keySerde, valSerde, this.sourceNodes, false, followedByNode, builder, resultType);
+
     }
 
-    private KTStream<K,V> gateway(String storeName){
+    public KTStream<K,V> gateway(String storeName){
         final String processorName = builder.newProcessorName(GATEWAY_NAME);
 
         StoreBuilder<KeyValueStore<K, Integer>> storeBuilder = Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(storeName),
                 ((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
                 );
+
+
 
         final StatefulProcessorNode<TypedKey<K>, V> gatewayNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
@@ -134,5 +172,10 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
     @Override
     public KTStreamImpl<K, V> chunk() {
         return null;
+    }
+
+    @Override
+    public void to(String topic) {
+        super.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(), value)).to(topic, Produced.with(((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(),valueSerde()));
     }
 }

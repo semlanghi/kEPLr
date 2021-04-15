@@ -5,6 +5,7 @@ import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientExcept
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import lombok.extern.log4j.Log4j;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.GenericRecordBuilder;
@@ -18,10 +19,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.concurrent.Future;
 
 import static evaluation.ExperimentsConfig.*;
 
+@Log4j
 public class ProducerMain {
 
     public static void main(String[] args){
@@ -29,10 +32,21 @@ public class ProducerMain {
         customSingleTopicProducer.addSchema("A","A.asvc");
         customSingleTopicProducer.addSchema("B","B.asvc");
 
-        for (int i = 0, j=0; i < 20; i++) {
-            customSingleTopicProducer.sendRecord("key","A", i, j, false );
-            customSingleTopicProducer.sendRecord("key","B", i, ++j, false );
-        }
+        int i = 0, j=0, z=0;
+        Scanner scanner = new Scanner(System.in);
+        String nextLine;
+
+        do {
+            System.out.println("Event to send?");
+            nextLine = scanner.nextLine();
+            System.out.println(nextLine);
+            if (nextLine.equalsIgnoreCase("a"))
+                customSingleTopicProducer.sendRecord("key","A", i++, j++, false );
+            if (nextLine.equalsIgnoreCase("b"))
+                customSingleTopicProducer.sendRecord("key","B", z++, j++, false );
+        } while(!nextLine.equalsIgnoreCase("stop"));
+
+        scanner.close();
     }
 
     static Properties getDefaultProps(){

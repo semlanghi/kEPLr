@@ -1,11 +1,15 @@
 package org.apache.kafka.streams.keplr.operators;
 
+import lombok.extern.log4j.Log4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.statestore.FollowedByEventStore;
+import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByEventStoreNew;
+import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByStoreNew;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.WindowStore;
 import org.apache.kafka.streams.state.WindowStoreIterator;
@@ -13,6 +17,7 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
 import java.util.HashMap;
 import java.util.Map;
 
+@Log4j
 public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier<K,V> {
 
     private final EType<K,V> predType;
@@ -46,7 +51,7 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
 
     private class FollowedByProcessor extends OrderingAbstractProcessor{
 
-        private WindowStore<TypedKey<K>, V> eventStore;
+        private FollowedByEventStoreNew<TypedKey<K>, V> eventStore;
         private KeyValueStore<K, Integer> predecessorGatewayStore;
         private KeyValueStore<K, Integer> successorGatewayStore;
 
@@ -60,7 +65,7 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
         @Override
         public void init(final ProcessorContext context) {
             super.init(context);
-            this.eventStore = (WindowStore<TypedKey<K>, V>) context.getStateStore(eventStoreName);
+            this.eventStore = (FollowedByEventStoreNew<TypedKey<K>, V>) context.getStateStore(eventStoreName);
             this.predecessorGatewayStore = (KeyValueStore<K, Integer>) context.getStateStore(predecessorGatewayStoreName);
             this.successorGatewayStore = (KeyValueStore<K, Integer>) context.getStateStore(successorGatewayStoreName);
             this.searchableKey = new HashMap<>();
@@ -76,24 +81,25 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
             if(key.getType().equals(predTypeDescr)){
                 //It's a predecessor
                 searchableKey.putIfAbsent(key.getKey(), key);
-                eventStore.put(key,value, context().timestamp());
+                eventStore.putEvent(key,value, context().timestamp(), true);
                 if(!predType.isOnEvery()) {
                     predecessorGatewayStore.put(key.getKey(),0);
                 }
             }else if (key.getType().equals(succTypeDescr)){
                 //It's a successor
-                //TODO: cover the case where a successor arrives without any predecessor available
-                WindowStoreIterator<V> iterator = eventStore.fetch(searchableKey.get(key.getKey()),
-                        context().timestamp() - withinTime, context().timestamp());
+
+                KeyValueIterator<TypedKey<K>,V> iterator = eventStore.fetchEventsInLeft(searchableKey.get(key.getKey()),
+                        context().timestamp() - withinTime, context().timestamp(), !succType.isOnEvery());
 
                 if(!succType.isOnEvery()) {
                     predecessorGatewayStore.put(key.getKey(),1);
                 }
 
                 while (iterator.hasNext()){
-                    KeyValue<Long,V> keyValue = iterator.next();
+                    KeyValue<TypedKey<K>,V> keyValue = iterator.next();
                     context().forward(type.typed(key.getKey()), joiner.apply(keyValue.value, value));
                 }
+                iterator.close();
             }
         }
 

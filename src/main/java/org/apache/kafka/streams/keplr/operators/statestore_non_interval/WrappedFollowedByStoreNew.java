@@ -15,7 +15,7 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
 import org.apache.kafka.streams.state.internals.WrappedStateStore;
 
 /**
- * Wrapper for the {@link FollowedByEventStore} that provides serialization and deserialization functions.
+ * Wrapper for the {@link FollowedByEventStoreNew} that provides serialization and deserialization functions.
  *
  * @see Serde
  * @see StateSerdes
@@ -23,9 +23,9 @@ import org.apache.kafka.streams.state.internals.WrappedStateStore;
  * @param <V>
  */
 
-public class WrappedFollowedByStore<K,V>
-        extends WrappedStateStore<FollowedByEventStore<Bytes, byte[]>, TypedKey<K>, V>
-        implements FollowedByEventStore<TypedKey<K>, V> {
+public class WrappedFollowedByStoreNew<K,V>
+        extends WrappedStateStore<FollowedByEventStoreNew<Bytes, byte[]>, TypedKey<K>, V>
+        implements FollowedByEventStoreNew<TypedKey<K>, V> {
 
     private final long windowSizeMs;
     private final String metricScope;
@@ -38,12 +38,12 @@ public class WrappedFollowedByStore<K,V>
     public void init(ProcessorContext context, StateStore root) {
         super.init(context, root);
         serdes = new StateSerdes<TypedKey<K>, V>(
-                ProcessorStateManager.storeChangelogTopic("TEST", name()),
+                ProcessorStateManager.storeChangelogTopic(context.applicationId(), name()),
                 keySerde == null ? (Serde<TypedKey<K>>) context.keySerde() : keySerde,
                 valueSerde == null ? (Serde<V>) context.valueSerde() : valueSerde);
     }
 
-    public WrappedFollowedByStore(FollowedByEventStore<Bytes,byte[]> bytesWindowStore, long windowSize, String metricsScope, Time time, Serde<TypedKey<K>> keySerde, Serde<V> valueSerde) {
+    public WrappedFollowedByStoreNew(FollowedByEventStoreNew<Bytes,byte[]> bytesWindowStore, long windowSize, String metricsScope, Time time, Serde<TypedKey<K>> keySerde, Serde<V> valueSerde) {
         super(bytesWindowStore);
         this.time=time;
         this.metricScope = metricsScope;
