@@ -1,0 +1,26 @@
+{
+  "namespace": "ee.ut.avro",
+  "type": "record",
+  "name": "e15",
+  "fields": [
+    {
+      "name": "ide15",
+      "type": "long"
+    },
+    {
+      "name": "end",
+      "type": "boolean"
+    },
+    {
+      "name": "start_time",
+      "type": "long"
+    },
+    {
+      "name": "end_time",
+      "type": "long"
+    },
+    { "name": "partition",
+      "type": "string"
+    }
+  ]
+}
