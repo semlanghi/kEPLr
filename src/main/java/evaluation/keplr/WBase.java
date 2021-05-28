@@ -81,7 +81,7 @@ public class WBase {
         output_topic = "output_" + TOPIC;
 
         LOGGER.info("RUNNING EXPERIMENT " + TOPIC);
-        String broker_count = args[1];
+        String broker_count = args[1]; //TODO rename partition count???
         String init_chunk_size = args[2];
         String num_chunks = args[3];
         String chunks_groth = args[4];
