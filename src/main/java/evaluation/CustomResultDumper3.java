@@ -40,14 +40,21 @@ public class CustomResultDumper3 {
         SchemaRegistryClient schemaRegistryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_SCOPE);
         Schema schemaAB;
 
+        //String topic = args[0];
+        //String broker_count = args[1];
+        //long within = Long.parseLong(args[2]);
+        //run_id = args[4]);
+
         Schema schemaA = loadSchema("schemas/e0.asvc");
         Schema schemaB = loadSchema("schemas/e1.asvc");
+        Schema schemaC = loadSchema("schemas/e2.asvc");
 
         schemaRegistryClient.register("A", schemaA, 0, 1);
         schemaRegistryClient.register("B", schemaB, 0, 2);
+        schemaRegistryClient.register("C", schemaC, 0, 3);
 
         schemaAB = ((ETypeAvro) new ETypeAvro(schemaA).product(new ETypeAvro(schemaB), true)).getSchema();
-        schemaRegistryClient.register("A_X_B", schemaAB, 0, 3);
+        schemaRegistryClient.register("A_X_B", schemaAB, 0, 4);
 
         Properties props = new Properties();
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.SCHEMA_REGISTRY_URL);
@@ -77,19 +84,13 @@ public class CustomResultDumper3 {
 //                        String[] header = {"start_time", "end_time", "idA", "start_timeA", "end_timeA", "idB", "start_timeB", "end_timeB"};
                         String[] nextLine = {"AXB",
                                 String.valueOf(value.get("start_time")),
-                                String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("end_time")),
-                                String.valueOf(value.get("end")),
                                 String.valueOf(x.get("idA")),
                                 String.valueOf(x.get("start_time")),
-                                String.valueOf(x.get("end_time")),
                                 String.valueOf(x.get("partition")),
-                                String.valueOf(x.get("end")),
                                 String.valueOf(y.get("idB")),
                                 String.valueOf(y.get("start_time")),
-                                String.valueOf(y.get("end_time")),
-                                String.valueOf(y.get("partition")),
-                                String.valueOf(y.get("end"))};
+                                String.valueOf(y.get("partition"))};
                         log.info(Arrays.toString(nextLine));
                     }else {
                         log.warn("Not the right schema");

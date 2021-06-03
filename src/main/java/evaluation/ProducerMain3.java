@@ -30,20 +30,40 @@ import static java.lang.Thread.sleep;
 public class ProducerMain3 {
 
     public static void main(String[] args) throws InterruptedException {
+
         CustomSingleTopicProducer customSingleTopicProducer = new CustomSingleTopicProducer(getDefaultProps(), KEPLrMain3.DEFAULT_INPUT_TOPIC);
+
+        //String topic = args[0];
+        //String broker_count = args[1];
+        //long within = Long.parseLong(args[2]);
+        //run_id = args[4]);
+
+//        CustomSingleTopicProducer customSingleTopicProducer = new CustomSingleTopicProducer(getDefaultProps(), KEPLrMain.DEFAULT_INPUT_TOPIC);
+
         int broker_count = 3;
+        int how_many = 5;
 
         for (int i = 0; i < broker_count; i++) {
             String name = "schemas/e" + i + ".asvc";
             customSingleTopicProducer.addSchema("e" + i, name);
         }
 
-        int i = 0, j=0, z=0;
+        int id = 0;
+        for (int time = 0; time < how_many / broker_count; ) {
+            for (int key = 0; key < broker_count; key++) {
+                customSingleTopicProducer.sendRecord("k"+ key, "e0", id, time++, false);
+                customSingleTopicProducer.sendRecord("k"+ key, "e1", id, time++, false);
+                customSingleTopicProducer.sendRecord("k"+ key, "e2", id, time++, false);
+            }
+            id++;
+            customSingleTopicProducer.flush();
+        }
 
-        customSingleTopicProducer.sendRecord("k","e0", i++, j++, false );
-        customSingleTopicProducer.flush();
-        customSingleTopicProducer.sendRecord("k","e1", z++, j++, false );
-        customSingleTopicProducer.flush();
+
+//        customSingleTopicProducer.sendRecord("k","e0", i++, j++, false );
+//        customSingleTopicProducer.flush();
+//        customSingleTopicProducer.sendRecord("k","e1", z++, j++, false );
+//        customSingleTopicProducer.flush();
 
 
 
@@ -87,7 +107,7 @@ public class ProducerMain3 {
             temp.set("start_time", time);
             temp.set("end_time", time);
             temp.set("end", end);
-            temp.set("partition", "KEY-0");
+            temp.set("partition", "KEY-"+key);
 
             return send(new ProducerRecord<>(topic,key,temp.build()));
         }
