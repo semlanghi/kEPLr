@@ -1,6 +1,5 @@
 import org.apache.kafka.common.metrics.Metrics;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.GatewayProcessorSupplier;
 import org.apache.kafka.streams.keplr.operators.KEPLrProcessor;
@@ -10,14 +9,11 @@ import org.apache.kafka.streams.processor.internals.ProcessorContextImpl;
 import org.apache.kafka.streams.processor.internals.metrics.StreamsMetricsImpl;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.Stores;
-import org.apache.kafka.streams.state.internals.ChangeLoggingKeyValueBytesStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
-import utils.TypedKeySerde2;
 
 import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.doNothing;

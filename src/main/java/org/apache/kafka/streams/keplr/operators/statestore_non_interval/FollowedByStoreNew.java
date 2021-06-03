@@ -20,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 
 /**
@@ -118,7 +117,7 @@ public class FollowedByStoreNew extends InMemoryWindowStore implements FollowedB
     @Override
     public void put(Bytes key, byte[] value, long timestamp) {
 
-        putEvent(key, value, timestamp, true);
+        putEvent(key, value, timestamp);
     }
 
     private static Bytes wrapForDups(final Bytes key, final int seqnum) {
@@ -182,7 +181,7 @@ public class FollowedByStoreNew extends InMemoryWindowStore implements FollowedB
     }
 
     @Override
-    public void putEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
+    public void putEvent(Bytes key, byte[] value, long timestamp) {
         immutableEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>());
         immutableEvents.get(key).put(timestamp,value);
     }

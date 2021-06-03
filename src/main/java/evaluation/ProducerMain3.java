@@ -30,7 +30,7 @@ import static java.lang.Thread.sleep;
 public class ProducerMain3 {
 
     public static void main(String[] args) throws InterruptedException {
-        CustomSingleTopicProducer customSingleTopicProducer = new CustomSingleTopicProducer(getDefaultProps(), KEPLrMain.DEFAULT_INPUT_TOPIC);
+        CustomSingleTopicProducer customSingleTopicProducer = new CustomSingleTopicProducer(getDefaultProps(), KEPLrMain3.DEFAULT_INPUT_TOPIC);
         int broker_count = 3;
 
         for (int i = 0; i < broker_count; i++) {
@@ -41,9 +41,11 @@ public class ProducerMain3 {
         int i = 0, j=0, z=0;
 
         customSingleTopicProducer.sendRecord("k","e0", i++, j++, false );
+        customSingleTopicProducer.flush();
         customSingleTopicProducer.sendRecord("k","e1", z++, j++, false );
+        customSingleTopicProducer.flush();
 
-        sleep(500);
+
 
     }
 
@@ -53,6 +55,7 @@ public class ProducerMain3 {
         producerConfig.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.String().serializer().getClass());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        producerConfig.put(ProducerConfig.ACKS_CONFIG, "1");
         return producerConfig;
     }
 

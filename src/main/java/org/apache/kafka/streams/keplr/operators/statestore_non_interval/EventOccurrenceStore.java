@@ -119,23 +119,10 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
         counter++;
     }
 
-
-
-    private static Bytes wrapForDups(final Bytes key, final int seqnum) {
-        final ByteBuffer buf = ByteBuffer.allocate(key.get().length + SEQNUM_SIZE);
-        buf.put(key.get());
-        buf.putInt(seqnum);
-
-        return Bytes.wrap(buf.array());
-    }
-
-
     @Override
     public byte[] fetch(Bytes key, long windowStartTimestamp) {
         return null;
     }
-
-
 
     @Override
     public WindowStoreIterator<byte[]> fetch(Bytes key, long timeFrom, long timeTo) {
@@ -185,7 +172,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
     }
 
     @Override
-    public void putEvent(Bytes key, byte[] value, long timestamp, boolean allowOverlaps) {
+    public void putEvent(Bytes key, byte[] value, long timestamp) {
         //TODO This is just quick fix
         long start = timestamp;
         long end = timestamp;
@@ -246,12 +233,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
                 .build());
         comparationBase.get(key).add(new LongInterval(timestamps[0], timestamps[timestamps.length-1]));
 
-        compositeEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>(new Comparator<IInterval<Long>>() {
-            @Override
-            public int compare(IInterval<Long> o1, IInterval<Long> o2) {
-                return o1.getNormEnd().compareTo(o2.getNormEnd());
-            }
-        }));
+        compositeEvents.computeIfAbsent(key, bytes -> new ConcurrentSkipListMap<>((o1, o2) -> o1.getNormEnd().compareTo(o2.getNormEnd())));
         compositeEvents.get(key).put(interval, timestamps);
 
     }
@@ -260,7 +242,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
     @Override
     public void put(Bytes key, byte[] value, long timestamp) {
-        putEvent(key, value, timestamp, false);
+        putEvent(key, value, timestamp);
     }
 
 
@@ -273,12 +255,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
         garbageCollection();
 
         return new EventOccurrenceIteratorWrapper<long[]>(comparationBase.get(key).overlapStream(new LongInterval(timestamp,timestamp))
-                .map(new Function<IInterval, Map.Entry<Bytes,long[]>>() {
-                    @Override
-                    public Map.Entry<Bytes, long[]> apply(IInterval interval) {
-                        return new HashMap.SimpleEntry<>(key, compositeEvents.get(key).get(interval));
-                    }
-                }).iterator(),openIterators::remove, false);
+                .map((Function<IInterval, Map.Entry<Bytes, long[]>>) interval -> new HashMap.SimpleEntry<>(key, compositeEvents.get(key).get(interval))).iterator(),openIterators::remove);
 
     }
 
@@ -292,39 +269,23 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
                             new HashMap.SimpleEntry<Bytes, byte[]>(key,singleEvents.get(key).get(aLong)
                         .iterator().next())).iterator();
 
-        return new EventOccurrenceIteratorWrapper<byte[]>(it,openIterators::remove, false);
+        return new EventOccurrenceIteratorWrapper<byte[]>(it,openIterators::remove);
     }
 
     interface ClosingCallback {
         void deregisterIterator(final EventOccurrenceStore.EventOccurrenceIteratorWrapper iterator);
     }
-    private static Bytes getKey(final Bytes keyBytes) {
-        final byte[] bytes = new byte[keyBytes.get().length  - SEQNUM_SIZE];
-        System.arraycopy(keyBytes.get(), 0, bytes, 0, bytes.length);
-        return Bytes.wrap(bytes);
-
-    }
 
     private static class EventOccurrenceIteratorWrapper<V>  implements KeyValueIterator<Bytes,V>{
 
         private Iterator<? extends Map.Entry<Bytes, V>> recordIterator;
-
         private Map.Entry<Bytes, V> next;
-        private long currentTime;
-
-        private final boolean retainDuplicates;
         private final EventOccurrenceStore.ClosingCallback callback;
 
         EventOccurrenceIteratorWrapper(final Iterator<Map.Entry<Bytes, V>> recordIterator,
-                                       final EventOccurrenceStore.ClosingCallback callback,
-                                       final boolean retainDuplicates) {
-
-            this.retainDuplicates = retainDuplicates;
-
+                                       final ClosingCallback callback) {
             this.recordIterator = recordIterator;
-
             this.callback = callback;
-
         }
 
         public boolean hasNext() {
@@ -338,9 +299,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
             }
 
             next = recordIterator.next();
-            final KeyValue<Bytes, V> result = new KeyValue<>(next.getKey(), next.getValue());
-
-            return result;
+            return new KeyValue<>(next.getKey(), next.getValue());
         }
 
         public void close() {
@@ -351,16 +310,7 @@ public class EventOccurrenceStore implements EventOccurrenceEventStore<Bytes,byt
 
         @Override
         public Bytes peekNextKey() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            System.out.println("Unsupported operation.");
-            return null;
-        }
-
-        protected KeyValue<Bytes, V> getNext() {
-            System.out.println("Unsupported operation.");
-            return null;
+            throw new UnsupportedOperationException();
         }
 
     }

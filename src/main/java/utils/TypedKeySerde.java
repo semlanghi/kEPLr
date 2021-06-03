@@ -43,16 +43,13 @@ public class TypedKeySerde<K> implements Serde<TypedKey<K>> {
     @Override
     public Deserializer<TypedKey<K>> deserializer() {
 
-        return new Deserializer<TypedKey<K>>() {
-            @Override
-            public TypedKey<K> deserialize(String topic, byte[] data) {
-                try {
-                    return mapper.readValue(data,  mapper.getTypeFactory().constructParametricType(TypedKey.class, contentClass));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
+        return (topic, data) -> {
+            try {
+                return mapper.readValue(data,  mapper.getTypeFactory().constructParametricType(TypedKey.class, contentClass));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            return null;
         };
     }
 }

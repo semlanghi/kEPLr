@@ -34,16 +34,24 @@ public class ProducerMain {
 
         int i = 0, j=0, z=0;
         Scanner scanner = new Scanner(System.in);
-        String nextLine;
+        String nextLine, nextkey;
 
         do {
             System.out.println("Event to send?");
             nextLine = scanner.nextLine();
             System.out.println(nextLine);
-            if (nextLine.equalsIgnoreCase("a"))
-                customSingleTopicProducer.sendRecord("key","A", i++, j++, false );
-            if (nextLine.equalsIgnoreCase("b"))
-                customSingleTopicProducer.sendRecord("key","B", z++, j++, false );
+            if (nextLine.equalsIgnoreCase("a")){
+                System.out.println("key?");
+                nextkey = scanner.nextLine();
+                customSingleTopicProducer.sendRecord(nextkey,"A", i++, j++, false );
+            }
+
+            if (nextLine.equalsIgnoreCase("b")){
+                System.out.println("key?");
+                nextkey = scanner.nextLine();
+                customSingleTopicProducer.sendRecord(nextkey,"B", z++, j++, false );
+            }
+
         } while(!nextLine.equalsIgnoreCase("stop"));
 
         scanner.close();

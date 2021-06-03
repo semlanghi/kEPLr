@@ -5,9 +5,9 @@ import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
-import org.apache.kafka.streams.keplr.operators.ChunkProcessorSupplier;
-import org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier;
-import org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew;
+import org.apache.kafka.streams.keplr.operators.OldChunkProcessorSupplier;
+import org.apache.kafka.streams.keplr.operators.IntervalEventOccurrenceSupplier;
+import org.apache.kafka.streams.keplr.operators.IntervalFollowedBySupplier;
 import org.apache.kafka.streams.keplr.operators.ThroughputSupplier;
 import org.apache.kafka.streams.keplr.operators.statestore.*;
 import org.apache.kafka.streams.kstream.*;
@@ -62,7 +62,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final ProcessorGraphNode<TypedKey<K>, V> chunkNode = new ProcessorGraphNode<>(
                 processorName,
-                new ProcessorParameters<>(new ChunkProcessorSupplier<>(this.type)
+                new ProcessorParameters<>(new OldChunkProcessorSupplier<>(this.type)
                         , processorName)
         );
 
@@ -129,7 +129,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
-                new ProcessorParameters<>(new FollowedBySupplierNew<>(this.type, otherStream.type(), resultType, everysConfig, "_Store_"+id, withinMs, resultType.joiner()),processorName),
+                new ProcessorParameters<>(new IntervalFollowedBySupplier<>(this.type, otherStream.type(), resultType, everysConfig, "_Store_"+id, withinMs, resultType.joiner()),processorName),
                 supportStore
         );
 
@@ -167,7 +167,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
-                new ProcessorParameters<>(new FollowedBySupplierNew<>(this.type, otherStream.type(), resultType, everysConfig, storeName, withinMs, joiner),processorName),
+                new ProcessorParameters<>(new IntervalFollowedBySupplier<>(this.type, otherStream.type(), resultType, everysConfig, storeName, withinMs, joiner),processorName),
                 supportStore
         );
 
@@ -199,7 +199,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
 
         final StatefulProcessorNode<TypedKey<K>, V> followedByNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
-                new ProcessorParameters<TypedKey<K>, V>(new EventOccurrenceSupplier<K, V, V>(resultType,this.type,Integer.MAX_VALUE, eventOccurrences,  "_Store_"+id,false),processorName),
+                new ProcessorParameters<TypedKey<K>, V>(new IntervalEventOccurrenceSupplier<K, V, V>(resultType,this.type,Integer.MAX_VALUE, eventOccurrences,  "_Store_"+id,false),processorName),
                 supportStore
         );
 

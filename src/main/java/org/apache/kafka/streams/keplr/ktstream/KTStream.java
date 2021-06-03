@@ -4,6 +4,9 @@ import evaluation.keplr.ApplicationSupplier;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
+import org.apache.kafka.streams.keplr.operators.IntervalEventOccurrenceSupplier;
+import org.apache.kafka.streams.keplr.operators.IntervalFollowedBySupplier;
+import org.apache.kafka.streams.keplr.operators.OldChunkProcessorSupplier;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
@@ -29,7 +32,7 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      * The every instruction sets up the correlated chunking operation, by setting the
      * stream's type with the {@link EType#isOnEvery()} flag.
      *
-     * @see org.apache.kafka.streams.keplr.operators.ChunkProcessorSupplier
+     * @see OldChunkProcessorSupplier
      * @return An every-typed version of the current instance.
      */
     public KTStream<K, V> every();
@@ -39,7 +42,7 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      * It is considered equal to a join operation between to {@link KTStream} instances.
      * For feasibility reasons, it takes also a parameter to set the scope of the search.
      *
-     * @see org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew
+     * @see IntervalFollowedBySupplier
      * @see org.apache.kafka.streams.keplr.operators.statestore.FollowedByStore
      * @param otherStream The other {@link KTStream}
      * @param withinMs The maximum distance allowed between a predecessor and a successor event.
@@ -57,7 +60,7 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      * In this case, the {@link ValueJoiner} from the type of the resulting composite stream,
      * through the {@link EType#joiner()} method.
      *
-     * @see org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew
+     * @see IntervalFollowedBySupplier
      * @see org.apache.kafka.streams.keplr.operators.statestore.FollowedByStore
      * @param otherStream The other {@link KTStream}
      * @param withinMs The maximum distance allowed between a predecessor and a successor event.
@@ -74,7 +77,7 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      * n-join operation. In particular, the {@link EType#product(EType, boolean)} method is applied
      * iteratively to compose a composite type composed by the wrapping of the current type for n times.
      *
-     * @see org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier
+     * @see IntervalEventOccurrenceSupplier
      * @see org.apache.kafka.streams.keplr.operators.statestore.EventOccurrenceStore
      * @param i The number of events we want to accumulate.
      * @return The composite stream formed by composite accumulated events.

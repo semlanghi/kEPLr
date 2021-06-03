@@ -3,10 +3,11 @@ package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
+import org.apache.kafka.streams.keplr.operators.IntervalFollowedBySupplier;
 import org.apache.kafka.streams.state.internals.AbstractStoreBuilder;
 
 /**
- * Builder for the the {@link org.apache.kafka.streams.keplr.operators.FollowedBySupplierNew},
+ * Builder for the the {@link IntervalFollowedBySupplier},
  * keeping a {@link FollowedByBytesStoreSupplierNew}, which eventually will return the {@link FollowedByEventStoreNew} instance,
  * parametrized in bytes.
  * @param <K>

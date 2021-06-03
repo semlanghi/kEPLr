@@ -1,9 +1,10 @@
 package org.apache.kafka.streams.keplr.operators.statestore_non_interval;
 
+import org.apache.kafka.streams.keplr.operators.IntervalEventOccurrenceSupplier;
 import org.apache.kafka.streams.state.KeyValueIterator;
 
 /**
- * Store for the {@link org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier}. It provides a method for
+ * Store for the {@link IntervalEventOccurrenceSupplier}. It provides a method for
  * saving the timestamp of homogeneous events, storing them by the key and their ending timestamp, in order to use
  * them for retrieving the actual values. The {@link EventOccurrenceEventStore#fetchEvents(Object, long)} method
  * retrieve those set ot timestamps for a given event. The {@link EventOccurrenceEventStore#retrieveEvents(Object, long[])}

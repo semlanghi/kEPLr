@@ -63,8 +63,8 @@ public class WrappedFollowedByStoreNew<K,V>
 
 
     @Override
-    public void putEvent(TypedKey<K> key, V value, long timestamp, boolean allowOverlaps) {
-        wrapped().putEvent(keyBytes(key), serdes.rawValue(value), timestamp, allowOverlaps);
+    public void putEvent(TypedKey<K> key, V value, long timestamp) {
+        wrapped().putEvent(keyBytes(key), serdes.rawValue(value), timestamp);
     }
 
 

@@ -4,15 +4,11 @@ import lombok.extern.log4j.Log4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
-import org.apache.kafka.streams.keplr.operators.statestore.FollowedByEventStore;
 import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByEventStoreNew;
-import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByStoreNew;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.KeyValueStore;
-import org.apache.kafka.streams.state.WindowStore;
-import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -73,25 +69,23 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
             this.succTypeDescr = succType.getDescription();
         }
 
-
-
         @Override
         protected void processInternal(TypedKey<K> key, V value) {
 
             if(key.getType().equals(predTypeDescr)){
                 //It's a predecessor
                 searchableKey.putIfAbsent(key.getKey(), key);
-                eventStore.putEvent(key,value, context().timestamp(), true);
+                eventStore.putEvent(key,value, context().timestamp());
                 if(!predType.isOnEvery()) {
                     predecessorGatewayStore.put(key.getKey(),0);
                 }
-            }else if (key.getType().equals(succTypeDescr)){
+            }else if (key.getType().equals(succTypeDescr) && searchableKey.containsKey(key.getKey())){
                 //It's a successor
 
                 KeyValueIterator<TypedKey<K>,V> iterator = eventStore.fetchEventsInLeft(searchableKey.get(key.getKey()),
                         context().timestamp() - withinTime, context().timestamp(), !succType.isOnEvery());
 
-                if(!succType.isOnEvery()) {
+                if(!succType.isOnEvery() || !iterator.hasNext()) {
                     predecessorGatewayStore.put(key.getKey(),1);
                 }
 

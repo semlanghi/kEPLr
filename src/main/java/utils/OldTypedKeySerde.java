@@ -23,13 +23,13 @@ import java.util.stream.Stream;
  */
 
 @Log4j
-public class TypedKeySerde2<K> implements Serde<TypedKey<K>> {
+public class OldTypedKeySerde<K> implements Serde<TypedKey<K>> {
 
 
     private final Serde<K> originalKeySerde;
     private final Serde<String> stringSerde = Serdes.String();
 
-    public TypedKeySerde2(Serde<K> originalKeySerde) {
+    public OldTypedKeySerde(Serde<K> originalKeySerde) {
         this.originalKeySerde = originalKeySerde;
     }
 

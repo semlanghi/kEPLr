@@ -34,7 +34,7 @@ public class KEPLrMain3 {
 
     public static final String DEFAULT_BOOTSTRAP_SERVER_URL = "localhost:9092";
     public static final String DEFAULT_APPLICATION_PREFIX = "main-default-";
-    public static final String DEFAULT_INPUT_TOPIC = "input-topic1";
+    public static final String DEFAULT_INPUT_TOPIC = "input-topic2";
     public static final String DEFAULT_OUTPUT_TOPIC = "output-topic21";
 
 

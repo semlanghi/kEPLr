@@ -1,8 +1,5 @@
 package org.apache.kafka.streams.keplr.operators;
 
-import com.brein.time.timeintervals.intervals.IInterval;
-import com.brein.time.timeintervals.intervals.LongInterval;
-import com.brein.time.timeintervals.intervals.NumberInterval;
 import org.apache.kafka.common.metrics.Sensor;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
@@ -20,12 +17,12 @@ import org.slf4j.LoggerFactory;
  * @param <K>
  * @param <V>
  */
-public class ChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V> {
+public class OldChunkProcessorSupplier<K,V> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> type;
-    private static Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorSupplier.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(OldChunkProcessorSupplier.class);
 
-    public ChunkProcessorSupplier(EType<K, V> type) {
+    public OldChunkProcessorSupplier(EType<K, V> type) {
         this.type = type;
     }
 

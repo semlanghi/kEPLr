@@ -3,10 +3,11 @@ package org.apache.kafka.streams.keplr.operators.statestore;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
+import org.apache.kafka.streams.keplr.operators.IntervalEventOccurrenceSupplier;
 import org.apache.kafka.streams.state.internals.AbstractStoreBuilder;
 
 /**
- * Builder for the the {@link org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier},
+ * Builder for the the {@link IntervalEventOccurrenceSupplier},
  * keeping a {@link EventOccurrenceBytesStoreSupplier}, which eventually will return the {@link EventOccurrenceEventStore} instance,
  * parametrized in bytes.
  * @param <K>

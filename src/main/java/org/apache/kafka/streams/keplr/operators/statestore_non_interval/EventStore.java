@@ -10,6 +10,6 @@ import org.apache.kafka.streams.state.WindowStore;
  */
 public interface EventStore<K,V> extends WindowStore<K,V>{
 
-    public void putEvent(K key, V value, long timestamp, boolean allowOverlaps);
+    public void putEvent(K key, V value, long timestamp);
 
 }

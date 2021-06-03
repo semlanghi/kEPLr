@@ -1,18 +1,19 @@
 package org.apache.kafka.streams.keplr.operators;
 
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
-import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.statestore.EventOccurrenceEventStore;
+import org.apache.kafka.streams.KeyValue;
+import org.apache.kafka.streams.keplr.etype.TypedKey;
+import org.apache.kafka.streams.kstream.internals.KStreamPassThrough;
 import org.apache.kafka.streams.processor.AbstractProcessor;
+import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.TreeSet;
+import java.util.*;
 
 
 /**
@@ -25,32 +26,49 @@ import java.util.TreeSet;
  * @param <V>
  * @param <VR>
  */
-public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSupplier<K, V> {
+public class IntervalEventOccurrenceSupplier<K,V,VR> implements ProcessorSupplier<TypedKey<K>,V> {
 
-    private final EType<K,V> resultType;
+    private final EType<K,V> compositeType;
+    private final EType<K,V> singleElementType;
+    private final int externalWithin;
     private final int eventOccurences;
     private final String storeName;
-    private static Logger LOGGER = LoggerFactory.getLogger(EventOccurrenceSupplier.class);
+    private final boolean every;
+    private static Logger LOGGER = LoggerFactory.getLogger(IntervalEventOccurrenceSupplier.class);
 
-    public EventOccurrenceSupplier(EType<K, V> resultType, int eventOccurences,
-                                   String storeName, String advancementStoreName) {
-        super(resultType, advancementStoreName);
-        this.resultType = resultType;
+
+
+
+
+    public IntervalEventOccurrenceSupplier(EType<K, V> compositeType, EType<K, V> singleElementType, int externalWithin, int eventOccurences,
+                                           String storeName, boolean every) {
+        this.compositeType = compositeType;
+        this.singleElementType = singleElementType;
+        this.externalWithin = externalWithin;
         this.eventOccurences = eventOccurences;
         this.storeName = storeName;
+        this.every = every;
     }
 
     @Override
-    public OrderingAbstractProcessor get() {
-        return new EventOccurrenceProcessor();
+    public Processor<TypedKey<K>, V> get() {
+        if(eventOccurences==1){
+            return new KStreamPassThrough<TypedKey<K>,V>().get();
+        }else return new EventOccurrenceProcessor();
     }
 
-    private class EventOccurrenceProcessor extends OrderingAbstractProcessor {
+    private class EventOccurrenceProcessor extends AbstractProcessor<TypedKey<K>,V> {
 
         private EventOccurrenceEventStore<TypedKey<K>, V> eventStore;
+        private long lastStartingTime = 0;
         private long observedStreamTime = 0;
         private TypedKey<K> activeKey;
         private HashMap<TypedKey<K>, TreeSet<Long>> eventTimestamps = new HashMap<>();
+        private int actualIndex;
+        private boolean first=true;
+        private boolean outOfOrder = false;
+
+
 
         @Override
         public void init(ProcessorContext context) {
@@ -77,6 +95,8 @@ public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSu
             if(context().timestamp()>=observedStreamTime){
                 //Normal Processing, only this considered for now
 
+                outOfOrder = false;
+
                 observedStreamTime = context().timestamp();
 
                 eventStore.put(key,value,context().timestamp());
@@ -90,13 +110,13 @@ public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSu
                     using the former to retrieve the value on the state store.
                      */
                     long[] array = eventTimestamps.getOrDefault(activeKey, new TreeSet<>()).stream().mapToLong(Long::longValue).toArray();
-                    eventStore.putCompositeEvent(resultType.typed(activeKey.getKey()), array);
+                    eventStore.putCompositeEvent(compositeType.typed(activeKey.getKey()), array);
 
                     // FORWARDING
 
-                    forwardCompositeEvent(resultType.typed(activeKey.getKey()), array);
+                    forwardCompositeEvent(compositeType.typed(activeKey.getKey()), array);
 
-                    if(resultType.isOnEvery())
+                    if(compositeType.isOnEvery())
                         eventTimestamps.get(activeKey).clear();
 
                 }
@@ -104,13 +124,9 @@ public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSu
 
             }else{
                 //Out-of-Order Processing
+                outOfOrder = true;
                 LOGGER.debug("Event Occurrence, Out of Order Processing.");
             }
-        }
-
-        @Override
-        protected void processInternal(TypedKey<K> key, V value) {
-
         }
 
         /**
@@ -127,7 +143,11 @@ public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSu
 
             if(interval.size()>eventOccurences) {
                 while (interval.size() > eventOccurences) {
-                    interval.remove(interval.first());
+                    if (!outOfOrder) {
+                        interval.remove(interval.first());
+                    }
+
+
                 }
             }
 
@@ -143,8 +163,8 @@ public class EventOccurrenceSupplier<K,V,VR> extends OrderingAbstractProcessorSu
                 values.add(pair.value);
             }
 
-            TypedKey<K> typedKey = resultType.typed(key.getKey());
-            context().forward(typedKey, resultType.wrap(values));
+            TypedKey<K> typedKey = compositeType.typed(key.getKey());
+            context().forward(typedKey, compositeType.wrap(values));
         }
     }
 

@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 import static org.apache.kafka.streams.state.RocksDBConfigSetter.LOG;
 
-public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<K>,V> {
+public class IntervalFollowedBySupplier<K,V,R> implements ProcessorSupplier<TypedKey<K>,V> {
 
     private final EType<K,V> predType;
     private final EType<K,V> succType;
@@ -28,12 +28,12 @@ public class FollowedBySupplierNew<K,V,R> implements ProcessorSupplier<TypedKey<
 
     private final String storeName;
     private final long withinTime;
-    private static Logger LOGGER = LoggerFactory.getLogger(FollowedBySupplierNew.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(IntervalFollowedBySupplier.class);
 
     private final ValueJoiner<? super V, ? super V, ? extends R> joiner;
 
-    public FollowedBySupplierNew(final EType<K, V> predType, final EType<K, V> succType,
-                              EType<K, V> resultType, HashMap<EType<K, V>, Boolean> everysConfig, final String storeName, long withinTime, final ValueJoiner<? super V, ? super V, ? extends R> joiner) {
+    public IntervalFollowedBySupplier(final EType<K, V> predType, final EType<K, V> succType,
+                                      EType<K, V> resultType, HashMap<EType<K, V>, Boolean> everysConfig, final String storeName, long withinTime, final ValueJoiner<? super V, ? super V, ? extends R> joiner) {
         this.predType = predType;
         this.succType = succType;
         this.resultType = resultType;

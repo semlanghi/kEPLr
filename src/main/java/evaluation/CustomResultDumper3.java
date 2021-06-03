@@ -62,7 +62,7 @@ public class CustomResultDumper3 {
 
         Consumer<String, GenericRecord> consumer = new KafkaConsumer<>(props);
 
-        consumer.subscribe(Arrays.asList(KEPLrMain.DEFAULT_OUTPUT_TOPIC));
+        consumer.subscribe(Arrays.asList(KEPLrMain3.DEFAULT_INPUT_TOPIC));
 
         consumer.poll(0);
 

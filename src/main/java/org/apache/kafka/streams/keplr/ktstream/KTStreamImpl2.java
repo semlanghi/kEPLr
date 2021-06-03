@@ -1,37 +1,25 @@
 package org.apache.kafka.streams.keplr.ktstream;
 
 import evaluation.keplr.ApplicationSupplier;
-import org.apache.commons.lang3.reflect.Typed;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.keplr.etype.EType;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.apache.kafka.streams.keplr.operators.*;
-import org.apache.kafka.streams.keplr.operators.statestore.*;
 import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByBytesStoreSupplierNew;
 import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByEventStoreNew;
 import org.apache.kafka.streams.keplr.operators.statestore_non_interval.FollowedByStoreBuilderNew;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.internals.*;
 import org.apache.kafka.streams.kstream.internals.graph.*;
-import org.apache.kafka.streams.processor.ProcessorSupplier;
-import org.apache.kafka.streams.processor.TopicNameExtractor;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
-import org.apache.kafka.streams.state.WindowStore;
-import utils.TypedKeySerde;
-import utils.TypedKeySerde2;
+import utils.OldTypedKeySerde;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.apache.kafka.streams.kstream.internals.KStreamImpl.joinWindowStoreBuilder;
 
 public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements KTStream<K, V>{
 
@@ -107,7 +95,7 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
         StoreBuilder<KeyValueStore<K, Long>> advancementStoreBuilder = Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(advancementStoreName),
-                ((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
+                ((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
         );
 
         builder.addStateStore(supportStore);
@@ -127,15 +115,13 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
     }
 
-    public KTStream<K,V> gateway(String storeName){
+    private KTStream<K,V> gateway(String storeName){
         final String processorName = builder.newProcessorName(GATEWAY_NAME);
 
         StoreBuilder<KeyValueStore<K, Integer>> storeBuilder = Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(storeName),
-                ((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
+                ((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
                 );
-
-
 
         final StatefulProcessorNode<TypedKey<K>, V> gatewayNode = new StatefulProcessorNode<TypedKey<K>, V>(
                 processorName,
@@ -176,6 +162,6 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
     @Override
     public void to(String topic) {
-        super.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(), value)).to(topic, Produced.with(((TypedKeySerde2<K>)keySerde).getOriginalKeySerde(),valueSerde()));
+        super.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(), value)).to(topic, Produced.with(((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(),valueSerde()));
     }
 }

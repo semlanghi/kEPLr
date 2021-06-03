@@ -1,5 +1,6 @@
 package org.apache.kafka.streams.keplr.etype;
 
+import org.apache.kafka.streams.keplr.operators.IntervalEventOccurrenceSupplier;
 import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
@@ -185,7 +186,7 @@ public abstract class EType<K, V> implements Predicate<K, V> {
      * A method to extract events from a composite accumiulated events. Used in the
      * event accumulation.
      *
-     * @see org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier
+     * @see IntervalEventOccurrenceSupplier
      * @param value The composite events, formed by an array of events of the same type.
      * @return An {@link ArrayList} of events.
      */
@@ -195,7 +196,7 @@ public abstract class EType<K, V> implements Predicate<K, V> {
      * A method to wrap multiple events of the same type inside a composite event.
      * It can be considered as the {@link ValueJoiner} for the event accumulation.
      *
-     * @see org.apache.kafka.streams.keplr.operators.EventOccurrenceSupplier
+     * @see IntervalEventOccurrenceSupplier
      * @param value
      * @return
      */
