@@ -141,6 +141,8 @@ public abstract class EType<K, V> implements Predicate<K, V> {
      */
     public abstract EType<K, V> product(EType<K, V> otherType, boolean array);
 
+    public abstract EType<K, V> union(EType<K, V> otherType);
+
     /**
      * Method to create the current type-related joiner. This method is valid only if
      * current type is a composite type, i.e., a type product.

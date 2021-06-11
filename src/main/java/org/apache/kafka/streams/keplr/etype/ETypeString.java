@@ -4,6 +4,8 @@ import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 
 public class ETypeString extends EType<String,String>{
@@ -89,13 +91,16 @@ public class ETypeString extends EType<String,String>{
     }
 
     @Override
+    public EType<String, String> union(EType<String, String> otherType) {
+        Set<EType<String,String>> temp = new HashSet<>();
+        temp.add(this);
+        temp.add(otherType);
+        return new UnionEType<>(temp, this.onEvery || otherType.isOnEvery());
+    }
+
+    @Override
     public ValueJoiner<String, String, String> joiner() {
-        return new ValueJoiner<String, String, String>() {
-            @Override
-            public String apply(String value1, String value2) {
-                return value1 + "_followedBy_" + value2;
-            }
-        };
+        return (value1, value2) -> value1 + "_followedBy_" + value2;
     }
 
     @Override

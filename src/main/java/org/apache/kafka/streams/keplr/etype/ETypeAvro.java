@@ -8,7 +8,9 @@ import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.ToLongFunction;
 
 public class ETypeAvro extends EType<String, GenericRecord> {
@@ -39,7 +41,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
 
     @Override
     public boolean isThisTheEnd(GenericRecord value) {
-        return (boolean) value.get("end");
+        return value.getSchema().getName().equals("END");
     }
 
     @Override
@@ -98,6 +100,16 @@ public class ETypeAvro extends EType<String, GenericRecord> {
              return null;
          }
     }
+
+    @Override
+    public EType<String, GenericRecord> union(EType<String, GenericRecord> otherType) {
+        Set<EType<String,GenericRecord>> temp = new HashSet<>();
+        temp.add(this);
+        temp.add(otherType);
+        return new UnionEType<>(temp, this.onEvery || otherType.isOnEvery());
+    }
+
+
 
     /**
      * In this case the start time and end time are, respectively, the minimum and maximum

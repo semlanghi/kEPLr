@@ -11,7 +11,7 @@ import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.processor.To;
-import utils.OldTypedKeySerde;
+import utils.CustomTypedKeySerde;
 
 import java.util.*;
 
@@ -55,7 +55,7 @@ public class WrappedKStreamImpl<K,V> extends AbstractStream<K,V> {
                 final ProcessorGraphNode<K, V> typizationNode = new ProcessorGraphNode<>(childNames[i], innerProcessorParameters);
 
                 builder.addGraphNode(branchNode, typizationNode);
-                branchChildren[i] = new KTStreamImpl2<K,V>(childNames[i], new OldTypedKeySerde<K>(keySerde), valSerde, sourceNodes, false, typizationNode, builder, eTypes[i]);
+                branchChildren[i] = new KTStreamImpl2<K,V>(childNames[i], new CustomTypedKeySerde<K>(keySerde), valSerde, sourceNodes, false, typizationNode, builder, eTypes[i]);
 
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();

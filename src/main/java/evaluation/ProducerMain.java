@@ -16,10 +16,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.Serdes;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Future;
 
 import static evaluation.ExperimentsConfig.*;
@@ -31,10 +28,13 @@ public class ProducerMain {
         CustomSingleTopicProducer customSingleTopicProducer = new CustomSingleTopicProducer(getDefaultProps(), KEPLrMain.DEFAULT_INPUT_TOPIC);
         customSingleTopicProducer.addSchema("A","A.asvc");
         customSingleTopicProducer.addSchema("B","B.asvc");
+        customSingleTopicProducer.addSchema("END","END.asvc");
 
-        int i = 0, j=0, z=0;
+
+        int i = 0, j=0, z=0, k=0;
         Scanner scanner = new Scanner(System.in);
         String nextLine, nextkey;
+        Set<String> keys = new HashSet<>();
 
         do {
             System.out.println("Event to send?");
@@ -43,16 +43,25 @@ public class ProducerMain {
             if (nextLine.equalsIgnoreCase("a")){
                 System.out.println("key?");
                 nextkey = scanner.nextLine();
+                keys.add(nextkey);
                 customSingleTopicProducer.sendRecord(nextkey,"A", i++, j++, false );
             }
 
             if (nextLine.equalsIgnoreCase("b")){
                 System.out.println("key?");
                 nextkey = scanner.nextLine();
+                keys.add(nextkey);
                 customSingleTopicProducer.sendRecord(nextkey,"B", z++, j++, false );
             }
 
-        } while(!nextLine.equalsIgnoreCase("stop"));
+            if (nextLine.equalsIgnoreCase("end")){
+                for (String key: keys
+                     ) {
+                    customSingleTopicProducer.sendEndRecord(key,"END", k++, j++ );
+                }
+            }
+
+        } while(!nextLine.equalsIgnoreCase("end"));
 
         scanner.close();
     }
@@ -95,6 +104,15 @@ public class ProducerMain {
             temp.set("end_time", time);
             temp.set("end", end);
             temp.set("partition", "KEY-0");
+
+            return send(new ProducerRecord<>(topic,key,temp.build()));
+        }
+
+        public Future<RecordMetadata> sendEndRecord(String key, String typeName, long id, long time){
+            GenericRecordBuilder temp = recordBuilderMap.get(typeName);
+            temp.set("idEND", id);
+            temp.set("start_time", time);
+            temp.set("end_time", time);
 
             return send(new ProducerRecord<>(topic,key,temp.build()));
         }

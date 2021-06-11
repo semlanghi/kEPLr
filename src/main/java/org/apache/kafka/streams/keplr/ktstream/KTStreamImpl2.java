@@ -17,7 +17,7 @@ import org.apache.kafka.streams.kstream.internals.graph.*;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
-import utils.OldTypedKeySerde;
+import utils.CustomTypedKeySerde;
 
 import java.util.*;
 
@@ -27,13 +27,15 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
     private static final String FOLLOWEDBY_STORE_NAME = "KSTREAM-FOLLOWEDBY-";
     private static final String GATEWAY_NAME = "KSTREAM-GATEWAY-";
     private static final String GATEWAY_STORE_NAME = "KSTREAM-GATEWAY-";
+    private static final String THROUGHPUT_NAME = "KSTREAM-THROUGHPUT-";
+    private static final String MERGE_NAME = "KSTREAM-MERGE-";
+
     private final EType<K,V> type;
 
     public KTStreamImpl2(String name, Serde<TypedKey<K>> keySerde, Serde<V> valueSerde, Set<String> sourceNodes, boolean repartitionRequired, StreamsGraphNode streamsGraphNode, InternalStreamsBuilder builder, EType<K, V> type) {
         super(name, keySerde, valueSerde, sourceNodes, repartitionRequired, streamsGraphNode, builder);
         this.type = type;
     }
-
 
     @Override
     public KTStream<K, V> every() {
@@ -89,13 +91,15 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         KTStreamImpl2<K,V> left = (KTStreamImpl2<K, V>) gateway(leftStoreName);
         KTStreamImpl2<K,V> right = (KTStreamImpl2<K, V>) ((KTStreamImpl2<K, V>) otherStream).gateway(rightStoreName);
 
-        FollowedByBytesStoreSupplierNew storeSupplier = new FollowedByBytesStoreSupplierNew(followedByStoreName, withinMs*2, 100L, false,
-                5L, withinMs);
-        StoreBuilder<FollowedByEventStoreNew<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilderNew<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
+        FollowedByBytesStoreSupplierNew storeSupplier =
+                new FollowedByBytesStoreSupplierNew(followedByStoreName, withinMs*2,
+                        100L, false, 5L, withinMs);
+        StoreBuilder<FollowedByEventStoreNew<TypedKey<K>,V>> supportStore =
+                new FollowedByStoreBuilderNew<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
 
         StoreBuilder<KeyValueStore<K, Long>> advancementStoreBuilder = Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(advancementStoreName),
-                ((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
+                ((CustomTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
         );
 
         builder.addStateStore(supportStore);
@@ -112,7 +116,6 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         builder.addGraphNode(Arrays.asList(left.streamsGraphNode, right.streamsGraphNode), followedByNode);
 
         return new KTStreamImpl2<>(name, keySerde, valSerde, this.sourceNodes, false, followedByNode, builder, resultType);
-
     }
 
     private KTStream<K,V> gateway(String storeName){
@@ -120,7 +123,7 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
         StoreBuilder<KeyValueStore<K, Integer>> storeBuilder = Stores.keyValueStoreBuilder(
                 Stores.persistentKeyValueStore(storeName),
-                ((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
+                ((CustomTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
                 );
 
         final StatefulProcessorNode<TypedKey<K>, V> gatewayNode = new StatefulProcessorNode<TypedKey<K>, V>(
@@ -130,7 +133,6 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         );
 
         builder.addGraphNode(this.streamsGraphNode, gatewayNode);
-
 
         return new KTStreamImpl2<>(name,keySerde, valSerde, this.sourceNodes, false, gatewayNode, builder, this.type);
     }
@@ -151,8 +153,19 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
     }
 
     @Override
-    public KTStreamImpl<K, V> throughput(ApplicationSupplier app) {
-        return null;
+    public KTStream<K, V> throughput(ApplicationSupplier app) {
+        final String processorName = builder.newProcessorName(THROUGHPUT_NAME);
+
+        final ProcessorGraphNode<TypedKey<K>, V> throughputNode = new ProcessorGraphNode<>(
+                processorName,
+                new ProcessorParameters<>(new ThroughputSupplier<>(this.type, app)
+                        , processorName)
+        );
+
+        builder.addGraphNode(Collections.singletonList(this.streamsGraphNode), throughputNode);
+
+        return new KTStreamImpl2<>(name, keySerde, valSerde, this.sourceNodes, false, throughputNode, builder, this.type);
+
     }
 
     @Override
@@ -162,6 +175,27 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
 
     @Override
     public void to(String topic) {
-        super.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(), value)).to(topic, Produced.with(((OldTypedKeySerde<K>)keySerde).getOriginalKeySerde(),valueSerde()));
+        super.map((KeyValueMapper<TypedKey<K>, V, KeyValue<K, V>>) (key, value) -> new KeyValue<>(key.getKey(), value))
+                .to(topic, Produced.with(((CustomTypedKeySerde<K>)keySerde).getOriginalKeySerde(),valueSerde()));
+    }
+
+    @Override
+    public KTStream<K, V> merge(KTStream<K, V> stream) {
+        final KTStreamImpl2<K, V> streamImpl = (KTStreamImpl2<K, V>) stream;
+        final String name = builder.newProcessorName(MERGE_NAME);
+        final Set<String> allSourceNodes = new HashSet<>();
+
+        allSourceNodes.addAll(sourceNodes);
+        allSourceNodes.addAll(streamImpl.sourceNodes);
+
+        final ProcessorParameters<? super K, ? super V> processorParameters = new ProcessorParameters<>(new KStreamPassThrough<>(), name);
+
+        final ProcessorGraphNode<? super K, ? super V> mergeNode = new ProcessorGraphNode<>(name, processorParameters);
+
+        mergeNode.setMergeNode(true);
+        builder.addGraphNode(Arrays.asList(this.streamsGraphNode, streamImpl.streamsGraphNode), mergeNode);
+
+        // drop the serde as we cannot safely use either one to represent both streams
+        return new KTStreamImpl2<>(name, keySerde, valSerde, allSourceNodes, false, mergeNode, builder, type.union(streamImpl.type));
     }
 }

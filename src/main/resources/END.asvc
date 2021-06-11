@@ -4,20 +4,16 @@
   "namespace": "namespace1",
   "fields": [
     {
-      "name": "idEnd",
+      "name": "idEND",
       "type": "long"
     },
     {
-        "name":"A_count",
+        "name":"end_time",
         "type":"long"
     },
     {
-        "name":"B_count",
+        "name":"start_time",
         "type":"long"
-    },
-    {
-        "name":"partition",
-        "type":"int"
     }
   ]
 }

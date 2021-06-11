@@ -15,12 +15,12 @@ import java.io.IOException;
  * @see ObjectMapper
  * @param <K>
  */
-public class TypedKeySerde<K> implements Serde<TypedKey<K>> {
+public class JacksonTypedKeySerde<K> implements Serde<TypedKey<K>> {
 
     private ObjectMapper mapper = new ObjectMapper();
     private Class<K> contentClass;
 
-    public TypedKeySerde(Class<K> kClass) {
+    public JacksonTypedKeySerde(Class<K> kClass) {
         this.contentClass = kClass;
         mapper.enableDefaultTyping();
         mapper.registerModule(new AvroModule());

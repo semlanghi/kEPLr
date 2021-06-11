@@ -18,8 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import utils.TypedKeySerde;
-import static org.junit.jupiter.api.Assertions.*;
+import utils.JacksonTypedKeySerde;
+
 import static org.mockito.Mockito.when;
 
 class StateStoreTest {
@@ -40,7 +40,7 @@ class StateStoreTest {
 
         FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier("_Store_TEST", 100, 100L, false,
                 1000L, 5);
-        final StoreBuilder<FollowedByEventStore<TypedKey<String>,String>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<String>(String.class), Serdes.String(), Time.SYSTEM);
+        final StoreBuilder<FollowedByEventStore<TypedKey<String>,String>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new JacksonTypedKeySerde<String>(String.class), Serdes.String(), Time.SYSTEM);
         FollowedByEventStore<TypedKey<String>, String> store = supportStore.build();
 
         store.init(this.context,null);
@@ -57,7 +57,7 @@ class StateStoreTest {
         when(this.context.taskId()).thenReturn(new TaskId(0,0));
 
         FollowedByBytesStoreSupplierNew storeSupplier = new FollowedByBytesStoreSupplierNew("_Store_TEST", 100, 100L, false, 5L, 5);
-        final StoreBuilder<FollowedByEventStoreNew<TypedKey<String>,String>> supportStore = new FollowedByStoreBuilderNew<>(storeSupplier, new TypedKeySerde<String>(String.class), Serdes.String(), Time.SYSTEM);
+        final StoreBuilder<FollowedByEventStoreNew<TypedKey<String>,String>> supportStore = new FollowedByStoreBuilderNew<>(storeSupplier, new JacksonTypedKeySerde<String>(String.class), Serdes.String(), Time.SYSTEM);
         FollowedByEventStoreNew<TypedKey<String>, String> store = supportStore.build();
 
         store.init(this.context,null);

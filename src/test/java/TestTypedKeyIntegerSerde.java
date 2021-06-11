@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
-//import com.sun.deploy.util.ArrayUtil;
->>>>>>> acced10a1b4b4f09dc7a891c298068112a11327b
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -9,7 +6,7 @@ import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.keplr.etype.TypedKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import utils.OldTypedKeySerde;
+import utils.CustomTypedKeySerde;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -19,7 +16,7 @@ public class TestTypedKeyIntegerSerde {
 
     @BeforeEach
     public void setUp(){
-        this.serde = new OldTypedKeySerde<>(Serdes.Integer());
+        this.serde = new CustomTypedKeySerde<>(Serdes.Integer());
     }
 
     @Test

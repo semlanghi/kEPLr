@@ -84,6 +84,9 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      */
     public KTStream<K, V> times(int i);
 
+
+    KTStream<K, V> merge(final KTStream<K, V> stream);
+
     /**
      *
      *
@@ -112,7 +115,7 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
         return streams;
     }
 
-    public KTStreamImpl<K, V> throughput(ApplicationSupplier app);
+    public KTStream<K, V> throughput(ApplicationSupplier app);
 
     public KTStreamImpl<K,V> chunk();
 }

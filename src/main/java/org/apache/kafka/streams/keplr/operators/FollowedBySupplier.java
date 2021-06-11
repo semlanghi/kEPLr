@@ -74,6 +74,7 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
 
             if(key.getType().equals(predTypeDescr)){
                 //It's a predecessor
+
                 searchableKey.putIfAbsent(key.getKey(), key);
                 eventStore.putEvent(key,value, context().timestamp());
                 if(!predType.isOnEvery()) {

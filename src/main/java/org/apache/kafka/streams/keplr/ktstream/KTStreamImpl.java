@@ -17,7 +17,7 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.processor.TopicNameExtractor;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.WindowStore;
-import utils.TypedKeySerde;
+import utils.JacksonTypedKeySerde;
 
 
 import java.util.*;
@@ -114,7 +114,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier("_Store_"+id, withinMs*2, 100L, false,
                 5L, withinMs);
 
-        final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
+        final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new JacksonTypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
 
         KStreamImpl<K,V> kStream = (KStreamImpl<K, V>) otherStream.wrappedStream();
 
@@ -152,7 +152,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         FollowedByBytesStoreSupplier storeSupplier = new FollowedByBytesStoreSupplier(storeName, 100L, 100L, false,
                 5L, withinMs);
 
-        final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
+        final StoreBuilder<FollowedByEventStore<TypedKey<K>,V>> supportStore = new FollowedByStoreBuilder<>(storeSupplier, new JacksonTypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
 
         KStreamImpl<K,V> kStream = (KStreamImpl<K, V>) otherStream.wrappedStream();
 
@@ -185,7 +185,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         EventOccurrenceBytesStoreSupplier storeSupplier = new EventOccurrenceBytesStoreSupplier("_Store_"+id, 100L, 100L, false,
                 100L, Long.MAX_VALUE);
 
-        final StoreBuilder<EventOccurrenceEventStore<TypedKey<K>,V>> supportStore = new EventOccurrenceStoreBuilder<>(storeSupplier, new TypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
+        final StoreBuilder<EventOccurrenceEventStore<TypedKey<K>,V>> supportStore = new EventOccurrenceStoreBuilder<>(storeSupplier, new JacksonTypedKeySerde<K>(kClass), this.valSerde, Time.SYSTEM);
 
         EType<K,V> resultType;
         if(eventOccurrences==1)
@@ -206,6 +206,11 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
         builder.addGraphNode(Arrays.asList(this.streamsGraphNode), followedByNode);
 
         return new KTStreamImpl<K,V>(new KStreamImpl<>(name, null, null, this.sourceNodes, false, followedByNode, builder),resultType, kClass);
+    }
+
+    @Override
+    public KTStream<K, V> merge(KTStream<K, V> stream) {
+        return null;
     }
 
     @Override
@@ -329,7 +334,7 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     }
 
     @Override
-    public KStream merge(KStream stream) {
+    public KTStream merge(KStream stream) {
         return null;
     }
 
