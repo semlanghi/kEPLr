@@ -6,11 +6,10 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.keplr.etype.EType;
-import org.apache.kafka.streams.keplr.etype.ETypeString;
-import org.apache.kafka.streams.keplr.ktstream.KTStream;
+import keplr.etype.EType;
+import keplr.etype.ETypeString;
+import keplr.ktstream.KTStream;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.ValueJoiner;
 import utils.MyTimestampExtractor;
 
 import java.util.Properties;

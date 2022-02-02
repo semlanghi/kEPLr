@@ -1,0 +1,172 @@
+log4j:ERROR Could not find value for key log4j.appender.stateChangeAppender
+log4j:ERROR Could not instantiate appender named "stateChangeAppender".
+log4j:ERROR Could not find value for key log4j.appender.controllerAppender
+log4j:ERROR Could not instantiate appender named "controllerAppender".
+log4j:ERROR Could not find value for key log4j.appender.requestAppender
+log4j:ERROR Could not instantiate appender named "requestAppender".
+log4j:ERROR Could not find value for key log4j.appender.cleanerAppender
+log4j:ERROR Could not instantiate appender named "cleanerAppender".
+log4j:ERROR Could not find value for key log4j.appender.requestAppender
+log4j:ERROR Could not instantiate appender named "requestAppender".
+log4j:ERROR Could not find value for key log4j.appender.authorizerAppender
+log4j:ERROR Could not instantiate appender named "authorizerAppender".
+[--broker, localhost:9092, --name, W1, --run, 0, --topic, W1-run-0, --partitions-max-index, 0, --chunk-size, 50, --chunk-number, 50, --within, 50, --partitions-min-index, 0]
+{experiment.chunk_size=50, schema.registry.url=mock://ab, experiment.name=W1, experiment.partition.index.max=0, experiment.num_chunk_size=50, bootstrap.servers=localhost:9092, value.serializer=class io.confluent.kafka.serializers.KafkaAvroSerializer, buffer.memory=500000000, experiment.topic.input=W1-run-0, key.serializer=class org.apache.kafka.common.serialization.IntegerSerializer, experiment.within=50, experiment.partition.index.min=0, experiment.run=0}
+[2022-02-02 00:08:38,028] INFO ProducerConfig values: 
+	acks = 1
+	batch.size = 16384
+	bootstrap.servers = [localhost:9092]
+	buffer.memory = 500000000
+	client.dns.lookup = default
+	client.id = 
+	compression.type = none
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 120000
+	enable.idempotence = false
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.IntegerSerializer
+	linger.ms = 0
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.class = class org.apache.kafka.clients.producer.internals.DefaultPartitioner
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.mechanism = GSSAPI
+	security.protocol = PLAINTEXT
+	send.buffer.bytes = 131072
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
+	ssl.endpoint.identification.algorithm = https
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLS
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transactional.id = null
+	value.serializer = class io.confluent.kafka.serializers.KafkaAvroSerializer
+ (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,140] INFO KafkaAvroSerializerConfig values: 
+	bearer.auth.token = [hidden]
+	schema.registry.ssl.truststore.type = JKS
+	schema.reflection = false
+	auto.register.schemas = true
+	basic.auth.credentials.source = URL
+	schema.registry.ssl.keystore.password = [hidden]
+	schema.registry.ssl.provider = 
+	schema.registry.ssl.endpoint.identification.algorithm = https
+	schema.registry.ssl.truststore.location = 
+	value.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+	schema.registry.url = [mock://ab]
+	schema.registry.ssl.keystore.location = 
+	schema.registry.ssl.trustmanager.algorithm = PKIX
+	schema.registry.ssl.key.password = [hidden]
+	schema.registry.ssl.keystore.type = JKS
+	proxy.port = -1
+	schema.registry.ssl.secure.random.implementation = 
+	schema.registry.ssl.cipher.suites = []
+	max.schemas.per.subject = 1000
+	schema.registry.ssl.truststore.password = [hidden]
+	basic.auth.user.info = [hidden]
+	proxy.host = 
+	schema.registry.ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
+	schema.registry.ssl.protocol = TLS
+	schema.registry.basic.auth.user.info = [hidden]
+	bearer.auth.credentials.source = STATIC_TOKEN
+	schema.registry.ssl.keymanager.algorithm = SunX509
+	key.subject.name.strategy = class io.confluent.kafka.serializers.subject.TopicNameStrategy
+ (io.confluent.kafka.serializers.KafkaAvroSerializerConfig)
+[2022-02-02 00:08:38,305] WARN The configuration 'experiment.name' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.num_chunk_size' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.partition.index.min' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.within' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.chunk_size' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.topic.input' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.partition.index.max' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,306] WARN The configuration 'experiment.run' was supplied but isn't a known config. (org.apache.kafka.clients.producer.ProducerConfig)
+[2022-02-02 00:08:38,309] INFO Kafka version: 5.3.1-ccs (org.apache.kafka.common.utils.AppInfoParser)
+[2022-02-02 00:08:38,309] INFO Kafka commitId: d7ac44734b9cf5cc (org.apache.kafka.common.utils.AppInfoParser)
+[2022-02-02 00:08:38,309] INFO Kafka startTimeMs: 1643756918306 (org.apache.kafka.common.utils.AppInfoParser)
+[2022-02-02 00:08:38,561] INFO Total number of chunks: 50 (evaluation.producer.WProducerBase)
+[2022-02-02 00:08:38,561] INFO Starting time: 1643756918561 (evaluation.producer.WProducerBase)
+[2022-02-02 00:08:38,610] INFO [Producer clientId=producer-1] Cluster ID: pvzMAPK4T3G2wor4qMFGEA (org.apache.kafka.clients.Metadata)
+Created chunk number: 1 for partition 0
+Created chunk number: 2 for partition 0
+Created chunk number: 3 for partition 0
+Created chunk number: 4 for partition 0
+Created chunk number: 5 for partition 0
+Created chunk number: 6 for partition 0
+Created chunk number: 7 for partition 0
+Created chunk number: 8 for partition 0
+Created chunk number: 9 for partition 0
+Created chunk number: 10 for partition 0
+Created chunk number: 11 for partition 0
+Created chunk number: 12 for partition 0
+Created chunk number: 13 for partition 0
+Created chunk number: 14 for partition 0
+Created chunk number: 15 for partition 0
+Created chunk number: 16 for partition 0
+Created chunk number: 17 for partition 0
+Created chunk number: 18 for partition 0
+Created chunk number: 19 for partition 0
+Created chunk number: 20 for partition 0
+Created chunk number: 21 for partition 0
+Created chunk number: 22 for partition 0
+Created chunk number: 23 for partition 0
+Created chunk number: 24 for partition 0
+Created chunk number: 25 for partition 0
+Created chunk number: 26 for partition 0
+Created chunk number: 27 for partition 0
+Created chunk number: 28 for partition 0
+Created chunk number: 29 for partition 0
+Created chunk number: 30 for partition 0
+Created chunk number: 31 for partition 0
+Created chunk number: 32 for partition 0
+Created chunk number: 33 for partition 0
+Created chunk number: 34 for partition 0
+Created chunk number: 35 for partition 0
+Created chunk number: 36 for partition 0
+Created chunk number: 37 for partition 0
+Created chunk number: 38 for partition 0
+Created chunk number: 39 for partition 0
+Created chunk number: 40 for partition 0
+Created chunk number: 41 for partition 0
+Created chunk number: 42 for partition 0
+Created chunk number: 43 for partition 0
+Created chunk number: 44 for partition 0
+Created chunk number: 45 for partition 0
+Created chunk number: 46 for partition 0
+Created chunk number: 47 for partition 0
+Created chunk number: 48 for partition 0
+Created chunk number: 49 for partition 0
+Created chunk number: 50 for partition 0

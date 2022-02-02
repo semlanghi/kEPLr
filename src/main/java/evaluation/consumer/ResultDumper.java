@@ -14,16 +14,16 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.streams.keplr.etype.ETypeAvro;
+import keplr.etype.ETypeAvro;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
-import static evaluation.ExperimentsConfig.loadSchema;
 
 
 /**
@@ -168,6 +168,14 @@ public class ResultDumper {
                     e.printStackTrace();
                 }
             });
+        }
+    }
+
+    private static Schema loadSchema(final String name) throws IOException {
+        try (
+                final InputStream input = ExperimentsConfig.class.getClassLoader().getResourceAsStream(name)
+        ) {
+            return new Schema.Parser().parse(input);
         }
     }
 

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Class that sets up Example 3, in EPL:
@@ -15,15 +16,15 @@ import java.io.IOException;
  * event B within n seconds.
  */
 public class W3 extends WBase {
-    private static Logger LOGGER = LoggerFactory.getLogger(W2.class);
 
-    public static void main(String[] args) throws InterruptedException, IOException, RestClientException {
+    public W3(Properties config) {
+        super(config);
+    }
 
-        setup(args);
-        createStream();
-        LOGGER.info("OUTPUT ON " + output_topic);
-        typedStreams[0].times(1).followedBy(typedStreams[1].times(1) , within).every().chunk().throughput(app_supplier).to(output_topic);
-        startStream();
-
+    @Override
+    protected void completeTopology() {
+        typedStreams[0]
+                .followedBy(typedStreams[1], within)
+                .throughput(appSupplier).to(outputTopic);
     }
 }

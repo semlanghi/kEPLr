@@ -1,18 +1,12 @@
 package utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.avro.AvroModule;
 import lombok.extern.log4j.Log4j;
-import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.kafka.common.serialization.*;
-import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.keplr.etype.TypedKey;
+import keplr.etype.TypedKey;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 /**
  * A {@link Serde} for the {@link TypedKey} representation. It uses an {@link ObjectMapper} to

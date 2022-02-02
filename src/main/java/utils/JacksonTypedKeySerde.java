@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.avro.AvroModule;
 import org.apache.kafka.common.serialization.*;
-import org.apache.kafka.streams.keplr.etype.TypedKey;
+import keplr.etype.TypedKey;
 
 import java.io.IOException;
 

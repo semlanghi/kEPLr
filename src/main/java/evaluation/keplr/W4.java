@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Properties;
 
 
 /**
@@ -16,13 +17,15 @@ import java.io.IOException;
  * event B within n seconds. Then restarts the search.
  */
 public class W4 extends WBase {
-    private static Logger LOGGER = LoggerFactory.getLogger(W2.class);
 
-    public static void main(String[] args) throws InterruptedException, IOException, RestClientException {
-        setup(args);
-        createStream();
-        LOGGER.info("OUTPUT ON " + output_topic);
-        typedStreams[0].times(1).followedBy(typedStreams[1].times(1).every(), within).every().chunk().throughput(app_supplier).to(output_topic);
-        startStream();
+    public W4(Properties config) {
+        super(config);
+    }
+
+    @Override
+    protected void completeTopology() {
+        typedStreams[0]
+                .followedBy(typedStreams[1].every(), within)
+                .throughput(appSupplier).to(outputTopic);
     }
 }

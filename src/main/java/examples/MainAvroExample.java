@@ -1,9 +1,9 @@
 package examples;
 
 import org.apache.kafka.streams.*;
-import org.apache.kafka.streams.keplr.etype.EType;
-import org.apache.kafka.streams.keplr.etype.ETypeAvro;
-import org.apache.kafka.streams.keplr.ktstream.KTStream;
+import keplr.etype.EType;
+import keplr.etype.ETypeAvro;
+import keplr.ktstream.KTStream;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;

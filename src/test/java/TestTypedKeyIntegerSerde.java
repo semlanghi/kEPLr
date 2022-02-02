@@ -3,7 +3,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
-import org.apache.kafka.streams.keplr.etype.TypedKey;
+import keplr.etype.TypedKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.CustomTypedKeySerde;

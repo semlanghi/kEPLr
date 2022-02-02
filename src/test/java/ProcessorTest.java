@@ -1,8 +1,8 @@
 import org.apache.kafka.common.metrics.Metrics;
 import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.keplr.etype.TypedKey;
-import org.apache.kafka.streams.keplr.operators.GatewayProcessorSupplier;
-import org.apache.kafka.streams.keplr.operators.KEPLrProcessor;
+import keplr.etype.TypedKey;
+import keplr.operators.GatewayProcessorSupplier;
+import keplr.operators.KEPLrProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.TaskId;
 import org.apache.kafka.streams.processor.internals.ProcessorContextImpl;

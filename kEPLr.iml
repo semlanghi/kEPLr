@@ -22,6 +22,10 @@
     <orderEntry type="library" name="Maven: com.github.luben:zstd-jni:1.4.0-1" level="project" />
     <orderEntry type="library" name="Maven: org.lz4:lz4-java:1.6.0" level="project" />
     <orderEntry type="library" name="Maven: org.xerial.snappy:snappy-java:1.1.7.3" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.kafka:kafka-streams:5.3.1-ccs" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.kafka:connect-json:5.3.1-ccs" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.kafka:connect-api:5.3.1-ccs" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.9.9" level="project" />
     <orderEntry type="library" name="Maven: com.breinify:brein-time-utilities:1.7.0" level="project" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.17" level="project" />
     <orderEntry type="library" name="Maven: org.jfree:jfreechart:1.0.19" level="project" />
@@ -44,17 +48,17 @@
     <orderEntry type="library" name="Maven: com.espertech:esper-avro:7.1.0" level="project" />
     <orderEntry type="library" name="Maven: com.espertech:esper:7.1.0" level="project" />
     <orderEntry type="library" name="Maven: cglib:cglib-nodep:3.2.5" level="project" />
-    <orderEntry type="library" name="Maven: io.confluent:kafka-avro-serializer:5.3.1" level="project" />
-    <orderEntry type="library" name="Maven: io.confluent:kafka-schema-registry-client:5.3.1" level="project" />
-    <orderEntry type="library" name="Maven: io.confluent:common-config:5.3.1" level="project" />
-    <orderEntry type="library" name="Maven: io.confluent:common-utils:5.3.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.zookeeper:zookeeper:3.4.14" level="project" />
-    <orderEntry type="library" name="Maven: com.github.spotbugs:spotbugs-annotations:3.1.9" level="project" />
-    <orderEntry type="library" name="Maven: com.google.code.findbugs:jsr305:3.0.2" level="project" />
-    <orderEntry type="library" name="Maven: jline:jline:0.9.94" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.yetus:audience-annotations:0.5.0" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty:3.10.6.Final" level="project" />
-    <orderEntry type="library" name="Maven: com.101tec:zkclient:0.10" level="project" />
+    <orderEntry type="library" name="Maven: io.confluent:kafka-avro-serializer:5.4.1" level="project" />
+    <orderEntry type="library" name="Maven: io.confluent:kafka-schema-registry-client:5.4.1" level="project" />
+    <orderEntry type="library" name="Maven: io.swagger:swagger-annotations:1.5.22" level="project" />
+    <orderEntry type="library" name="Maven: io.swagger:swagger-core:1.5.3" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.datatype:jackson-datatype-joda:2.4.5" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.4.5" level="project" />
+    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.12" level="project" />
+    <orderEntry type="library" name="Maven: io.swagger:swagger-models:1.5.3" level="project" />
+    <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
+    <orderEntry type="library" name="Maven: io.confluent:common-config:5.4.1" level="project" />
+    <orderEntry type="library" name="Maven: io.confluent:common-utils:5.4.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.avro:avro:1.9.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-compress:1.19" level="project" />
     <orderEntry type="library" name="Maven: org.apache.avro:avro-maven-plugin:1.9.1" level="project" />
@@ -78,7 +82,7 @@
     <orderEntry type="library" name="Maven: org.apache.avro:avro-compiler:1.9.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.velocity:velocity-engine-core:2.0" level="project" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.10.1" level="project" />
-    <orderEntry type="library" name="Maven: io.confluent:kafka-streams-avro-serde:5.3.1" level="project" />
+    <orderEntry type="library" name="Maven: io.confluent:kafka-streams-avro-serde:5.4.1" level="project" />
     <orderEntry type="library" name="Maven: com.espertech:esper-common:8.1.0" level="project" />
     <orderEntry type="library" name="Maven: com.espertech:esper-compiler:8.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.janino:janino:3.0.10" level="project" />

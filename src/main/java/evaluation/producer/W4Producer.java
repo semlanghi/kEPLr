@@ -3,6 +3,7 @@ package evaluation.producer;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Creates records for example 1.
@@ -16,58 +17,28 @@ import java.io.IOException;
  * @see evaluation.keplr.W4
  */
 public class W4Producer extends WProducerBase {
-    private static long ID = 0;
 
-    public static void main(String[] args) throws IOException, RestClientException {
-        setup(args);
-        createRecords();
+    public W4Producer(Properties properties) {
+        super(properties);
     }
 
-    private static void createRecords() {
-        System.out.println("Total number of chunks: " + NUMBER_OF_CHUNKS);
-        for (int i = 0; i < NUMBER_OF_CHUNKS-1; i++) {
-            long simulatedTime = 1 + i * WITHIN + INITIAL_SIMULATED_TIME;
-            int currentChunkSize = INITIAL_CHUNK_SIZE - 1 + GROWTH_SIZE * i;
-            createSequentialAnB(currentChunkSize, simulatedTime);
-            System.out.println("Created chunk number: " + (i + 1));
+    @Override
+    protected void createKeyedLastBatch(int currentChunkSize, int key) {
+        sendRecordA(ID++, simulatedTime, false, key);
+
+        int i;
+        for (i = 1; i <= currentChunkSize-1; i++) {
+            sendRecordB(ID++, simulatedTime + i, false, key);
         }
-        //sendEndRecord(ID);
-        int i = NUMBER_OF_CHUNKS -1;
-        long simulatedTime = 1 + i * WITHIN + INITIAL_SIMULATED_TIME;
-        int currentChunkSize = INITIAL_CHUNK_SIZE - 1 + GROWTH_SIZE * i;
-
-
-        if(PARTITIONS==1){
-            createLastSequentialAnB(currentChunkSize, simulatedTime);
-
-        }else if(PARTITIONS==3){
-            if(PARTITION_ASSIGNED>=6)
-                createLastSequentialAnB(currentChunkSize, simulatedTime);
-            else createSequentialAnB(currentChunkSize, simulatedTime);
-        } else if(PARTITIONS==6){
-            if(PARTITION_ASSIGNED>=3)
-                createLastSequentialAnB(currentChunkSize, simulatedTime);
-            else createSequentialAnB(currentChunkSize, simulatedTime);
-        } else if(PARTITIONS==9){
-            createLastSequentialAnB(currentChunkSize, simulatedTime);
-        }
-
-
+        sendRecordEND(ID++, simulatedTime + i, key);
     }
 
-    private static void createSequentialAnB(int n, long time) {
-        createRecordA(ID++, time,false);
-        for (int i = 1; i <= n; i++) {
-            createRecordB(ID++, time + i,false);
-        }
-    }
+    @Override
+    protected void createKeyedBatch(int currentChunkSize, int key) {
+        sendRecordA(ID++, simulatedTime,false, key);
 
-    private static void createLastSequentialAnB(int n, long time) {
-        createRecordA(ID++, time,true);
-        for (int i = 1; i <= n-1; i++) {
-            createRecordB(ID++, time + i,false);
+        for (int i = 1; i < currentChunkSize; i++) {
+            sendRecordB(ID++, simulatedTime + i,false, key);
         }
-        int i = n;
-        createRecordB(ID++, time + i,true);
     }
 }

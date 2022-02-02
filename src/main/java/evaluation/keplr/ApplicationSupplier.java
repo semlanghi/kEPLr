@@ -1,5 +1,6 @@
 package evaluation.keplr;
 
+import keplr.operators.ThroughputSupplier;
 import org.apache.kafka.streams.KafkaStreams;
 
 /**
@@ -7,7 +8,7 @@ import org.apache.kafka.streams.KafkaStreams;
  * It sets up the closure of all the application instances from the
  * ThroughputProcessor.
  *
- * @see org.apache.kafka.streams.keplr.operators.ThroughputSupplier
+ * @see ThroughputSupplier
  * @see KafkaStreams
  */
 public class ApplicationSupplier {
