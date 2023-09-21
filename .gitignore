@@ -5,6 +5,8 @@
 # ignore dinamically generated files
 target/
 
+*.csv
+
 
 
 

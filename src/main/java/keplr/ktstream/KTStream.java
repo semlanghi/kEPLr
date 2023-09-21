@@ -1,14 +1,14 @@
 package keplr.ktstream;
 
 import evaluation.keplr.ApplicationSupplier;
-import keplr.etype.TypedKey;
-import keplr.operators.statestore.EventOccurrenceStore;
-import keplr.operators.statestore.FollowedByStore;
-import org.apache.kafka.streams.KeyValue;
-import keplr.etype.EType;
 import keplr.operators.IntervalEventOccurrenceSupplier;
 import keplr.operators.IntervalFollowedBySupplier;
 import keplr.operators.OldChunkProcessorSupplier;
+import keplr.operators.statestore.EventOccurrenceStore;
+import keplr.etype.TypedKey;
+import keplr.operators.statestore.FollowedByStore;
+import org.apache.kafka.streams.KeyValue;
+import keplr.etype.EType;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.ValueJoiner;
 

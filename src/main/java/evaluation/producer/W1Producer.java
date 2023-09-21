@@ -7,7 +7,7 @@ import java.util.Properties;
 /**
  * Creates records for example 1.
  * The records are grouped into chunks of size equal to the
- * {@link evaluation.keplr.WBase#within} parameter. The records are set up as in the following:
+ * {@link evaluation.keplr.WBase} parameter. The records are set up as in the following:
  *
  * <-------------within---------------><-------------within--------------->
  * <-----As-----><-----Bs----->        <-----As-----><-----Bs----->
@@ -43,9 +43,12 @@ public class W1Producer extends WProducerBase{
         for (int i = 0; i < numberOfAsAndBs-1; i++) {
             sendRecordA(ID++, simulatedTime + i, false,key);
         }
+        sendRecordA(ID++, simulatedTime + chunckSize, true, key);
         for (int i = 0; i < numberOfAsAndBs-1; i++) {
             sendRecordB(ID++, simulatedTime + i + chunckSize, false,key);
         }
-        sendRecordEND(ID++, simulatedTime + chunckSize - 1 + chunckSize, key);
+        sendRecordB(ID++, simulatedTime + chunckSize - 1 + chunckSize, true, key);
+
+
     }
 }

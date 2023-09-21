@@ -30,8 +30,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -63,6 +63,10 @@
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
         </repository>
+        <repository>
+            <id>espertech</id>
+            <url>https://mvnrepository.com/artifact/com.espertech/esper-avro</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -74,11 +78,6 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>5.3.1-ccs</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-streams</artifactId>
             <version>5.3.1-ccs</version>
         </dependency>
 
@@ -112,11 +111,11 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.espertech/esper-avro -->
+
         <dependency>
             <groupId>com.espertech</groupId>
-            <artifactId>esper-avro</artifactId>
-            <version>7.1.0</version>
+            <artifactId>esper-common-avro</artifactId>
+            <version>8.1.0</version>
         </dependency>
 
 
@@ -171,7 +170,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.22</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

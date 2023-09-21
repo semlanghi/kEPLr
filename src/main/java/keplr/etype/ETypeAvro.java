@@ -41,7 +41,7 @@ public class ETypeAvro extends EType<String, GenericRecord> {
 
     @Override
     public boolean isThisTheEnd(GenericRecord value) {
-        return value.getSchema().getName().equals("END");
+        return (boolean) value.get("end");
     }
 
     @Override
@@ -119,13 +119,14 @@ public class ETypeAvro extends EType<String, GenericRecord> {
     @Override
     public ValueJoiner<GenericRecord, GenericRecord, GenericRecord> joiner() {
         if(this.schema.getAvroSchema().getField("x")!=null){
-            return new ValueJoiner<GenericRecord, GenericRecord, GenericRecord>() {
-                GenericRecordBuilder recordBuilder=new GenericRecordBuilder(schema.getAvroSchema());
+            return new ValueJoiner<>() {
+                GenericRecordBuilder recordBuilder = new GenericRecordBuilder(schema.getAvroSchema());
+
                 @Override
                 public GenericRecord apply(GenericRecord value1, GenericRecord value2) {
 
-                    return recordBuilder.set("x", value1).set("y",value2).set("start_time", (long)value1.get("start_time"))
-                            .set("end_time", (long)value2.get("end_time"))
+                    return recordBuilder.set("x", value1).set("y", value2).set("start_time", value1.get("start_time"))
+                            .set("end_time", value2.get("end_time"))
                             .set("end", ((boolean) value1.get("end")) && ((boolean) value2.get("end"))).build();
                 }
             };

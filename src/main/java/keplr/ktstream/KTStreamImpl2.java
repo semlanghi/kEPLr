@@ -1,17 +1,16 @@
 package keplr.ktstream;
 
 import evaluation.keplr.ApplicationSupplier;
-import keplr.etype.TypedKey;
 import keplr.operators.FollowedBySupplier;
 import keplr.operators.GatewayProcessorSupplier;
 import keplr.operators.ThroughputSupplier;
+import keplr.etype.TypedKey;
 import keplr.operators.statestore_non_interval.FollowedByStoreBuilderNew;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.KeyValue;
 import keplr.etype.EType;
-import org.apache.kafka.streams.keplr.operators.*;
 import keplr.operators.statestore_non_interval.FollowedByBytesStoreSupplierNew;
 import keplr.operators.statestore_non_interval.FollowedByEventStoreNew;
 import org.apache.kafka.streams.kstream.*;
@@ -101,7 +100,7 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
                 new FollowedByStoreBuilderNew<>(storeSupplier, keySerde, valSerde, Time.SYSTEM);
 
         StoreBuilder<KeyValueStore<K, Long>> advancementStoreBuilder = Stores.keyValueStoreBuilder(
-                Stores.persistentKeyValueStore(advancementStoreName),
+                Stores.inMemoryKeyValueStore(advancementStoreName),
                 ((CustomTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Long()
         );
 
@@ -125,7 +124,7 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         final String processorName = builder.newProcessorName(GATEWAY_NAME);
 
         StoreBuilder<KeyValueStore<K, Integer>> storeBuilder = Stores.keyValueStoreBuilder(
-                Stores.persistentKeyValueStore(storeName),
+                Stores.inMemoryKeyValueStore(storeName),
                 ((CustomTypedKeySerde<K>)keySerde).getOriginalKeySerde(), Serdes.Integer()
                 );
 

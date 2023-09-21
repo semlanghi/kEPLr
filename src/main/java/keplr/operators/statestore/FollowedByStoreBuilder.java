@@ -1,9 +1,9 @@
 package keplr.operators.statestore;
 
 import keplr.etype.TypedKey;
+import keplr.operators.IntervalFollowedBySupplier;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.utils.Time;
-import keplr.operators.IntervalFollowedBySupplier;
 import org.apache.kafka.streams.state.internals.AbstractStoreBuilder;
 
 /**

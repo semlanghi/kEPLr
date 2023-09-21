@@ -5,7 +5,7 @@ broker_count=1
 
 if [ -z "$KAFKA_HOME" ]
 then
-      KAFKA_HOME="/Users/samuelelanghi/Documents/platforms/confluent-5.3.1"
+      KAFKA_HOME="/Users/samuelelanghi/Documents/platforms/kafka_2.13-3.1.0"
 else
       echo "KAFKA_HOME is $KAFKA_HOME"
 fi
@@ -35,14 +35,14 @@ echo "Stopping brokers"
 for i in $(seq 1 $((broker_count)))
   do
     echo "Stopping Broker number $i."
-    $KAFKA_HOME/bin/kafka-server-stop &
+    $KAFKA_HOME/bin/kafka-server-stop.sh &
   done
 sleep 10
 
 # stop zookeeper
 if [ $zookeeper_also = true ]; then
     echo "Stopping zookeeper"
-    $KAFKA_HOME/bin/zookeeper-server-stop &
+    $KAFKA_HOME/bin/zookeeper-server-stop.sh &
 fi
 sleep 10
 

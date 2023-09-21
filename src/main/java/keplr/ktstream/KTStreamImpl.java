@@ -1,16 +1,15 @@
 package keplr.ktstream;
 
 import evaluation.keplr.ApplicationSupplier;
+import keplr.operators.IntervalEventOccurrenceSupplier;
+import keplr.operators.IntervalFollowedBySupplier;
+import keplr.operators.OldChunkProcessorSupplier;
+import keplr.operators.ThroughputSupplier;
 import keplr.operators.statestore.*;
 import org.apache.kafka.common.utils.Time;
 import org.apache.kafka.streams.*;
 import keplr.etype.EType;
 import keplr.etype.TypedKey;
-import keplr.operators.OldChunkProcessorSupplier;
-import keplr.operators.IntervalEventOccurrenceSupplier;
-import keplr.operators.IntervalFollowedBySupplier;
-import keplr.operators.ThroughputSupplier;
-import org.apache.kafka.streams.keplr.operators.statestore.*;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.kstream.internals.*;
 import org.apache.kafka.streams.kstream.internals.graph.*;

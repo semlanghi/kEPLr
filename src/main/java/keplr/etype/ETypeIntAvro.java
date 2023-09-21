@@ -41,7 +41,7 @@ public class ETypeIntAvro extends EType<Integer, GenericRecord> {
 
     @Override
     public boolean isThisTheEnd(GenericRecord value) {
-        return value.getSchema().getName().equals("END");
+        return (boolean) value.get("end");
     }
 
     @Override

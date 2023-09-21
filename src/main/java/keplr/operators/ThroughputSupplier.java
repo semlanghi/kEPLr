@@ -105,7 +105,7 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
         private void writeThroughput(TypedKey<K> key, GenericRecord value, String thread, Runtime runtime) {
             long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
 
-            String originalKey = (String) key.getKey();
+            Integer originalKey = (Integer) key.getKey();
             throughput.writeNext(new String[]{
                     name,
                     run,

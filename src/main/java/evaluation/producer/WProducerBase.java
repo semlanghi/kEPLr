@@ -62,7 +62,7 @@ public abstract class WProducerBase extends KafkaProducer<Integer, GenericRecord
         numberOfChunks = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS)); //Mandatory Field
         growthSize = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_CHUNK_GROWTH,"0"));
         window = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)); //Mandatory Field
-        simulatedTime = Long.parseLong(properties.getProperty(ExperimentsConfig.EXPERIMENT_INIT_TIME, String.valueOf(System.currentTimeMillis())));
+        simulatedTime = 0L;
         if(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG).startsWith("mock")){
             schemaRegistryClient = MockSchemaRegistry.getClientForScope(ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL.split("//")[1]);
         }else {
@@ -137,7 +137,6 @@ public abstract class WProducerBase extends KafkaProducer<Integer, GenericRecord
     public void createRecords(int[] keyset){
         log.info("Total number of chunks: " + numberOfChunks);
 
-        simulatedTime = System.currentTimeMillis();
         log.info("Starting time: " + simulatedTime);
 
         /*
@@ -148,7 +147,7 @@ public abstract class WProducerBase extends KafkaProducer<Integer, GenericRecord
             sendBatch(keyset, i);
             simulatedTime+=window;
         }
-        //sendLastBatch(keyset, i);
+        sendLastBatch(keyset, i);
     }
 
     protected void sendBatch(int[] keyset, int i) {

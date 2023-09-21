@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "END",
-  "namespace": "namespace1",
+  "namespace": "ee.ut.avro",
   "fields": [
     {
       "name": "idEND",

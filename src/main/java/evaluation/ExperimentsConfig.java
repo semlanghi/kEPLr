@@ -16,7 +16,6 @@ public class ExperimentsConfig {
     public static final String EVENT_SCHEMA_A = "A.asvc";
     public static final String EVENT_SCHEMA_B = "B.asvc";
     public static final String EVENT_SCHEMA_AB = "AB.asvc";
-    public static final String EVENT_SCHEMA_Measurement = "Measurement.asvc";
     public static final String EVENT_SCHEMA_END = "END.asvc";
 
     public static final String EXPERIMENT_NAME = "experiment.name";

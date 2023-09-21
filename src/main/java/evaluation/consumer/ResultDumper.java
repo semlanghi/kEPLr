@@ -23,7 +23,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -51,8 +51,8 @@ public class ResultDumper {
     public static void main(String[] args) throws IOException, RestClientException {
 
         input_topic = args[0];
-        run = args[1];
-        output_topic = "output_" + args[0];
+        run = args[2];
+        output_topic = args[1];
 
 
         reportWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".reports.csv", true));
@@ -62,15 +62,13 @@ public class ResultDumper {
         schemaA = loadSchema(ExperimentsConfig.EVENT_SCHEMA_A);
         schemaB = loadSchema(ExperimentsConfig.EVENT_SCHEMA_B);
         schemaEND = loadSchema(ExperimentsConfig.EVENT_SCHEMA_END);
-        measurement = loadSchema(ExperimentsConfig.EVENT_SCHEMA_Measurement);
 
         schemaRegistryClient.register("A", schemaA, 0, 1);
         schemaRegistryClient.register("B", schemaB, 0, 2);
         schemaRegistryClient.register("END", schemaEND, 0, 3);
-        schemaRegistryClient.register("Measurement", measurement, 0, 4);
 
         schemaAB = ((ETypeAvro) new ETypeAvro(schemaA).product(new ETypeAvro(schemaB), true)).getSchema();
-        schemaRegistryClient.register("C", schemaAB, 0, 5);
+        schemaRegistryClient.register("AB", schemaAB, 0, 4);
 
         Properties props = new Properties();
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL);
@@ -92,7 +90,7 @@ public class ResultDumper {
         outputDumpWriter = new CSVWriter(new FileWriter(input_topic + "." + run + ".output.dump.csv", true));
 
         String[] header = {"AXB", "start_time", "start_time", "end_time", "end", "idA", "start_timeA", "end_timeA", "partitionA", "isEndA",
-                "idB", "start_timeB", "end_timeB", "partitionB", "isendB"};
+                "idB", "start_timeB", "end_timeB", "partitionB", "isEndB"};
         outputDumpWriter.writeNext(header, false);
         outputDumpWriter.flush();
 
@@ -100,16 +98,22 @@ public class ResultDumper {
             System.out.println(topicPartition.partition());
         });
 
+        AtomicBoolean endA = new AtomicBoolean(false);
+        AtomicBoolean endB = new AtomicBoolean(false);
+        AtomicBoolean endAB = new AtomicBoolean(false);
+
         while (true) {
+            if(endA.get() && endAB.get() && endB.get())
+                System.exit(0);
             ConsumerRecords<String, GenericRecord> poll = consumer.poll(Duration.ofMillis(500));
             poll.forEach(record -> {
                 try {
                     GenericRecord value = record.value();
                     Schema schema = value.getSchema();
+                    boolean isEnd = (boolean) value.get("end");
                     if (schemaAB.equals(schema)) {
                         GenericRecord x = (GenericRecord) value.get("x");
                         GenericRecord y = (GenericRecord) value.get("y");
-//                        String[] header = {"start_time", "end_time", "idA", "start_timeA", "end_timeA", "idB", "start_timeB", "end_timeB"};
                         String[] nextLine = {"AXB",
                                 String.valueOf(value.get("start_time")),
                                 String.valueOf(value.get("start_time")),
@@ -127,42 +131,24 @@ public class ResultDumper {
                                 String.valueOf(y.get("end"))};
                         outputDumpWriter.writeNext(nextLine, false);
                         outputDumpWriter.flush();
+
+
+                        if(isEnd)
+                            endAB.set(true);
+
+
                     } else if (schemaA.equals(schema)) {
-//                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"A", String.valueOf(value.get("idA")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
+                        String[] nextLine = {"A", String.valueOf(value.get("idA")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("end")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
                         inputDumpWriter.writeNext(nextLine, false);
                         inputDumpWriter.flush();
+                        if (isEnd)
+                            endA.set(true);
                     } else if (schemaB.equals(schema)) {
-//                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"B", String.valueOf(value.get("idB")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
+                        String[] nextLine = {"B", String.valueOf(value.get("idB")), String.valueOf(value.get("start_time")), String.valueOf(value.get("end_time")), String.valueOf(value.get("end")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
                         inputDumpWriter.writeNext(nextLine, false);
                         inputDumpWriter.flush();
-                    } else if (schemaEND.equals(schema)) {
-//                        String[] header = {"id", "start_time", "end_time"};
-                        String[] nextLine = {"END", String.valueOf(value.get("idEnd")), String.valueOf(value.get("A_count")), String.valueOf(value.get("B_count")), String.valueOf(value.get("partition")), String.valueOf(record.partition())};
-                        inputDumpWriter.writeNext(nextLine, false);
-                        inputDumpWriter.flush();
-                    } else {
-//                        String[] header = {"id", "A_count", "B_count"};
-                        String[] nextLine = {
-                                String.valueOf(value.get("name")),
-                                String.valueOf(value.get("run")),
-                                String.valueOf(value.get("start_time")),
-                                String.valueOf(value.get("end_time")),
-                                String.valueOf(value.get("A_count")),
-                                String.valueOf(value.get("B_count")),
-                                String.valueOf(value.get("records_count")),
-                                String.valueOf(value.get("broker_count")),
-                                String.valueOf(value.get("num_chunks")),
-                                String.valueOf(value.get("init_chunk_size")),
-                                String.valueOf(value.get("chunks_growth")),
-                                String.valueOf(value.get("within")),
-                                String.valueOf(value.get("partition")),
-                                String.valueOf(value.get("thread")),
-                        };
-                        reportWriter.writeNext(nextLine, false);
-                        reportWriter.flush();
-                        System.exit(0);
+                        if (isEnd)
+                            endB.set(true);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
