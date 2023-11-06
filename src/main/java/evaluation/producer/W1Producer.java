@@ -9,9 +9,8 @@ import java.util.Properties;
  * The records are grouped into chunks of size equal to the
  * {@link evaluation.keplr.WBase} parameter. The records are set up as in the following:
  *
- * <-------------within---------------><-------------within--------------->
- * <-----As-----><-----Bs----->        <-----As-----><-----Bs----->
- * AAAAAAAAAAA...BBBBBBBBBBBB...       AAAAAAAAAAA...BBBBBBBBBBBB...
+ * <---------chunk-size------->|<---------chunk-size------->
+ * AAAAAAAAAAA...BBBBBBBB...BBB|AAAAAAAAAAA...BBBBBBBB...BBB
  *
  * @see evaluation.keplr.W1
  */
