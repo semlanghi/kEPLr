@@ -179,7 +179,7 @@ public class GlobalStateManagerImpl implements GlobalStateManager {
         }
 
         if (!globalStoreNames.contains(store.name())) {
-            throw new IllegalArgumentException(String.format("Trying to register store %s that is not a known global store", store.name()));
+            throw new IllegalArgumentException(String.format("Trying to registerThroughput store %s that is not a known global store", store.name()));
         }
 
         if (stateRestoreCallback == null) {

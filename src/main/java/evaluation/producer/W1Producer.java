@@ -40,14 +40,16 @@ public class W1Producer extends WProducerBase{
     @Override
     protected void createKeyedLastBatch(int chunckSize, int key){
         int numberOfAsAndBs = chunckSize/2;
-        for (int i = 0; i < numberOfAsAndBs-1; i++) {
+        int i;
+        for (i = 0; i < numberOfAsAndBs-1; i++) {
             sendRecordA(ID++, simulatedTime + i, false,key);
         }
-        sendRecordA(ID++, simulatedTime + chunckSize, true, key);
-        for (int i = 0; i < numberOfAsAndBs-1; i++) {
-            sendRecordB(ID++, simulatedTime + i + chunckSize, false,key);
+        sendRecordA(ID++, simulatedTime + i++, true,key);
+        for (; i < numberOfAsAndBs*2-2; i++) {
+            sendRecordB(ID++, simulatedTime + i + numberOfAsAndBs, false,key);
         }
-        sendRecordB(ID++, simulatedTime + chunckSize - 1 + chunckSize, true, key);
+        sendRecordB(ID++, simulatedTime + i++ + numberOfAsAndBs, true,key);
+        sendRecordEND(ID++, simulatedTime + i + numberOfAsAndBs, key);
 
 
     }

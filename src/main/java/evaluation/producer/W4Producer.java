@@ -24,18 +24,19 @@ public class W4Producer extends WProducerBase {
 
     @Override
     protected void createKeyedLastBatch(int currentChunkSize, int key) {
-        sendRecordA(ID++, simulatedTime, false, key);
+        sendRecordA(ID++, simulatedTime, true, key);
 
         int i;
-        for (i = 1; i <= currentChunkSize-1; i++) {
+        for (i = 1; i <= currentChunkSize-2; i++) {
             sendRecordB(ID++, simulatedTime + i, false, key);
         }
+        sendRecordB(ID++, simulatedTime + i++, true, key);
         sendRecordEND(ID++, simulatedTime + i, key);
     }
 
     @Override
     protected void createKeyedBatch(int currentChunkSize, int key) {
-        sendRecordA(ID++, simulatedTime,false, key);
+        sendRecordA(ID++, simulatedTime,true, key);
 
         for (int i = 1; i < currentChunkSize; i++) {
             sendRecordB(ID++, simulatedTime + i,false, key);

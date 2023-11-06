@@ -5,131 +5,115 @@ import com.espertech.esper.runtime.client.EPRuntime;
 import com.espertech.esper.runtime.client.EPStatement;
 import com.espertech.esper.runtime.client.UpdateListener;
 import com.opencsv.CSVWriter;
-import evaluation.ExperimentsConfig;
-import keplr.etype.ETypeAvro;
-import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.generic.GenericRecordBuilder;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import utils.PerformanceFileBuilder;
 
-import javax.sound.midi.SoundbankResource;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class DumpingListener implements UpdateListener {
 
-    private final GenericRecordBuilder builder;
-    private final GenericRecordBuilder builderA;
-    private final GenericRecordBuilder builderB;
+    private final CSVWriter outputDumpWriter;
+    private final boolean dump;
+    private final Runtime runtime;
+    private final long within;
     private PerformanceFileBuilder performanceFileBuilder;
+    private PerformanceFileBuilder memoryFileBuilder;
     private long counter =0L;
     private String exp;
     private String run;
     private long startTime = System.currentTimeMillis();
-    private long endCount = 0L;
+    private boolean ended = false;
 
 
-    public DumpingListener(String expName, Schema schemaA , Schema schemaB) throws IOException {
-        this.exp = expName.split("_")[0];
-        this.run = expName.split("_")[1];
-        performanceFileBuilder = new PerformanceFileBuilder(expName + "performance_esper.csv");
-        Schema schema = SchemaBuilder.record("A_X_B").fields()
-                .requiredLong("start_time")
-                .requiredLong("end_time")
-                .requiredBoolean("end")
-                .name("x")
-                .type(schemaA)
-                .noDefault()
-                .name("y")
-                .type(schemaB)
-                .noDefault()
-                .endRecord();
-        builder = new GenericRecordBuilder(schema);
-        builderA = new GenericRecordBuilder(schemaA);
-        builderB = new GenericRecordBuilder(schemaB);
-        CSVWriter outputDumpWriter = new CSVWriter(new FileWriter(  expName + "esper.output.dump.csv", true));
-        String[] header = {"AXB", "start_time", "start_time", "end_time", "end", "idA", "start_timeA", "end_timeA", "partitionA", "isEndA",
-                "idB", "start_timeB", "end_timeB", "partitionB", "isEndB"};
-        outputDumpWriter.writeNext(header, false);
-        outputDumpWriter.flush();
-        outputDumpWriter.close();
-    }
 
-    private void registerPerformance(){
-        long diff = System.currentTimeMillis() - startTime;
-        double throughput = (double)counter;
-        throughput = throughput/diff;
-        throughput = throughput * 1000;
 
-        performanceFileBuilder.register(exp, run, throughput,
-                counter, diff/1000);
+    public DumpingListener(String expName, boolean dump, long within) throws IOException {
+        String[] split = expName.split("_");
+        this.exp = split[0];
+        this.run = split[1];
+        this.within = within;
+        String[] headersThroughput = {"exp-name", "run", "thread", "within", "start-time", "end-time", "nevents"};
+        String[] headersMemory = {"exp-name", "run", "within", "time", "total-memory", "free-memory",  "nevents"};
+        this.runtime = Runtime.getRuntime();
+        this.performanceFileBuilder = new PerformanceFileBuilder(expName + "_throughput_esper.csv", headersThroughput,true,
+                expName + "_memory_esper_" + Thread.currentThread().getName() + ".csv", headersMemory,true);
+        this.dump = dump;
+        if (dump) {
+            outputDumpWriter = new CSVWriter(new FileWriter(expName + "esper-output-dump.csv", true));
+            String[] header = {"AXB", "start_time", "start_time", "end_time", "end", "idA", "start_timeA", "end_timeA", "partitionA", "isEndA",
+                    "idB", "start_timeB", "end_timeB", "partitionB", "isEndB"};
+            outputDumpWriter.writeNext(header, false);
+            outputDumpWriter.flush();
+        } else outputDumpWriter = null;
     }
 
     @Override
     public void update(EventBean[] newEvents, EventBean[] oldEvents, EPStatement statement, EPRuntime runtime) {
-        boolean endA = false;
-        boolean endB = false;
-//            CSVWriter outputDumpWriter = new CSVWriter(new FileWriter(  exp+"_"+run+"_" + "esper.output.dump.csv", true));
-        for (EventBean bean : newEvents
-             ) {
+        try {
+            for (EventBean bean : newEvents) {
+                counter++;
+                if (dump) {
+                    String[] nextLine = {"AXB",
+                            String.valueOf(bean.get("x.start_time")),
+                            String.valueOf(bean.get("y.end_time")),
+                            String.valueOf((boolean) bean.get("x.end") && (boolean) bean.get("y.end")),
+                            String.valueOf(bean.get("x.idA")),
+                            String.valueOf(bean.get("x.start_time")),
+                            String.valueOf(bean.get("x.end_time")),
+                            String.valueOf(bean.get("x.partition")),
+                            String.valueOf(bean.get("x.end")),
+                            String.valueOf(bean.get("y.idB")),
+                            String.valueOf(bean.get("y.start_time")),
+                            String.valueOf(bean.get("y.end_time")),
+                            String.valueOf(bean.get("y.partition")),
+                            String.valueOf(bean.get("y.end"))};
 
-//                GenericRecord x = builderA.set("start_time", bean.get("x.start_time"))
-//                        .set("end_time", bean.get("x.end_time"))
-//                        .set("end", bean.get("x.end"))
-//                        .set("idA", bean.get("x.idA"))
-//                        .set("partition", bean.get("x.partition"))
-//                        .build();
-//
-//                GenericRecord y = builderB.set("start_time", bean.get("y.start_time"))
-//                        .set("end_time", bean.get("y.end_time"))
-//                        .set("end", bean.get("y.end"))
-//                        .set("idB", bean.get("y.idB"))
-//                        .set("partition", bean.get("y.partition"))
-//                        .build();
 
-            if(!endA || !endB){
-                endA = (boolean) bean.get("x.end");
-                endB = (boolean) bean.get("y.end");
+                    outputDumpWriter.writeNext(nextLine, false);
+                    outputDumpWriter.flush();
+                }
+
+//                System.out.println(bean.get("x.end_time"));
+                if ((boolean) bean.get("x.end") && (boolean) bean.get("y.end")){
+                    String[] thData = new String[]{
+                            this.exp,
+                            this.run,
+                            Thread.currentThread().getName(),
+                            String.valueOf(within),
+                            String.valueOf(startTime),
+                            String.valueOf(System.currentTimeMillis()),
+                            String.valueOf(counter)
+                    };
+                    performanceFileBuilder.registerThroughput(thData);
+                    ended = true;
+                }
+            }
+            String[] memData = new String[]{
+                    this.exp,
+                    this.run,
+                    String.valueOf(this.within),
+                    String.valueOf(this.runtime.totalMemory()),
+                    String.valueOf(this.runtime.freeMemory()),
+                    String.valueOf(System.currentTimeMillis()),
+                    String.valueOf(counter)
+            };
+            performanceFileBuilder.registerMemory(memData);
+
+            if (ended){
+                if (dump)
+                    outputDumpWriter.close();
+                performanceFileBuilder.close();
             }
 
-//                String[] nextLine = {"AXB",
-//                        String.valueOf(x.get("start_time")),
-//                        String.valueOf(y.get("end_time")),
-//                        String.valueOf((boolean) bean.get("x.end") && (boolean) bean.get("y.end")),
-//                        String.valueOf(x.get("idA")),
-//                        String.valueOf(x.get("start_time")),
-//                        String.valueOf(x.get("end_time")),
-//                        String.valueOf(x.get("partition")),
-//                        String.valueOf(x.get("end")),
-//                        String.valueOf(y.get("idB")),
-//                        String.valueOf(y.get("start_time")),
-//                        String.valueOf(y.get("end_time")),
-//                        String.valueOf(y.get("partition")),
-//                        String.valueOf(y.get("end"))};
-
-//                if(String.valueOf(x.get("idA")).equals("205") && String.valueOf(y.get("idB")).equals("280")){
-//                    System.out.println("HERE IS THE PROBLEM");
-//                }
-//
-//                outputDumpWriter.writeNext(nextLine, false);
-//                outputDumpWriter.flush();
-//                counter++;
-
-        }
-
-//            outputDumpWriter.close();
 
 
-        if (endA && endB){
-            registerPerformance();
-            endCount++;
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public long getEndCount() {
-        return endCount;
+    public boolean getEnd() {
+        return ended;
     }
 }

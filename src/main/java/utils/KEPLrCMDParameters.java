@@ -32,29 +32,14 @@ public class KEPLrCMDParameters {
                 case "--broker":
                     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, args[++i]);
                     break;
-                case "--schema":
-                    props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, args[++i]);
-                    break;
                 case "--name":
                     props.put(ExperimentsConfig.EXPERIMENT_NAME, args[++i]);
-                    break;
-                case "--run":
-                    props.put(ExperimentsConfig.EXPERIMENT_RUN, args[++i]);
                     break;
                 case "--topic":
                     props.put(ExperimentsConfig.EXPERIMENT_INPUT_TOPIC, args[++i]);
                     break;
-                case "--partitions":
+                case "--partitions-count":
                     props.put(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT, args[++i]);
-                    break;
-                case "--partitions-min-index":
-                    props.put(ExperimentsConfig.EXPERIMENT_PARTITION_MIN_INDEX, args[++i]);
-                    break;
-                case "--partitions-max-index":
-                    props.put(ExperimentsConfig.EXPERIMENT_PARTITION_MAX_INDEX, args[++i]);
-                    break;
-                case "--broker-count":
-                    props.put(ExperimentsConfig.EXPERIMENT_BROKER_COUNT, args[++i]);
                     break;
                 case "--chunk-size":
                     props.put(ExperimentsConfig.EXPERIMENT_CHUNK_SIZE, args[++i]);
@@ -65,12 +50,6 @@ public class KEPLrCMDParameters {
                 case "--chunk-number":
                     props.put(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS, args[++i]);
                     break;
-                case "--within":
-                    props.put(ExperimentsConfig.EXPERIMENT_WINDOW, args[++i]);
-                    break;
-                case "--init-time":
-                    props.put(ExperimentsConfig.EXPERIMENT_INIT_TIME, args[++i]);
-                    break;
                 default:
                     throw new IllegalFormatFlagsException("Parameter "+tmp+" is not well formatted.");
             }
@@ -79,10 +58,7 @@ public class KEPLrCMDParameters {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, Serdes.Integer().serializer().getClass());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
         props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 500000000L);
-        //props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, DefaultStreamPartitioner.class.getName());
-        if(!props.containsKey(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)){
-            props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL);
-        }
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL);
 
         return props;
     }
@@ -97,9 +73,6 @@ public class KEPLrCMDParameters {
                 case "--broker":
                     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, args[++i]);
                     break;
-                case "--schema":
-                    props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, args[++i]);
-                    break;
                 case "--name":
                     props.put(ExperimentsConfig.EXPERIMENT_NAME, args[++i]);
                     break;
@@ -112,7 +85,7 @@ public class KEPLrCMDParameters {
                 case "--output":
                     props.put(ExperimentsConfig.EXPERIMENT_OUTPUT_TOPIC, args[++i]);
                     break;
-                case "--partitions":
+                case "--partitions-count":
                     props.put(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT, args[++i]);
                     break;
                 case "--broker-count":
@@ -129,9 +102,6 @@ public class KEPLrCMDParameters {
                     break;
                 case "--within":
                     props.put(ExperimentsConfig.EXPERIMENT_WINDOW, args[++i]);
-                    break;
-                case "--init-time":
-                    props.put(ExperimentsConfig.EXPERIMENT_INIT_TIME, args[++i]);
                     break;
                 default:
                     throw new IllegalFormatFlagsException("Parameter "+tmp+" is not well formatted.");
@@ -149,7 +119,7 @@ public class KEPLrCMDParameters {
         props.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG,
                 props.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT));
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL);
 
         return props;
     }
@@ -164,9 +134,6 @@ public class KEPLrCMDParameters {
                 case "--broker":
                     props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, args[++i]);
                     break;
-                case "--schema":
-                    props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, args[++i]);
-                    break;
                 case "--name":
                     props.put(ExperimentsConfig.EXPERIMENT_NAME, args[++i]);
                     break;
@@ -179,7 +146,7 @@ public class KEPLrCMDParameters {
                 case "--output":
                     props.put(ExperimentsConfig.EXPERIMENT_OUTPUT_TOPIC, args[++i]);
                     break;
-                case "--partitions":
+                case "--partitions-count":
                     props.put(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT, args[++i]);
                     break;
                 case "--broker-count":
@@ -196,9 +163,6 @@ public class KEPLrCMDParameters {
                     break;
                 case "--within":
                     props.put(ExperimentsConfig.EXPERIMENT_WINDOW, args[++i]);
-                    break;
-                case "--init-time":
-                    props.put(ExperimentsConfig.EXPERIMENT_INIT_TIME, args[++i]);
                     break;
                 default:
                     throw new IllegalFormatFlagsException("Parameter "+tmp+" is not well formatted.");
@@ -218,6 +182,7 @@ public class KEPLrCMDParameters {
         props.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG,
                 props.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT));
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL);
 
         return props;
     }

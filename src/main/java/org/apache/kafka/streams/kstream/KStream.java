@@ -516,7 +516,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.transform(new TransformerSupplier() { ... }, "myTransformState");
@@ -608,7 +608,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.flatTransform(new TransformerSupplier() { ... }, "myTransformState");
@@ -698,7 +698,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.transformValues(new ValueTransformerSupplier() { ... }, "myValueTransformState");
@@ -774,7 +774,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.transformValues(new ValueTransformerWithKeySupplier() { ... }, "myValueTransformState");
@@ -853,7 +853,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.flatTransformValues(new ValueTransformerSupplier() { ... }, "myValueTransformState");
@@ -939,7 +939,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KStream outputStream = inputStream.flatTransformValues(new ValueTransformerWithKeySupplier() { ... }, "myValueTransformState");
@@ -1026,7 +1026,7 @@ public interface KStream<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myProcessorState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * inputStream.process(new ProcessorSupplier() { ... }, "myProcessorState");

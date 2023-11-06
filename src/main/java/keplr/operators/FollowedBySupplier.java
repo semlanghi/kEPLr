@@ -84,7 +84,7 @@ public class FollowedBySupplier<K,V,R> extends OrderingAbstractProcessorSupplier
                 //It's a successor
 
                 KeyValueIterator<TypedKey<K>,V> iterator = eventStore.fetchEventsInLeft(searchableKey.get(key.getKey()),
-                        context().timestamp() - withinTime, context().timestamp(), !succType.isOnEvery());
+                        context().timestamp() - withinTime +1, context().timestamp(), !succType.isOnEvery());
 
                 if(!succType.isOnEvery() || !iterator.hasNext()) {
                     predecessorGatewayStore.put(key.getKey(),1);

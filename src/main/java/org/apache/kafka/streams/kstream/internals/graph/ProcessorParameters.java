@@ -21,7 +21,7 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 
 /**
  * Class used to represent a {@link ProcessorSupplier} and the name
- * used to register it with the {@link org.apache.kafka.streams.processor.internals.InternalTopologyBuilder}
+ * used to registerThroughput it with the {@link org.apache.kafka.streams.processor.internals.InternalTopologyBuilder}
  *
  * Used by the Join nodes as there are several parameters, this abstraction helps
  * keep the number of arguments more reasonable.

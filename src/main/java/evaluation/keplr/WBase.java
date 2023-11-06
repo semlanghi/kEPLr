@@ -38,6 +38,7 @@ public abstract class WBase {
     private Schema schemaEnd;
     private EType<Integer, GenericRecord> type1;
     private EType<Integer, GenericRecord> type2;
+    private EType<Integer, GenericRecord> typeEnd;
     protected Properties config;
     private StreamsBuilder builder;
     protected KTStream<Integer, GenericRecord>[] typedStreams;
@@ -56,7 +57,7 @@ public abstract class WBase {
         this.topic = config.getProperty(ExperimentsConfig.EXPERIMENT_INPUT_TOPIC);
         this.outputTopic = config.getProperty(ExperimentsConfig.EXPERIMENT_OUTPUT_TOPIC);
         this.threadCount = Integer.parseInt(config.getProperty(StreamsConfig.NUM_STREAM_THREADS_CONFIG));
-        if(config.containsKey(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)){
+        if(config.containsKey(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG) && !config.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG).contains("mock")){
             String baseUrl = config.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG);
             schemaRegistryClient = new CachedSchemaRegistryClient(baseUrl, 4);
         }else {
@@ -94,6 +95,7 @@ public abstract class WBase {
 
         type1 = new ETypeIntAvro(schemaA);
         type2 = new ETypeIntAvro(schemaB);
+        typeEnd = new ETypeIntAvro(schemaEnd);
     }
 
     /**
@@ -108,11 +110,11 @@ public abstract class WBase {
     public void createStream() {
         this.builder = new StreamsBuilder();
         WrappedKStreamImpl<Integer, GenericRecord> wrappedKStream = new WrappedKStreamImpl<>(builder.stream(topic, Consumed.with(Serdes.Integer(), null)));
-        typedStreams = wrappedKStream.match(type1, type2);
-        completeTopology();
+        typedStreams = wrappedKStream.match(type1, type2, typeEnd);
+        completeTopology().merge(typedStreams[2]).throughput(appSupplier);//.to(outputTopic);
     }
 
-    protected abstract void completeTopology();
+    protected abstract KTStream<Integer, GenericRecord> completeTopology();
 
 
     /**
@@ -141,7 +143,7 @@ public abstract class WBase {
                 try {
                     // setupSchemas a timer, so if nice exit fails, the nasty exit happens
                     //sendOut("END");
-                    Thread.sleep(60000);
+//                    Thread.sleep(60000);
                     Runtime.getRuntime().exit(0);
                 } catch (Throwable ex) {
                     // exit nastily if we have a problem

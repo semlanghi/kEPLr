@@ -37,12 +37,11 @@ public class ProducerMain {
                 throw new IllegalFormatFlagsException("Name of the Experiment not provided.");
         }
 
-        int partitionIndexMax = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_MAX_INDEX));
-        int partitionIndexMin = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_MIN_INDEX));
+        int partitionCount = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT));
 
         try {
             base.setupSchemas();
-            base.createRecords(IntStream.range(partitionIndexMin, partitionIndexMax+1).toArray());
+            base.createRecords(IntStream.range(0, partitionCount).toArray());
         } catch (IOException | RestClientException e) {
             e.printStackTrace();
         }

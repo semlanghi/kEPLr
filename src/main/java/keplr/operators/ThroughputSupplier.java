@@ -10,6 +10,7 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -52,20 +53,31 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
         private long current_window = 0L;
         private String run;
         private String name;
-        private String partitions;
+        private int partitions;
 
 
         @Override
         public void init(ProcessorContext context) {
             super.init(context);
             try {
-                startProc = System.currentTimeMillis();
+                this.startProc = System.currentTimeMillis();
                 this.experiment_window = Long.parseLong(String.valueOf(context.appConfigs().get(ExperimentsConfig.EXPERIMENT_WINDOW)));
                 this.run = String.valueOf(context.appConfigs().get(ExperimentsConfig.EXPERIMENT_RUN));
                 this.name = String.valueOf(context.appConfigs().get(ExperimentsConfig.EXPERIMENT_NAME));
-                this.partitions = String.valueOf(context.appConfigs().get(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT));
-                this.throughput = new CSVWriter(new FileWriter(name + "_" + run + "_throughput.csv", true));
-                this.memory = new CSVWriter(new FileWriter(name + "_" + run + "_memory.csv", true));
+                this.partitions = Integer.parseInt(String.valueOf(context.appConfigs().get(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT)));
+                File fileName = new File(name + "_" + run + "_throughput.csv");
+                if (!fileName.exists()) {
+                    this.throughput = new CSVWriter(new FileWriter(name + "_" + run + "_throughput.csv", true));
+                    String[] headersThroughput = {"exp-name", "run", "thread", "partitions-count", "within", "start-time", "end-time", "nevents", "context-time", "key"};
+                    throughput.writeNext(headersThroughput, false);
+                    throughput.flush();
+                    throughput.close();
+                }
+                String thread = Thread.currentThread().getName();
+                this.memory = new CSVWriter(new FileWriter(name + "_" + run + "_" + thread + "_memory.csv", true));
+                String[] headersMemory = {"exp-name", "run", "partitions-count","within", "total-memory", "free-memory",  "sys-time", "lastevent-time" , "context-time","nevents", "key"};
+                memory.writeNext(headersMemory, false);
+                memory.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -83,18 +95,26 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
                 GenericRecord avroValue = (GenericRecord) value;
                 long endtime = (Long) avroValue.get("end_time");
                 if (endtime > current_window) {
-                    writeProgressiveMemory(thread, runtime, endtime);
+                    writeProgressiveMemory(key, runtime, endtime);
                     current_window += experiment_window;
                 }
 
                 if (type.isThisTheEnd(value)) {
-                    writeThroughput(key, (GenericRecord) value, thread, runtime);
-                    context().forward(key, value);
+                    try {
+                        writeThroughput(key, context().timestamp(), thread, runtime);
+    //                    context().forward(key, value);
+
+                        memory.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
                     synchronized (app) {
                         app.close();
                     }
+
                 } else {
-                    context().forward(key, value);
+//                    context().forward(key, value);
                 }
             } else {
                 //Out-of-Order Processing
@@ -102,44 +122,40 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
             }
         }
 
-        private void writeThroughput(TypedKey<K> key, GenericRecord value, String thread, Runtime runtime) {
-            long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
-
+        private void writeThroughput(TypedKey<K> key, long contextTime, String thread, Runtime runtime) throws IOException {
             Integer originalKey = (Integer) key.getKey();
+            this.throughput = new CSVWriter(new FileWriter(name + "_" + run + "_throughput.csv", true));
             throughput.writeNext(new String[]{
                     name,
                     run,
-                    partitions,
+                    thread,
+                    String.valueOf(partitions),
                     String.valueOf(experiment_window),
                     String.valueOf(startProc),
                     String.valueOf(System.currentTimeMillis()),
                     String.valueOf(counter),
-                    String.valueOf(originalKey),
-                    thread,
-                    String.valueOf(memoryUsed)
+                    String.valueOf(contextTime),
+                    String.valueOf(originalKey)
             }, false);
 
-            try {
-                throughput.flush();
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            throughput.flush();
+            throughput.close();
         }
 
-        private void writeProgressiveMemory(String thread, Runtime runtime, long endtime) {
-            long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
+        private void writeProgressiveMemory(TypedKey<K> key, Runtime runtime, long endtime) {
+            Integer originalKey = (Integer) key.getKey();
             memory.writeNext(new String[]{
                     name,
                     run,
-                    partitions,
-                    String.valueOf(counter),
-                    String.valueOf(memoryUsed),
+                    String.valueOf(partitions),
+                    String.valueOf(experiment_window),
+                    String.valueOf(runtime.totalMemory()),
+                    String.valueOf(runtime.freeMemory()),
                     String.valueOf(System.currentTimeMillis()),
-                    thread,
-                    String.valueOf(current_window),
                     String.valueOf(endtime),
-                    String.valueOf(observedStreamTime)
+                    String.valueOf(observedStreamTime),
+                    String.valueOf(counter),
+                    String.valueOf(originalKey)
             }, false);
 
             try {

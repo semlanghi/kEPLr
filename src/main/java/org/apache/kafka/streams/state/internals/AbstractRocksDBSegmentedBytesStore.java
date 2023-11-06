@@ -193,7 +193,7 @@ public class AbstractRocksDBSegmentedBytesStore<S extends Segment> implements Se
 
         bulkLoadSegments = new HashSet<>(segments.allSegments());
 
-        // register and possibly restore the state from the logs
+        // registerThroughput and possibly restore the state from the logs
         context.register(root, new RocksDBSegmentsBatchingRestoreCallback());
 
         open = true;

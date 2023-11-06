@@ -1,10 +1,8 @@
 package evaluation.keplr;
 
-import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import keplr.ktstream.KTStream;
+import org.apache.avro.generic.GenericRecord;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -22,9 +20,8 @@ public class W2 extends WBase {
     }
 
     @Override
-    protected void completeTopology() {
-        typedStreams[0].every()
-                .followedBy(typedStreams[1], within)
-                .throughput(appSupplier).to(outputTopic);
+    protected KTStream<Integer, GenericRecord> completeTopology() {
+        return typedStreams[0].every()
+                .followedBy(typedStreams[1], within);
     }
 }

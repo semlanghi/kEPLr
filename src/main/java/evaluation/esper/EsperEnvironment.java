@@ -15,15 +15,14 @@ import java.io.InputStream;
 import java.util.*;
 
 import static evaluation.ExperimentsConfig.EXPERIMENT_NAME;
-import static evaluation.ExperimentsConfig.EXPERIMENT_RUN;
 
 public class EsperEnvironment {
 
-    public static final String query = " create context Keyed " +
-            " coalesce  by  consistent_hash_crc32(key)  from  Key  granularity 3  preallocate; \n" +
-            " @name('Prova')context Keyed " +
-            " select x.start_time, y.end_time, x.idA, y.idB " +
-            " from pattern[every x=A -> every y=B where timer:within(60000 milliseconds)]; ";
+//    public static final String query = " create context Keyed " +
+//            " coalesce  by  consistent_hash_crc32(key)  from  Key  granularity 3  preallocate; \n" +
+//            " @name('Prova')context Keyed " +
+//            " select x.start_time, y.end_time, x.idA, y.idB " +
+//            " from pattern[every x=A -> every y=B where timer:within(60000 milliseconds)]; ";
 
     public static void main(String[] args) throws IOException, EPCompileException, EPDeployException {
 

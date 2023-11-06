@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * Creates records for example 3.
  * The records are grouped into chunks of size equal to the
- * {@link evaluation.keplr.WBase#within} parameter. The records are set up as in the following:
+ *  parameter. The records are set up as in the following:
  *
  * <-------------within---------------><-------------within--------------->
  * ABABABABABAB...                     ABABABABABABAB...
@@ -30,7 +30,9 @@ public class W3Producer extends WProducerBase{
             sendRecordA(ID++, simulatedTime + j * 2, false, key);
             sendRecordB(ID++, simulatedTime + j * 2 + 1, false, key);
         }
-        sendRecordEND(ID++, simulatedTime + j*2 + 1, key);
+        sendRecordA(ID++, simulatedTime + j * 2, true, key);
+        sendRecordB(ID++, simulatedTime + j * 2 + 1, true, key);
+        sendRecordEND(ID++, simulatedTime + j*2 + 2, key);
     }
 
     @Override

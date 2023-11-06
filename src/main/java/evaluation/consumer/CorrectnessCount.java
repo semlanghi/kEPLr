@@ -41,7 +41,7 @@ public class CorrectnessCount {
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(props);
 
-        String topic = "output_W3";
+        String topic = "topic-W1-chunkn-30-chunks-100-chunkg-0";
         consumer.subscribe(Arrays.asList(topic));
         long numberOfRecords = 0L;
 

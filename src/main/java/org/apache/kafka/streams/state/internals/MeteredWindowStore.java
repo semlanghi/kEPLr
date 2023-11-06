@@ -84,7 +84,7 @@ public class MeteredWindowStore<K, V>
         flushTime = createTaskAndStoreLatencyAndThroughputSensors(DEBUG, "flush", metrics, metricsGroup, taskName, name(), taskTags, storeTags);
         final Sensor restoreTime = createTaskAndStoreLatencyAndThroughputSensors(DEBUG, "restore", metrics, metricsGroup, taskName, name(), taskTags, storeTags);
 
-        // register and possibly restore the state from the logs
+        // registerThroughput and possibly restore the state from the logs
         final long startNs = time.nanoseconds();
         try {
             super.init(context, root);

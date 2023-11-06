@@ -54,7 +54,7 @@ public class InMemoryKeyValueStore implements KeyValueStore<Bytes, byte[]> {
                      final StateStore root) {
         size = 0;
         if (root != null) {
-            // register the store
+            // registerThroughput the store
             context.register(root, (key, value) -> put(Bytes.wrap(key), value));
         }
 

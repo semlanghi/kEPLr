@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * Creates records for example 2.
  * The records are grouped into chunks of size equal to the
- * {@link evaluation.keplr.WBase#within} parameter. The records are set up as in the following:
+ *  parameter. The records are set up as in the following:
  *
  * <-------------within---------------><-------------within--------------->
  * <-----As----->                      <-----As----->
@@ -26,11 +26,12 @@ public class W2Producer extends WProducerBase {
     @Override
     protected void createKeyedLastBatch(int currentChunkSize, int key) {
         int i;
-        for (i = 0; i < currentChunkSize-2; i++) {
+        for (i = 0; i < currentChunkSize-3; i++) {
             sendRecordA(ID++, simulatedTime + i, false, key);
         }
-        sendRecordB(ID++, simulatedTime + i, false, key);
-        sendRecordEND(ID++, simulatedTime + currentChunkSize - 1, key);
+        sendRecordA(ID++, simulatedTime + i++, true, key);
+        sendRecordB(ID++, simulatedTime + i++, true, key);
+        sendRecordEND(ID++, simulatedTime + i, key);
     }
 
     @Override

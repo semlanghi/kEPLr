@@ -100,7 +100,7 @@ public class MeteredKeyValueStore<K, V>
         deleteTime = createTaskAndStoreLatencyAndThroughputSensors(DEBUG, "delete", metrics, metricsGroup, taskName, name(), taskTags, storeTags);
         final Sensor restoreTime = createTaskAndStoreLatencyAndThroughputSensors(DEBUG, "restore", metrics, metricsGroup, taskName, name(), taskTags, storeTags);
 
-        // register and possibly restore the state from the logs
+        // registerThroughput and possibly restore the state from the logs
         if (restoreTime.shouldRecord()) {
             measureLatency(
                 () -> {

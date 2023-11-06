@@ -8,40 +8,51 @@ import java.io.IOException;
 
 public class PerformanceFileBuilder {
 
+    private CSVWriter throughputWriter;
+    private CSVWriter memoryWriter;
 
-    private String platform;
-    private String fileName;
-
-    public PerformanceFileBuilder(String fileName) {
+    public PerformanceFileBuilder(String throughputFileName, String[] throughputHeaders, boolean thAppend,
+                                  String memoryFileName, String[] memoryHeaders, boolean memAppend) {
         try {
-            this.fileName = fileName;
-            File file = new File(fileName);
+            File file = new File(throughputFileName);
             if(!file.exists()){
                 file.createNewFile();
-                CSVWriter writer = new CSVWriter(new FileWriter(file, true));
-                String[] firstRow = new String[]{"Experiment-Name", "Experiment-Run", "Platform", "Throughput", "InputSize", "SecondsPassed"};
-                writer.writeNext(firstRow);
-                writer.flush();
-                writer.close();
-            }
+                this.throughputWriter = new CSVWriter(new FileWriter(file, thAppend));
+                this.throughputWriter.writeNext(throughputHeaders);
+                this.throughputWriter.flush();
+            } else this.throughputWriter = new CSVWriter(new FileWriter(file, thAppend));
+            file = new File(memoryFileName);
+            if(!file.exists()){
+                file.createNewFile();
+                this.memoryWriter = new CSVWriter(new FileWriter(file, memAppend));
+                this.memoryWriter.writeNext(memoryHeaders);
+                this.memoryWriter.flush();
+            } else this.memoryWriter = new CSVWriter(new FileWriter(file, memAppend));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void register(String expName, String expRun, double throughput, long inputSize, long secondsPassed){
-        String[] row = new String[]{expName, expRun, String.valueOf(throughput), String.valueOf(inputSize), String.valueOf(secondsPassed)};
-        File file = new File(fileName);
-
+    public void registerThroughput(String[] row){
         try {
-            CSVWriter writer = new CSVWriter(new FileWriter(file, true));
-            writer.writeNext(row);
-            writer.flush();
-            writer.close();
+            throughputWriter.writeNext(row);
+            throughputWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public void registerMemory(String[] row){
+        try {
+            memoryWriter.writeNext(row);
+            memoryWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void close() throws IOException {
+        this.throughputWriter.close();
+        this.memoryWriter.close();
+    }
 }

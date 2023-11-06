@@ -22,8 +22,8 @@ public class EsperW4 extends EsperBase {
             EPDeployment deployment = epRuntime.getDeploymentService().deploy(compiled);
             deploymentIdMap.put("W4", deployment.getDeploymentId());
 
-            epRuntime.getDeploymentService().getStatement(deployment.getDeploymentId(), "prova").addListener(new DumpingListener("W4_"+run+"_", schemaA, schemaB));
-        } catch (EPDeployException | EPCompileException | IOException e) {
+            epRuntime.getDeploymentService().getStatement(deployment.getDeploymentId(), "prova").addListener(this.dumpingListener);
+        } catch (EPDeployException | EPCompileException e) {
             e.printStackTrace();
         }
     }

@@ -76,7 +76,7 @@ public class MemoryLRUCache implements KeyValueStore<Bytes, byte[]> {
     @Override
     public void init(final ProcessorContext context, final StateStore root) {
 
-        // register the store
+        // registerThroughput the store
         context.register(root, (key, value) -> {
             restoring = true;
             put(Bytes.wrap(key), value);

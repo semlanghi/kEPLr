@@ -8,14 +8,12 @@ import com.espertech.esper.compiler.client.EPCompiler;
 import com.espertech.esper.compiler.client.EPCompilerProvider;
 import com.espertech.esper.runtime.client.EPRuntime;
 import com.espertech.esper.runtime.client.EPRuntimeProvider;
-import com.espertech.esper.runtime.client.UpdateListener;
 import evaluation.ExperimentsConfig;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.rest.exceptions.RestClientException;
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
-import keplr.etype.ETypeAvro;
 import org.apache.avro.Schema;
 
 import java.io.IOException;
@@ -67,7 +65,7 @@ public abstract class EsperBase {
 
             SchemaRegistryClient schemaRegistryClient;
 
-            if(props.containsKey(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)){
+            if(props.containsKey(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG) && !props.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG).contains("mock")){
                 String baseUrl = props.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG);
                 schemaRegistryClient = new CachedSchemaRegistryClient(baseUrl, 4);
             }else {
@@ -79,7 +77,7 @@ public abstract class EsperBase {
             schemaRegistryClient.register("B", schemaB, 0, 2);
             schemaRegistryClient.register("END", schemaEnd, 0, 3);
 
-            this.dumpingListener = new DumpingListener(props.getProperty(EXPERIMENT_NAME)+"_"+props.getProperty(ExperimentsConfig.EXPERIMENT_RUN)+"_", schemaA, schemaB);
+            this.dumpingListener = new DumpingListener(props.getProperty(EXPERIMENT_NAME)+"_"+props.getProperty(ExperimentsConfig.EXPERIMENT_RUN), false, Long.parseLong(props.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)));
 
             return schemaRegistryClient;
         } catch (IOException | RestClientException e) {

@@ -422,7 +422,7 @@ public interface KTable<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KTable outputTable = inputTable.transformValues(new ValueTransformerWithKeySupplier() { ... }, "myValueTransformState");
@@ -492,7 +492,7 @@ public interface KTable<K, V> {
      *         Stores.keyValueStoreBuilder(Stores.persistentKeyValueStore("myValueTransformState"),
      *                 Serdes.String(),
      *                 Serdes.String());
-     * // register store
+     * // registerThroughput store
      * builder.addStateStore(keyValueStoreBuilder);
      *
      * KTable outputTable = inputTable.transformValues(

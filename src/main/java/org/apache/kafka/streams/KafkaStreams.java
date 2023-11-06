@@ -772,7 +772,7 @@ public class KafkaStreams implements AutoCloseable {
      * However, if you have global stores in your topology, this method blocks until all global stores are restored.
      * As a consequence, any fatal exception that happens during processing is by default only logged.
      * If you want to be notified about dying threads, you can
-     * {@link #setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler) register an uncaught exception handler}
+     * {@link #setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler) registerThroughput an uncaught exception handler}
      * before starting the {@code KafkaStreams} instance.
      * <p>
      * Note, for brokers with version {@code 0.9.x} or lower, the broker version cannot be checked.

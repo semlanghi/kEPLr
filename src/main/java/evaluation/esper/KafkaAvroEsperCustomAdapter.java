@@ -3,16 +3,22 @@ package evaluation.esper;
 import com.espertech.esper.common.client.EventSender;
 import com.espertech.esper.common.internal.collection.Pair;
 import com.espertech.esper.runtime.client.EPEventService;
+import com.opencsv.AbstractCSVWriter;
+import com.opencsv.CSVWriter;
 import evaluation.ExperimentsConfig;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import utils.PerformanceFileBuilder;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -24,7 +30,6 @@ import java.util.logging.Logger;
  * events of the same type, sent through the {@link EventSender} object.
  * Every time an event is sent, the time in the {@link com.espertech.esper.runtime.client.EPRuntime}
  * is advanced accordingly, since we are using the external time by default.
- * Optionally, it can register the performance and report it in the performance file.
  *
  * @param <K> The key of the Kafka record
  * @param <E> The type of the event sent to Esper
@@ -39,9 +44,6 @@ public class KafkaAvroEsperCustomAdapter<K,E> implements EsperCustomAdapter<Gene
     private final EventSender senderB;
     private int maxEnd;
     private EPEventService epEventService;
-    private Map<K, Long> timeMap;
-    private K minK;
-    private SchemaRegistryClient schemaRegistryClient;
     private DumpingListener endingHook;
 
 
@@ -53,14 +55,12 @@ public class KafkaAvroEsperCustomAdapter<K,E> implements EsperCustomAdapter<Gene
      * @param schemaRegistryClient
      */
     public KafkaAvroEsperCustomAdapter(DumpingListener endingHook, Properties props, EPEventService epEventService, SchemaRegistryClient schemaRegistryClient) {
-        this.schemaRegistryClient = schemaRegistryClient;
         this.consumer = new KafkaConsumer<>(props);
         this.consumer.subscribe(Collections.singletonList(props.getProperty(ExperimentsConfig.EXPERIMENT_INPUT_TOPIC)));
         this.senderA = epEventService.getEventSender("A");
         this.senderB = epEventService.getEventSender("B");
         this.maxEnd = Integer.parseInt(props.getProperty(ExperimentsConfig.EXPERIMENT_PARTITION_COUNT));
         this.epEventService = epEventService;
-        this.timeMap = new HashMap<>();
         this.endingHook = endingHook;
     }
 
@@ -73,22 +73,10 @@ public class KafkaAvroEsperCustomAdapter<K,E> implements EsperCustomAdapter<Gene
             In case of no stopping criteria, the number of arrived, special ad-hoc "ending events"
             is counted.
              */
-            while (endingHook.getEndCount() < maxEnd) {
+            while (!endingHook.getEnd()) {
                 ConsumerRecords<K, GenericRecord> records = consumer.poll(Duration.ofSeconds(2));
                 records.forEach(record -> {
                     Pair<E, Long> value = transformationFunction.apply(record.value());
-//                    if (timeMap.isEmpty()){
-//                        minK = record.key();
-//                    }
-//                    timeMap.putIfAbsent(record.key(), value.getSecond());
-//
-//                    if(timeMap.get(minK)< value.getSecond()){
-//                        minK = timeMap.entrySet().stream().min(Comparator.comparingLong(Map.Entry::getValue)).get().getKey();
-
-//                    }
-//
-//                    if (timeMap.get(record.key())< value.getSecond())
-//                        timeMap.put(record.key(), value.getSecond());
 
                     if (record.value().getSchema().getName().equals("A"))
                         sendA(value);
@@ -106,18 +94,10 @@ public class KafkaAvroEsperCustomAdapter<K,E> implements EsperCustomAdapter<Gene
     }
 
     private void sendA(Pair<E,Long> eventTimestamp){
-        /*
-        Here we do not advance the timestamp since with multiple partitions it can generate problems
-        TODO: create separated timestamp advancements for each context
-         */
         senderA.sendEvent(eventTimestamp.getFirst());
     }
 
     private void sendB(Pair<E,Long> eventTimestamp){
-        /*
-        Here we do not advance the timestamp since with multiple partitions it can generate problems
-        TODO: create separated timestamp advancements for each context
-         */
         senderB.sendEvent(eventTimestamp.getFirst());
     }
 

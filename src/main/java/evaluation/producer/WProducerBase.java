@@ -61,7 +61,7 @@ public abstract class WProducerBase extends KafkaProducer<Integer, GenericRecord
         chunkSize = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_CHUNK_SIZE)); //Mandatory Field
         numberOfChunks = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_NUM_CHUNKS)); //Mandatory Field
         growthSize = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_CHUNK_GROWTH,"0"));
-        window = Integer.parseInt(properties.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)); //Mandatory Field
+        window = chunkSize;
         simulatedTime = 0L;
         if(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG).startsWith("mock")){
             schemaRegistryClient = MockSchemaRegistry.getClientForScope(ExperimentsConfig.MOCK_SCHEMA_REGISTRY_URL.split("//")[1]);

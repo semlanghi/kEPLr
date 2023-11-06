@@ -37,10 +37,8 @@ public class ApplicationSupplier {
      * @see KafkaStreams#close()
      */
     public void close() {
+        closed++;
         if (closed >= tasks)
             app.close();
-        else
-            closed++;
-
     }
 }

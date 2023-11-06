@@ -29,7 +29,7 @@ import java.util.Map;
 public interface ChangelogReader {
     /**
      * Register a state store and it's partition for later restoration.
-     * @param restorer the state restorer to register
+     * @param restorer the state restorer to registerThroughput
      */
     void register(final StateRestorer restorer);
 
