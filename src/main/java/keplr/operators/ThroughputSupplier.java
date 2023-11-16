@@ -74,7 +74,7 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
                     throughput.close();
                 }
                 String thread = Thread.currentThread().getName();
-                this.memory = new CSVWriter(new FileWriter(name + "_" + run + "_" + thread + "_memory.csv", true));
+                this.memory = new CSVWriter(new FileWriter(name + "_" + run + "_within_"+ context.appConfigs().get(ExperimentsConfig.EXPERIMENT_WINDOW) +"_topic_" + context.appConfigs().get(ExperimentsConfig.EXPERIMENT_INPUT_TOPIC) + "_memory.csv", true));
                 String[] headersMemory = {"exp-name", "run", "partitions-count","within", "total-memory", "free-memory",  "sys-time", "lastevent-time" , "context-time","nevents", "key"};
                 memory.writeNext(headersMemory, false);
                 memory.flush();

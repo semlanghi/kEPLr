@@ -27,7 +27,7 @@ public class DumpingListener implements UpdateListener {
 
 
 
-    public DumpingListener(String expName, boolean dump, long within) throws IOException {
+    public DumpingListener(String expName, boolean dump, long within, String topic) throws IOException {
         String[] split = expName.split("_");
         this.exp = split[0];
         this.run = split[1];
@@ -36,7 +36,7 @@ public class DumpingListener implements UpdateListener {
         String[] headersMemory = {"exp-name", "run", "within", "total-memory", "free-memory", "time",  "nevents"};
         this.runtime = Runtime.getRuntime();
         this.performanceFileBuilder = new PerformanceFileBuilder(expName + "_throughput_esper.csv", headersThroughput,true,
-                expName + "_memory_esper_" + Thread.currentThread().getName() + ".csv", headersMemory,true);
+                expName + "_memory_esper_" + Thread.currentThread().getName() + "_within_"+this.within+"_topic_"+topic+".csv", headersMemory,true);
         this.dump = dump;
         if (dump) {
             outputDumpWriter = new CSVWriter(new FileWriter(expName + "esper-output-dump.csv", true));

@@ -77,7 +77,7 @@ public abstract class EsperBase {
             schemaRegistryClient.register("B", schemaB, 0, 2);
             schemaRegistryClient.register("END", schemaEnd, 0, 3);
 
-            this.dumpingListener = new DumpingListener(props.getProperty(EXPERIMENT_NAME)+"_"+props.getProperty(ExperimentsConfig.EXPERIMENT_RUN), false, Long.parseLong(props.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)));
+            this.dumpingListener = new DumpingListener(props.getProperty(EXPERIMENT_NAME)+"_"+props.getProperty(ExperimentsConfig.EXPERIMENT_RUN), false, Long.parseLong(props.getProperty(ExperimentsConfig.EXPERIMENT_WINDOW)), props.getProperty(ExperimentsConfig.EXPERIMENT_INPUT_TOPIC));
 
             return schemaRegistryClient;
         } catch (IOException | RestClientException e) {
