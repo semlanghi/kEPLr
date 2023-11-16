@@ -94,10 +94,10 @@ public class ThroughputSupplier<K, V> extends KEPLrAbstractProcessorSupplier<K, 
 
                 GenericRecord avroValue = (GenericRecord) value;
                 long endtime = (Long) avroValue.get("end_time");
-                if (endtime > current_window) {
-                    writeProgressiveMemory(key, runtime, endtime);
-                    current_window += experiment_window;
-                }
+//                if (endtime > current_window) {
+                writeProgressiveMemory(key, runtime, endtime);
+//                    current_window += experiment_window;
+//                }
 
                 if (type.isThisTheEnd(value)) {
                     try {

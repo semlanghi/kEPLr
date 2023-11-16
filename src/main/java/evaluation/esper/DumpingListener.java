@@ -33,7 +33,7 @@ public class DumpingListener implements UpdateListener {
         this.run = split[1];
         this.within = within;
         String[] headersThroughput = {"exp-name", "run", "thread", "within", "start-time", "end-time", "nevents"};
-        String[] headersMemory = {"exp-name", "run", "within", "time", "total-memory", "free-memory",  "nevents"};
+        String[] headersMemory = {"exp-name", "run", "within", "total-memory", "free-memory", "time",  "nevents"};
         this.runtime = Runtime.getRuntime();
         this.performanceFileBuilder = new PerformanceFileBuilder(expName + "_throughput_esper.csv", headersThroughput,true,
                 expName + "_memory_esper_" + Thread.currentThread().getName() + ".csv", headersMemory,true);
@@ -73,6 +73,17 @@ public class DumpingListener implements UpdateListener {
                     outputDumpWriter.flush();
                 }
 
+                String[] memData = new String[]{
+                        this.exp,
+                        this.run,
+                        String.valueOf(this.within),
+                        String.valueOf(this.runtime.totalMemory()),
+                        String.valueOf(this.runtime.freeMemory()),
+                        String.valueOf(System.currentTimeMillis()),
+                        String.valueOf(counter)
+                };
+                performanceFileBuilder.registerMemory(memData);
+
 //                System.out.println(bean.get("x.end_time"));
                 if ((boolean) bean.get("x.end") && (boolean) bean.get("y.end")){
                     String[] thData = new String[]{
@@ -88,16 +99,7 @@ public class DumpingListener implements UpdateListener {
                     ended = true;
                 }
             }
-            String[] memData = new String[]{
-                    this.exp,
-                    this.run,
-                    String.valueOf(this.within),
-                    String.valueOf(this.runtime.totalMemory()),
-                    String.valueOf(this.runtime.freeMemory()),
-                    String.valueOf(System.currentTimeMillis()),
-                    String.valueOf(counter)
-            };
-            performanceFileBuilder.registerMemory(memData);
+
 
             if (ended){
                 if (dump)
