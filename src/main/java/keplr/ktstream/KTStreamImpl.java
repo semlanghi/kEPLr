@@ -100,6 +100,26 @@ public class KTStreamImpl<K,V> extends AbstractStream<TypedKey<K>, V>  implement
     }
 
     @Override
+    public KTStream<K, V> innerFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return null;
+    }
+
+    @Override
+    public KTStream<K, V> fullOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return null;
+    }
+
+    @Override
+    public KTStream<K, V> leftOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return null;
+    }
+
+    @Override
+    public KTStream<K, V> rightOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return null;
+    }
+
+    @Override
     public KStream<TypedKey<K>, V> wrappedStream() {
         return wrappedStream;
     }

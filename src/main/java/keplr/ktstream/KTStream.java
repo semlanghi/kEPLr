@@ -70,6 +70,16 @@ public interface KTStream<K, V> extends KStream<TypedKey<K>, V> {
      */
     public KTStream<K, V> followedBy(final KTStream<K, V> otherStream, final long withinMs);
 
+
+    public KTStream<K, V> innerFollowedBy(final KTStream<K, V> otherStream, final long withinMs);
+
+    public KTStream<K, V> fullOuterFollowedBy(final KTStream<K, V> otherStream, final long withinMs);
+
+    public KTStream<K, V> leftOuterFollowedBy(final KTStream<K, V> otherStream, final long withinMs);
+
+    public KTStream<K, V> rightOuterFollowedBy(final KTStream<K, V> otherStream, final long withinMs);
+
+
     public KStream<TypedKey<K>, V> wrappedStream();
 
     public EType<K, V> type();

@@ -120,6 +120,26 @@ public class KTStreamImpl2<K,V> extends KStreamImpl<TypedKey<K>, V>  implements 
         return new KTStreamImpl2<>(name, keySerde, valSerde, this.sourceNodes, false, followedByNode, builder, resultType);
     }
 
+    @Override
+    public KTStream<K, V> innerFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return this.followedBy(otherStream,withinMs).every();
+    }
+
+    @Override
+    public KTStream<K, V> fullOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return this.every().followedBy(otherStream.every(), withinMs);
+    }
+
+    @Override
+    public KTStream<K, V> leftOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return this.every().followedBy(otherStream, withinMs);
+    }
+
+    @Override
+    public KTStream<K, V> rightOuterFollowedBy(KTStream<K, V> otherStream, long withinMs) {
+        return this.followedBy(otherStream.every(), withinMs);
+    }
+
     private KTStream<K,V> gateway(String storeName){
         final String processorName = builder.newProcessorName(GATEWAY_NAME);
 
